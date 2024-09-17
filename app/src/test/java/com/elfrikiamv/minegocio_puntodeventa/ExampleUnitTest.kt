@@ -1,4 +1,4 @@
-package com.elfrikiamv.super_pointsale
+package com.elfrikiamv.minegocio_puntodeventa
 
 import org.junit.Test
 

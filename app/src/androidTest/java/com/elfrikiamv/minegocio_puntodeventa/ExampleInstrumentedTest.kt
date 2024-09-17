@@ -1,4 +1,4 @@
-package com.elfrikiamv.super_pointsale
+package com.elfrikiamv.minegocio_puntodeventa
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -19,6 +19,6 @@ class ExampleInstrumentedTest {
     fun useAppContext() {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("com.elfrikiamv.super_pointsale", appContext.packageName)
+        assertEquals("com.elfrikiamv.minegocio_puntodeventa", appContext.packageName)
     }
 }
