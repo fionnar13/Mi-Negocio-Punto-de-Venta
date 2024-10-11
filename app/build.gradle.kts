@@ -70,6 +70,9 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
+    //splashscreen API
+    implementation(libs.androidx.core.splashscreen)
+
     // Import the Firebase BoM
     implementation(platform(libs.firebase.bom))
 
