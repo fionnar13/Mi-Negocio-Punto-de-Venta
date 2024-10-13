@@ -76,12 +76,22 @@ dependencies {
     // Import the Firebase BoM
     implementation(platform(libs.firebase.bom))
 
+    // Add the dependency for the Firebase Authentication library
+    // When using the BoM, you don't specify versions in Firebase library dependencies
+    implementation(libs.firebase.auth)
 
     // TODO: Add the dependencies for Firebase products you want to use
     // When using the BoM, don't specify versions in Firebase dependencies
     implementation(libs.firebase.analytics)
 
-
     // Add the dependencies for any other desired Firebase products
     // https://firebase.google.com/docs/android/setup#available-libraries
+
+    //Para utilizar await()
+    implementation (libs.kotlinx.coroutines.play.services)
+
+    // Jetpack Compose
+    /*implementation(libs.ui)
+    implementation(libs.material3)*/
+    implementation (libs.androidx.navigation.compose)
 }
