@@ -5,7 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
 @Composable
-fun ScanQRScreen(modifier: Modifier = Modifier) {
+fun ShoppingScreen(modifier: Modifier = Modifier) {
     // Contenido de la pantalla de inicio
-    Text(text = "ScanQRScreen", modifier = modifier)
+    Text(text = "Shopping screen", modifier = modifier)
 }

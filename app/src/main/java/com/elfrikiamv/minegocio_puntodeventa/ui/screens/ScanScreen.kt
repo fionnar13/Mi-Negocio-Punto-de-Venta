@@ -5,7 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
 @Composable
-fun ActividadScreen(modifier: Modifier = Modifier) {
+fun ScanScreen(modifier: Modifier = Modifier) {
     // Contenido de la pantalla de inicio
-    Text(text = "ActividadScreen", modifier = modifier)
+    Text(text = "Scan screen", modifier = modifier)
 }

@@ -5,7 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
 @Composable
-fun InventarioScreen(modifier: Modifier = Modifier) {
+fun ActivityScreen(modifier: Modifier = Modifier) {
     // Contenido de la pantalla de inicio
-    Text(text = "InventarioScreen", modifier = modifier)
+    Text(text = "Activity screen", modifier = modifier)
 }

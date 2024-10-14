@@ -9,9 +9,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,6 +28,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.AuthViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(navController: NavController, authViewModel: AuthViewModel = viewModel()) {
     // Estado para el correo electrónico
@@ -36,71 +40,82 @@ fun RegisterScreen(navController: NavController, authViewModel: AuthViewModel = 
     // Estado para mostrar mensajes de error
     var errorMessage by remember { mutableStateOf("") }
 
-    // Interfaz de usuario
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // Campo de texto para el correo electrónico
-        OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text("Correo Electrónico") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        // Campo de texto para la contraseña
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = { Text("Contraseña") },
-            singleLine = true,
-            visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        // Campo de texto para confirmar la contraseña
-        OutlinedTextField(
-            value = confirmPassword,
-            onValueChange = { confirmPassword = it },
-            label = { Text("Confirmar Contraseña") },
-            singleLine = true,
-            visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        // Botón para registrar al usuario
-        Button(
-            onClick = {
-                if (password == confirmPassword) {
-                    authViewModel.signUp(email, password) { success, error ->
-                        if (success) {
-                            navController.navigate("home") {
-                                popUpTo("register") { inclusive = true }
+    Scaffold(
+        // No colocamos nada en el topBar, así que el Top App Bar no se mostrará
+        topBar = {
+            TopAppBar(
+                title = { Text("Register") }
+            )
+        },
+        content = { padding ->
+
+            // Interfaz de usuario
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Campo de texto para el correo electrónico
+                OutlinedTextField(
+                    value = email,
+                    onValueChange = { email = it },
+                    label = { Text("Correo Electrónico") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                // Campo de texto para la contraseña
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    label = { Text("Contraseña") },
+                    singleLine = true,
+                    visualTransformation = PasswordVisualTransformation(),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                // Campo de texto para confirmar la contraseña
+                OutlinedTextField(
+                    value = confirmPassword,
+                    onValueChange = { confirmPassword = it },
+                    label = { Text("Confirmar Contraseña") },
+                    singleLine = true,
+                    visualTransformation = PasswordVisualTransformation(),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                // Botón para registrar al usuario
+                Button(
+                    onClick = {
+                        if (password == confirmPassword) {
+                            authViewModel.signUp(email, password) { success, error ->
+                                if (success) {
+                                    navController.navigate("main") {
+                                        popUpTo("register") { inclusive = true }
+                                    }
+                                } else {
+                                    errorMessage = "Error al registrar: $error"
+                                }
                             }
                         } else {
-                            errorMessage = "Error al registrar: $error"
+                            errorMessage = "Las contraseñas no coinciden"
                         }
-                    }
-                } else {
-                    errorMessage = "Las contraseñas no coinciden"
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Registrar")
                 }
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Registrar")
+                Spacer(modifier = Modifier.height(8.dp))
+                // Mostrar mensaje de error si existe
+                if (errorMessage.isNotEmpty()) {
+                    Text(
+                        text = errorMessage,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
         }
-        Spacer(modifier = Modifier.height(8.dp))
-        // Mostrar mensaje de error si existe
-        if (errorMessage.isNotEmpty()) {
-            Text(
-                text = errorMessage,
-                color = MaterialTheme.colorScheme.error
-            )
-        }
-    }
+    )
 }

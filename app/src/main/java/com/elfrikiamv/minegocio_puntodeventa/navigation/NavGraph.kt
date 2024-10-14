@@ -4,8 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.elfrikiamv.minegocio_puntodeventa.ui.screens.HomeScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.LoginScreen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.MainScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.RegisterScreen
 
 @Composable
@@ -20,8 +20,8 @@ fun NavGraph(navController: NavHostController) {
             RegisterScreen(navController)
         }
         // Ruta para la pantalla principal
-        composable("home") {
-            HomeScreen()
+        composable("main") {
+            MainScreen()
         }
     }
 }
