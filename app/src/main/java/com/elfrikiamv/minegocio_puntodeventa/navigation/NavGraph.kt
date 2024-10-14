@@ -4,6 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.AddProductScreen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.InventoryScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.LoginScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.MainScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.RegisterScreen
@@ -21,7 +23,17 @@ fun NavGraph(navController: NavHostController) {
         }
         // Ruta para la pantalla principal
         composable("main") {
-            MainScreen()
+            MainScreen(navController)
+        }
+
+        // Ruta para la pantalla de inventario
+        composable("inventory") {
+            InventoryScreen(navController)
+        }
+
+        // Ruta para la pantalla de agregar producto
+        composable("addProduct") {
+            AddProductScreen(navController)
         }
     }
 }

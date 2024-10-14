@@ -1,5 +1,5 @@
 package com.elfrikiamv.minegocio_puntodeventa.ui.screens
-
+//MainScreen.kt
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -14,10 +14,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
+import androidx.navigation.NavController
 import com.elfrikiamv.minegocio_puntodeventa.R
 
 @Composable
-fun MainScreen() {
+fun MainScreen(navController: NavController) {
     // Estado para el índice seleccionado en la barra de navegación
     var selectedIndex by remember { mutableIntStateOf(0) }
 
@@ -50,7 +51,10 @@ fun MainScreen() {
             1 -> ActivityScreen(modifier = Modifier.padding(innerPadding))
             2 -> ScanScreen(modifier = Modifier.padding(innerPadding))
             3 -> ShoppingScreen(modifier = Modifier.padding(innerPadding))
-            4 -> InventoryScreen(modifier = Modifier.padding(innerPadding))
+            4 -> InventoryScreen(
+                navController = navController,  // Pasar navController aquí
+                modifier = Modifier.padding(innerPadding)
+            )
         }
     }
 }

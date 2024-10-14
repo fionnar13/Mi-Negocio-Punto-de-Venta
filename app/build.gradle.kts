@@ -91,7 +91,9 @@ dependencies {
     implementation (libs.kotlinx.coroutines.play.services)
 
     // Jetpack Compose
-    /*implementation(libs.ui)
-    implementation(libs.material3)*/
     implementation (libs.androidx.navigation.compose)
+
+    // Declare the dependency for the Cloud Firestore library
+    // When using the BoM, you don't specify versions in Firebase library dependencies
+    implementation(libs.firebase.firestore)
 }
