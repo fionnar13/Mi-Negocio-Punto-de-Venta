@@ -3,10 +3,10 @@ package com.elfrikiamv.minegocio_puntodeventa.viewmodel
 //InventoryViewModel.kt
 
 import androidx.lifecycle.ViewModel
+import com.elfrikiamv.minegocio_puntodeventa.model.Product
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
-import com.elfrikiamv.minegocio_puntodeventa.model.Product
 import kotlinx.coroutines.flow.StateFlow
 
 class InventoryViewModel : ViewModel() {
@@ -58,4 +58,27 @@ class InventoryViewModel : ViewModel() {
             .collection("products")
             .add(newProduct)
     }
+
+    //verificar si el producto existe en Firestore
+    fun checkProductExists(barcode: String, callback: (Product?) -> Unit) {
+        val userEmail = auth.currentUser?.email ?: return
+
+        db.collection("inventories")
+            .document(userEmail)
+            .collection("products")
+            .whereEqualTo("barcode", barcode)
+            .get()
+            .addOnSuccessListener { documents ->
+                if (documents.isEmpty) {
+                    callback(null) // Producto no encontrado
+                } else {
+                    val product = documents.documents.first().toObject(Product::class.java)
+                    callback(product)
+                }
+            }
+            .addOnFailureListener {
+                callback(null) // En caso de error
+            }
+    }
+
 }

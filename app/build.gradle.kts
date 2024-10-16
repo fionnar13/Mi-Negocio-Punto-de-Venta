@@ -88,12 +88,20 @@ dependencies {
     // https://firebase.google.com/docs/android/setup#available-libraries
 
     //Para utilizar await()
-    implementation (libs.kotlinx.coroutines.play.services)
+    implementation(libs.kotlinx.coroutines.play.services)
 
     // Jetpack Compose
-    implementation (libs.androidx.navigation.compose)
+    implementation(libs.androidx.navigation.compose)
 
     // Declare the dependency for the Cloud Firestore library
     // When using the BoM, you don't specify versions in Firebase library dependencies
     implementation(libs.firebase.firestore)
+
+    // ML Kit para escaneo de código de barras
+    implementation (libs.barcode.scanning)
+
+    // lib camera
+    implementation(libs.androidx.camera.view)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.camera2)
 }
