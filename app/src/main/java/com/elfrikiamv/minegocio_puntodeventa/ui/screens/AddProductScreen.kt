@@ -1,5 +1,7 @@
 package com.elfrikiamv.minegocio_puntodeventa.ui.screens
 
+//AddProductScreen.kt
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*

@@ -1,18 +1,13 @@
 package com.elfrikiamv.minegocio_puntodeventa.viewmodel
 
+//InventoryViewModel.kt
+
 import androidx.lifecycle.ViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
+import com.elfrikiamv.minegocio_puntodeventa.model.Product
 import kotlinx.coroutines.flow.StateFlow
-
-// Clase de datos para los productos
-data class Product(
-    val id: String = "",
-    val name: String = "",
-    val quantity: Int = 0,
-    val barcode: String = ""
-)
 
 class InventoryViewModel : ViewModel() {
     // Firebase Authentication para obtener el usuario actual

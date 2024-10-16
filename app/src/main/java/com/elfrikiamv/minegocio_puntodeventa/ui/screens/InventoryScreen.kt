@@ -1,5 +1,7 @@
 package com.elfrikiamv.minegocio_puntodeventa.ui.screens
+
 //InventoryScreen.kt
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.*
@@ -9,6 +11,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.InventoryViewModel
+import com.elfrikiamv.minegocio_puntodeventa.model.Product
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,7 +43,7 @@ fun InventoryScreen(navController: NavController, modifier: Modifier = Modifier)
 }
 
 @Composable
-fun ProductCard(product: com.elfrikiamv.minegocio_puntodeventa.viewmodel.Product) {
+fun ProductCard(product: Product) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
