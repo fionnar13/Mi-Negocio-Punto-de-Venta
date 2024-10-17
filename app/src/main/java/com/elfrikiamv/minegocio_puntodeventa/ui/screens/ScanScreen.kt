@@ -29,6 +29,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -148,6 +149,7 @@ fun CameraPreview(onBarcodeDetected: (String) -> Unit) {
                     }
 
                     try {
+                        cameraProvider.unbindAll() // Desvincular cualquier uso anterior
                         val camera = cameraProvider.bindToLifecycle(
                             lifecycleOwner,
                             cameraSelector,
@@ -155,30 +157,33 @@ fun CameraPreview(onBarcodeDetected: (String) -> Unit) {
                             analysisUseCase
                         )
                         cameraControl = camera.cameraControl
-
                     } catch (exc: Exception) {
                         Log.e("CameraPreview", "Error al iniciar la cámara: ${exc.message}")
                     }
                 }, ContextCompat.getMainExecutor(context))
 
-                // Detectar el toque en la pantalla para enfocar
                 setOnTouchListener { v, event ->
                     if (event.action == MotionEvent.ACTION_DOWN) {
-                        // Crear el punto de enfoque
                         val factory = this.meteringPointFactory
                         val point = factory.createPoint(event.x, event.y)
                         val action = FocusMeteringAction.Builder(point).build()
                         cameraControl?.startFocusAndMetering(action)
-
-                        // Llamar a performClick para accesibilidad
                         v.performClick()
                     }
                     true
                 }
 
             }
-        }
+        },
+        update = { /* Puedes manejar la actualización de la vista aquí si es necesario */ }
     )
+
+    // Limpiar recursos cuando la composición se desmonte
+    DisposableEffect(Unit) {
+        onDispose {
+            cameraControl = null
+        }
+    }
 }
 
 class BarcodeAnalyzer(private val onBarcodesDetected: (List<Barcode>) -> Unit) :
