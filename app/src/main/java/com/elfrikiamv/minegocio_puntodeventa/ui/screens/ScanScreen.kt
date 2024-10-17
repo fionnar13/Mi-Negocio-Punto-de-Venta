@@ -8,11 +8,14 @@ import android.content.pm.PackageManager
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.util.Log
+import android.view.MotionEvent
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.camera.core.CameraControl
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ExperimentalGetImage
+import androidx.camera.core.FocusMeteringAction
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
@@ -53,9 +56,8 @@ fun ScanScreen(
 ) {
     var scanResult by remember { mutableStateOf<String?>(null) }
     var productInfo by remember { mutableStateOf<String?>(null) }
-    var isCooldownActive by remember { mutableStateOf(false) } // Estado para manejar el cooldown
+    var isCooldownActive by remember { mutableStateOf(false) }
 
-    // Solicitar permisos de cámara
     val cameraPermission = Manifest.permission.CAMERA
     val context = LocalContext.current
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -67,12 +69,9 @@ fun ScanScreen(
         }
     }
 
-    // Verificar si el permiso ya fue otorgado
     LaunchedEffect(Unit) {
-        if (ContextCompat.checkSelfPermission(
-                context,
-                cameraPermission
-            ) != PackageManager.PERMISSION_GRANTED
+        if (ContextCompat.checkSelfPermission(context, cameraPermission)
+            != PackageManager.PERMISSION_GRANTED
         ) {
             permissionLauncher.launch(cameraPermission)
         }
@@ -88,9 +87,8 @@ fun ScanScreen(
                 text = productInfo ?: "Escanea un código de barras",
                 modifier = Modifier.align(Alignment.Center)
             )
-            // Vista de la cámara para escanear códigos de barras
+
             CameraPreview { barcode ->
-                // Verificar si el cooldown está activo
                 if (!isCooldownActive) {
                     scanResult = barcode
                     viewModel.checkProductExists(barcode) { product ->
@@ -98,27 +96,20 @@ fun ScanScreen(
                             "Producto: ${it.name}, Código: ${it.barcode}"
                         } ?: "Producto no existe en el inventario"
 
-                        // Muestra mensaje en Toast y Log
                         Toast.makeText(context, productInfo, Toast.LENGTH_SHORT).show()
                         Log.d("ScanScreen", productInfo ?: "Producto no encontrado")
 
-                        // Vibrar el dispositivo
                         val vibrator =
                             context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
                         vibrator.vibrate(
-                            VibrationEffect.createOneShot(
-                                200,
-                                VibrationEffect.DEFAULT_AMPLITUDE
-                            )
+                            VibrationEffect.createOneShot(200, VibrationEffect.DEFAULT_AMPLITUDE)
                         )
 
-                        // Activar el cooldown
                         isCooldownActive = true
                     }
                 }
             }
 
-            // Reiniciar el cooldown
             if (isCooldownActive) {
                 LaunchedEffect(Unit) {
                     delay(3000)
@@ -133,13 +124,13 @@ fun ScanScreen(
 fun CameraPreview(onBarcodeDetected: (String) -> Unit) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
+    var cameraControl: CameraControl? by remember { mutableStateOf(null) }
 
     AndroidView(
         modifier = Modifier.fillMaxSize(),
         factory = { ctx ->
             PreviewView(ctx).apply {
                 val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
-
                 cameraProviderFuture.addListener({
                     val cameraProvider = cameraProviderFuture.get()
                     val preview = Preview.Builder().build().also {
@@ -157,18 +148,34 @@ fun CameraPreview(onBarcodeDetected: (String) -> Unit) {
                     }
 
                     try {
-                        cameraProvider.unbindAll()
-                        cameraProvider.bindToLifecycle(
+                        val camera = cameraProvider.bindToLifecycle(
                             lifecycleOwner,
                             cameraSelector,
                             preview,
                             analysisUseCase
                         )
+                        cameraControl = camera.cameraControl
+
                     } catch (exc: Exception) {
-                        // Manejo de errores
                         Log.e("CameraPreview", "Error al iniciar la cámara: ${exc.message}")
                     }
                 }, ContextCompat.getMainExecutor(context))
+
+                // Detectar el toque en la pantalla para enfocar
+                setOnTouchListener { v, event ->
+                    if (event.action == MotionEvent.ACTION_DOWN) {
+                        // Crear el punto de enfoque
+                        val factory = this.meteringPointFactory
+                        val point = factory.createPoint(event.x, event.y)
+                        val action = FocusMeteringAction.Builder(point).build()
+                        cameraControl?.startFocusAndMetering(action)
+
+                        // Llamar a performClick para accesibilidad
+                        v.performClick()
+                    }
+                    true
+                }
+
             }
         }
     )
