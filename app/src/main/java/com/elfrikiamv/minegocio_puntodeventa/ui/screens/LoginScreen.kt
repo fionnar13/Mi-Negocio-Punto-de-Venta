@@ -1,6 +1,7 @@
 package com.elfrikiamv.minegocio_puntodeventa.ui.screens
 
-// Importar el ViewModel
+// LoginScreen.kt
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -32,6 +33,15 @@ import com.elfrikiamv.minegocio_puntodeventa.viewmodel.AuthViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(navController: NavController, authViewModel: AuthViewModel = viewModel()) {
+
+    // Verificar si el usuario ya está autenticado
+    if (authViewModel.isUserLoggedIn()) {
+        // Navegar directamente a la pantalla principal
+        navController.navigate("main") {
+            popUpTo("login") { inclusive = true }
+        }
+    }
+
     // Estado para el correo electrónico
     var email by remember { mutableStateOf("") }
     // Estado para la contraseña

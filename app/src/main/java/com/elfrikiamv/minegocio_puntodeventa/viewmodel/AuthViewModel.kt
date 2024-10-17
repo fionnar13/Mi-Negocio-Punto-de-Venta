@@ -1,5 +1,7 @@
 package com.elfrikiamv.minegocio_puntodeventa.viewmodel
 
+// AuthViewModel.kt
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
@@ -33,4 +35,10 @@ class AuthViewModel : ViewModel() {
             }
         }
     }
+
+    // verificar si el usuario está autenticado al abrir la app
+    fun isUserLoggedIn(): Boolean {
+        return auth.currentUser != null
+    }
+
 }
