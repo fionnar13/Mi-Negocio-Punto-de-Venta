@@ -34,6 +34,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -62,6 +63,7 @@ fun ScanScreen(
     var cameraError by remember { mutableStateOf<String?>(null) }
     var showFocusIndicator by remember { mutableStateOf(false) }
     var focusPoint by remember { mutableStateOf(Offset.Zero) }
+    var lastScanTime by remember { mutableLongStateOf(0L) } // Para guardar el tiempo del último escaneo
 
     // Solicitar permiso de cámara
     val cameraPermission = Manifest.permission.CAMERA
@@ -104,8 +106,15 @@ fun ScanScreen(
                 // Vista previa de la cámara
                 CameraPreview(
                     onBarcodeDetected = { barcode ->
-                        // Procesar el código de barras detectado directamente
-                        processBarcode(barcode, viewModel, context)
+                        // Comprobar si ha pasado el cooldown
+                        val currentTime = System.currentTimeMillis()
+                        if (currentTime - lastScanTime >= 2000) {
+                            lastScanTime = currentTime // Actualizar el tiempo del último escaneo
+                            // Procesar el código de barras detectado directamente
+                            processBarcode(barcode, viewModel, context)
+                        } else {
+                            Toast.makeText(context, "Por favor espera 2 segundos antes de escanear nuevamente", Toast.LENGTH_SHORT).show()
+                        }
                     },
                     onFocusTapped = { x, y ->
                         // Mostrar el indicador de enfoque en la pantalla
@@ -263,3 +272,4 @@ class BarcodeAnalyzer(private val onBarcodesDetected: (List<Barcode>, ImageProxy
             }
     }
 }
+
