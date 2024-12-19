@@ -53,7 +53,9 @@ fun MainScreen(navController: NavController) {
             0 -> HomeScreen(modifier = Modifier.padding(innerPadding))
             1 -> ActivityScreen(modifier = Modifier.padding(innerPadding))
             2 -> ScanScreen(  // Aquí debes pasar viewModel y navController
-                viewModel = viewModel(),  // Obtén el viewModel de la manera que lo necesites
+                // Obtén el viewModel de la manera que lo necesites
+                viewModelInventory = viewModel(),
+                viewModelShopping = viewModel(),
                 navController = navController,
                 modifier = Modifier.padding(innerPadding)
             )

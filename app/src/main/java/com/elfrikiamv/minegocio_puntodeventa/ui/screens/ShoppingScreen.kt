@@ -19,11 +19,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.elfrikiamv.minegocio_puntodeventa.model.Product
-import com.elfrikiamv.minegocio_puntodeventa.viewmodel.InventoryViewModel
+import com.elfrikiamv.minegocio_puntodeventa.viewmodel.ShoppingViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ShoppingScreen(viewModel: InventoryViewModel, modifier: Modifier = Modifier) {
+fun ShoppingScreen(viewModel: ShoppingViewModel, modifier: Modifier = Modifier) {
     val products by viewModel.cartProducts.collectAsState()
 
     Scaffold(

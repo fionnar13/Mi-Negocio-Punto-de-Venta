@@ -50,6 +50,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import com.elfrikiamv.minegocio_puntodeventa.model.Product
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.InventoryViewModel
+import com.elfrikiamv.minegocio_puntodeventa.viewmodel.ShoppingViewModel
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
@@ -57,7 +58,8 @@ import com.google.mlkit.vision.common.InputImage
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScanScreen(
-    viewModel: InventoryViewModel,
+    viewModelInventory: InventoryViewModel,
+    viewModelShopping: ShoppingViewModel,
     navController: NavController,
     modifier: Modifier = Modifier
 ) {
@@ -110,7 +112,7 @@ fun ScanScreen(
                         val currentTime = System.currentTimeMillis()
                         if (currentTime - lastScanTime >= 2000) {
                             lastScanTime = currentTime
-                            viewModel.checkProductExists(barcode) { product ->
+                            viewModelInventory.checkProductExists(barcode) { product ->
                                 if (product != null) {
                                     scannedProduct = product
                                     screenColor = Color.Green
@@ -138,7 +140,7 @@ fun ScanScreen(
         QuantityDialog(
             product = scannedProduct!!,
             onConfirm = { quantity ->
-                viewModel.addToCart(
+                viewModelShopping.addToCart(
                     scannedProduct!!.copy(
                         quantity = quantity
                     )
@@ -182,33 +184,6 @@ fun QuantityDialog(product: Product, onConfirm: (Int) -> Unit, onDismiss: () -> 
         }
     )
 }
-
-// Procesar el código de barras detectado
-/*private fun processBarcode(
-    barcode: String,
-    viewModel: InventoryViewModel,
-    context: Context
-) {
-    // Verificar si el producto existe en el inventario
-    viewModel.checkProductExists(barcode) { product ->
-        val productInfo = product?.let {
-            "Producto: ${it.name}, Código: ${it.barcode}"
-        } ?: "Producto no existe en el inventario"
-
-        // Mostrar un mensaje con el resultado
-        Toast.makeText(context, productInfo, Toast.LENGTH_SHORT).show()
-        Log.d("ScanScreen", productInfo)
-
-        // Vibrar al detectar código de barras
-        val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-        vibrator.vibrate(
-            VibrationEffect.createOneShot(
-                200,
-                VibrationEffect.DEFAULT_AMPLITUDE
-            )
-        )
-    }
-}*/
 
 // Componente para la vista previa de la cámara
 @Composable
