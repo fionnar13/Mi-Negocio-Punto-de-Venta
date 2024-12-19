@@ -47,9 +47,9 @@ class InventoryViewModel : ViewModel() {
     private fun loadProducts() {
         val userEmail = auth.currentUser?.email ?: return
 
-        db.collection("inventories")
+        db.collection("users")
             .document(userEmail)
-            .collection("products")
+            .collection("inventories")
             .addSnapshotListener { snapshot, e ->
                 if (e != null || snapshot == null) {
                     // Manejar error
@@ -71,9 +71,9 @@ class InventoryViewModel : ViewModel() {
         val newProduct = Product(name = name, quantity = quantity, barcode = barcode)
 
         // Guardar el producto en Firestore
-        db.collection("inventories")
+        db.collection("users")
             .document(userEmail)
-            .collection("products")
+            .collection("inventories")
             .add(newProduct)
     }
 
@@ -81,9 +81,9 @@ class InventoryViewModel : ViewModel() {
     fun checkProductExists(barcode: String, callback: (Product?) -> Unit) {
         val userEmail = auth.currentUser?.email ?: return
 
-        db.collection("inventories")
+        db.collection("users")
             .document(userEmail)
-            .collection("products")
+            .collection("inventories")
             .whereEqualTo("barcode", barcode)
             .get()
             .addOnSuccessListener { documents ->
