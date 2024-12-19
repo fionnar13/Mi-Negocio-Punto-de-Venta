@@ -1,5 +1,7 @@
 package com.elfrikiamv.minegocio_puntodeventa.navigation
 
+// NavGraph.kt
+
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost

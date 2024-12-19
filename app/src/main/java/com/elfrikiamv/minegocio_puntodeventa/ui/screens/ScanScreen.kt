@@ -1,12 +1,9 @@
 package com.elfrikiamv.minegocio_puntodeventa.ui.screens
 
-// ScanScreen
+// ScanScreen.kt
 
 import android.Manifest
-import android.content.Context
 import android.content.pm.PackageManager
-import android.os.VibrationEffect
-import android.os.Vibrator
 import android.util.Log
 import android.view.MotionEvent
 import android.widget.Toast
@@ -21,14 +18,18 @@ import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
-import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -47,11 +48,11 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
+import com.elfrikiamv.minegocio_puntodeventa.model.Product
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.InventoryViewModel
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
-import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,23 +64,21 @@ fun ScanScreen(
     var cameraError by remember { mutableStateOf<String?>(null) }
     var showFocusIndicator by remember { mutableStateOf(false) }
     var focusPoint by remember { mutableStateOf(Offset.Zero) }
-    var lastScanTime by remember { mutableLongStateOf(0L) } // Para guardar el tiempo del último escaneo
+    var lastScanTime by remember { mutableLongStateOf(0L) }
+    var scannedProduct by remember { mutableStateOf<Product?>(null) }
+    var quantityDialogVisible by remember { mutableStateOf(false) }
+    var screenColor by remember { mutableStateOf(Color.White) }
 
-    // Solicitar permiso de cámara
-    val cameraPermission = Manifest.permission.CAMERA
     val context = LocalContext.current
+    val cameraPermission = Manifest.permission.CAMERA
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (!isGranted) {
-            Toast.makeText(context, "Permiso de cámara denegado", Toast.LENGTH_SHORT).show()
             cameraError = "Permiso de cámara denegado"
-        } else {
-            cameraError = null
         }
     }
 
-    // Solicitar permiso de cámara si no está concedido
     LaunchedEffect(Unit) {
         if (ContextCompat.checkSelfPermission(context, cameraPermission)
             != PackageManager.PERMISSION_GRANTED
@@ -88,14 +87,17 @@ fun ScanScreen(
         }
     }
 
-    // Interfaz de la pantalla de escaneo
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("Escanear Código de Barras") })
         }
     ) { paddingValues ->
-        Box(modifier = modifier.padding(paddingValues)) {
-            // Mostrar error si hay un problema con la cámara
+        Box(
+            modifier = modifier
+                .padding(paddingValues)
+                .fillMaxSize()
+                .background(screenColor)
+        ) {
             if (cameraError != null) {
                 Text(
                     text = cameraError ?: "Error desconocido",
@@ -103,49 +105,86 @@ fun ScanScreen(
                     color = MaterialTheme.colorScheme.error
                 )
             } else {
-                // Vista previa de la cámara
                 CameraPreview(
                     onBarcodeDetected = { barcode ->
-                        // Comprobar si ha pasado el cooldown
                         val currentTime = System.currentTimeMillis()
                         if (currentTime - lastScanTime >= 2000) {
-                            lastScanTime = currentTime // Actualizar el tiempo del último escaneo
-                            // Procesar el código de barras detectado directamente
-                            processBarcode(barcode, viewModel, context)
-                        } else {
-                            Toast.makeText(context, "Por favor espera 2 segundos antes de escanear nuevamente", Toast.LENGTH_SHORT).show()
+                            lastScanTime = currentTime
+                            viewModel.checkProductExists(barcode) { product ->
+                                if (product != null) {
+                                    scannedProduct = product
+                                    screenColor = Color.Green
+                                    quantityDialogVisible = true
+                                } else {
+                                    Toast.makeText(
+                                        context,
+                                        "Producto no encontrado",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }
                         }
                     },
                     onFocusTapped = { x, y ->
-                        // Mostrar el indicador de enfoque en la pantalla
                         focusPoint = Offset(x, y)
                         showFocusIndicator = true
                     }
                 )
-
-                // Mostrar indicador visual de enfoque
-                if (showFocusIndicator) {
-                    Canvas(modifier = Modifier.fillMaxSize()) {
-                        drawCircle(
-                            color = Color.Green,
-                            radius = 50f,
-                            center = focusPoint
-                        )
-                    }
-
-                    // Ocultar el indicador después de 0.5 segundos
-                    LaunchedEffect(Unit) {
-                        delay(500)
-                        showFocusIndicator = false
-                    }
-                }
             }
         }
     }
+
+    if (quantityDialogVisible && scannedProduct != null) {
+        QuantityDialog(
+            product = scannedProduct!!,
+            onConfirm = { quantity ->
+                viewModel.addToCart(
+                    scannedProduct!!.copy(
+                        quantity = quantity
+                    )
+                )
+                screenColor = Color.White
+                quantityDialogVisible = false
+            },
+            onDismiss = {
+                screenColor = Color.White
+                quantityDialogVisible = false
+            }
+        )
+    }
+}
+
+@Composable
+fun QuantityDialog(product: Product, onConfirm: (Int) -> Unit, onDismiss: () -> Unit) {
+    var quantity by remember { mutableStateOf(1) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Agregar ${product.name}") },
+        text = {
+            Column {
+                Text("Ingrese la cantidad:")
+                TextField(
+                    value = quantity.toString(),
+                    onValueChange = { quantity = it.toIntOrNull() ?: 1 }
+                )
+            }
+        },
+        confirmButton = {
+            Button(onClick = { onConfirm(quantity) }) {
+                Text("Confirmar")
+            }
+        },
+        dismissButton = {
+            Button(onClick = onDismiss) {
+                Text("Cancelar")
+            }
+        }
+    )
 }
 
 // Procesar el código de barras detectado
-private fun processBarcode(
+/*private fun processBarcode(
     barcode: String,
     viewModel: InventoryViewModel,
     context: Context
@@ -169,7 +208,7 @@ private fun processBarcode(
             )
         )
     }
-}
+}*/
 
 // Componente para la vista previa de la cámara
 @Composable
@@ -262,7 +301,10 @@ class BarcodeAnalyzer(private val onBarcodesDetected: (List<Barcode>, ImageProxy
         // Procesar la imagen para detectar códigos de barras
         BarcodeScanning.getClient().process(inputImage)
             .addOnSuccessListener { barcodes ->
-                onBarcodesDetected(barcodes, imageProxy) // Llamar cuando se detectan códigos de barras
+                onBarcodesDetected(
+                    barcodes,
+                    imageProxy
+                ) // Llamar cuando se detectan códigos de barras
             }
             .addOnCompleteListener {
                 imageProxy.close() // Cerrar el proxy de imagen después de procesar

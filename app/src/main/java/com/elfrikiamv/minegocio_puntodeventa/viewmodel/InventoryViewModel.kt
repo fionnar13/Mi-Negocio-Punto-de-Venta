@@ -20,9 +20,27 @@ class InventoryViewModel : ViewModel() {
     private val _products = MutableStateFlow<List<Product>>(emptyList())
     val products: StateFlow<List<Product>> = _products
 
+    // StateFlow cartProducts
+    private val _cartProducts = MutableStateFlow<List<Product>>(emptyList())
+    val cartProducts: StateFlow<List<Product>> = _cartProducts
+
     init {
         // Cargar los productos al iniciar el ViewModel
         loadProducts()
+    }
+
+    // Función para agregar un producto al carrito
+    fun addToCart(product: Product) {
+        val updatedCart = _cartProducts.value.toMutableList().apply {
+            val existingProduct = find { it.barcode == product.barcode }
+            if (existingProduct != null) {
+                remove(existingProduct)
+                add(existingProduct.copy(quantity = existingProduct.quantity + product.quantity))
+            } else {
+                add(product)
+            }
+        }
+        _cartProducts.value = updatedCart
     }
 
     // Función para cargar los productos desde Firestore

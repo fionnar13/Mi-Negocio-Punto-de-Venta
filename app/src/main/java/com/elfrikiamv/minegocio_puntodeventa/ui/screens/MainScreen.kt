@@ -58,7 +58,11 @@ fun MainScreen(navController: NavController) {
                 modifier = Modifier.padding(innerPadding)
             )
 
-            3 -> ShoppingScreen(modifier = Modifier.padding(innerPadding))
+            3 -> ShoppingScreen(
+                viewModel = viewModel(),
+                modifier = Modifier.padding(innerPadding)
+            )
+
             4 -> InventoryScreen(
                 navController = navController,  // Pasar navController aquí
                 modifier = Modifier.padding(innerPadding)
