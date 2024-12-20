@@ -207,7 +207,7 @@ fun CameraPreview(
                     cameraProvider = cameraProviderFuture.get()
 
                     val preview = Preview.Builder().build().also {
-                        it.setSurfaceProvider(surfaceProvider)
+                        it.surfaceProvider = surfaceProvider
                     }
 
                     // Crear el analizador de códigos de barras
