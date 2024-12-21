@@ -3,10 +3,12 @@ package com.elfrikiamv.minegocio_puntodeventa.ui.screens
 // ShoppingScreen.kt
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -16,6 +18,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.elfrikiamv.minegocio_puntodeventa.model.Product
@@ -31,11 +34,31 @@ fun ShoppingScreen(viewModel: ShoppingViewModel, modifier: Modifier = Modifier) 
             TopAppBar(title = { Text("Carrito de Compras") })
         }
     ) { paddingValues ->
-        LazyColumn(
-            modifier = modifier.padding(paddingValues)
+        Column(
+            modifier = modifier
+                .padding(paddingValues)
+                .fillMaxSize()
         ) {
-            items(products) { product ->
-                ProductTicket(product)
+            // Lista de productos
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(8.dp)
+            ) {
+                items(products) { product ->
+                    ProductTicket(product)
+                }
+            }
+
+            // Botón de confirmación de ticket
+            Button(
+                onClick = { viewModel.confirmTicket() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+                    .align(Alignment.CenterHorizontally)
+            ) {
+                Text("Confirmar Ticket")
             }
         }
     }
@@ -55,7 +78,6 @@ fun ProductTicket(product: Product) {
             Text("Cantidad: ${product.quantity}")
             Text("Precio Unitario: $${product.price}")
             Text("Total: $${total}")
-            Text("Fecha y Hora: ${System.currentTimeMillis()}")
         }
     }
 }

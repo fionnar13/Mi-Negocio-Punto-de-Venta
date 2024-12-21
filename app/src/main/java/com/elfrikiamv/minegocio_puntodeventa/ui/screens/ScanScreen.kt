@@ -289,4 +289,3 @@ class BarcodeAnalyzer(private val onBarcodesDetected: (List<Barcode>, ImageProxy
             }
     }
 }
-
