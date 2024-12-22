@@ -8,6 +8,9 @@ plugins {
 
     // ksp
     id("com.google.devtools.ksp")
+
+    // Add the Crashlytics Gradle plugin
+    id("com.google.firebase.crashlytics")
 }
 
 android {
@@ -88,8 +91,10 @@ dependencies {
     // When using the BoM, don't specify versions in Firebase dependencies
     implementation(libs.firebase.analytics)
 
-    // Add the dependencies for any other desired Firebase products
-    // https://firebase.google.com/docs/android/setup#available-libraries
+    // Add the dependencies for the Crashlytics and Analytics libraries
+    // When using the BoM, you don't specify versions in Firebase library dependencies
+    implementation(libs.firebase.crashlytics)
+    implementation(libs.google.firebase.analytics)
 
     //Para utilizar await()
     implementation(libs.kotlinx.coroutines.play.services)
@@ -114,5 +119,6 @@ dependencies {
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
 
+    //gson
     implementation(libs.gson)
 }
