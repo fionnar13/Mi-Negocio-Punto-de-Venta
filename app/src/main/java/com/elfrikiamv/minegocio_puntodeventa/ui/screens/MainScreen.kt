@@ -51,7 +51,11 @@ fun MainScreen(navController: NavController) {
         // Contenido de la pantalla según el índice seleccionado
         when (selectedIndex) {
             0 -> HomeScreen(modifier = Modifier.padding(innerPadding))
-            1 -> ActivityScreen(modifier = Modifier.padding(innerPadding))
+            1 -> ActivityScreen(
+                viewModel = viewModel(),
+                modifier = Modifier.padding(innerPadding)
+            )
+
             2 -> ScanScreen(  // Aquí debes pasar viewModel y navController
                 // Obtén el viewModel de la manera que lo necesites
                 viewModelInventory = viewModel(),

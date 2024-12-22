@@ -1,4 +1,4 @@
-package com.elfrikiamv.minegocio_puntodeventa.entity
+package com.elfrikiamv.minegocio_puntodeventa.model
 
 // ProductEntity.kt
 

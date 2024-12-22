@@ -10,8 +10,8 @@ import androidx.room.TypeConverters
 import com.elfrikiamv.minegocio_puntodeventa.converter.ProductListConverter
 import com.elfrikiamv.minegocio_puntodeventa.dao.ProductDao
 import com.elfrikiamv.minegocio_puntodeventa.dao.TicketDao
-import com.elfrikiamv.minegocio_puntodeventa.entity.ProductEntity
-import com.elfrikiamv.minegocio_puntodeventa.entity.TicketEntity
+import com.elfrikiamv.minegocio_puntodeventa.model.ProductEntity
+import com.elfrikiamv.minegocio_puntodeventa.model.TicketEntity
 
 @Database(
     entities = [ProductEntity::class, TicketEntity::class],

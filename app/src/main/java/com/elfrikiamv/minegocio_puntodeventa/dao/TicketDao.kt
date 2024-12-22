@@ -5,7 +5,7 @@ package com.elfrikiamv.minegocio_puntodeventa.dao
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
-import com.elfrikiamv.minegocio_puntodeventa.entity.TicketEntity
+import com.elfrikiamv.minegocio_puntodeventa.model.TicketEntity
 
 @Dao
 interface TicketDao {
@@ -16,5 +16,6 @@ interface TicketDao {
     suspend fun getAllTickets(): List<TicketEntity>
 
     @Query("DELETE FROM tickets WHERE ticketId = :ticketId")
-    suspend fun deleteTicketById(ticketId: Long)
+    suspend fun deleteTicketById(ticketId: String)
+
 }

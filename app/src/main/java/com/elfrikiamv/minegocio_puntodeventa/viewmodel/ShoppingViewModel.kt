@@ -7,9 +7,11 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.elfrikiamv.minegocio_puntodeventa.database.AppDatabase
-import com.elfrikiamv.minegocio_puntodeventa.entity.ProductEntity
-import com.elfrikiamv.minegocio_puntodeventa.entity.TicketEntity
 import com.elfrikiamv.minegocio_puntodeventa.model.Product
+import com.elfrikiamv.minegocio_puntodeventa.model.ProductEntity
+import com.elfrikiamv.minegocio_puntodeventa.model.TicketEntity
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -25,6 +27,10 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
         .productDao() // Para manejar productos en la base de datos
     private val ticketDao =
         AppDatabase.getDatabase(application).ticketDao() // Para manejar tickets en la base de datos
+
+    private val auth = FirebaseAuth.getInstance() // Firebase Authentication
+
+    private val db = FirebaseFirestore.getInstance() // Firestore Database
 
     // MutableStateFlow que almacena los productos del carrito (estado mutable)
     private val _cartProducts = MutableStateFlow<List<Product>>(emptyList())
@@ -83,7 +89,7 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
             // Insertamos el ticket en la base de datos
             ticketDao.insertTicket(ticket)
             // Log para verificar que el ticket fue guardado correctamente
-            Log.d("ShoppingViewModel", "Ticket insertado en la base de datos: $ticket")
+            Log.d("ShoppingViewModel", "Ticket insertado en la base de datos room: $ticket")
 
             // Limpiamos los productos del carrito (después de confirmar el ticket)
             productDao.deleteAllProducts()
@@ -96,8 +102,41 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
                 "ShoppingViewModel",
                 "Productos eliminados del carrito después de confirmar el ticket"
             )
+
+            // Subir ticket a Firebase
+            uploadTicketToFirebase(ticket)
         }
     }
+
+    private fun uploadTicketToFirebase(ticketEntity: TicketEntity) {
+        val userEmail = auth.currentUser?.email
+        if (userEmail.isNullOrEmpty()) {
+            Log.e("ShoppingViewModel", "No se encontró un usuario autenticado.")
+            return
+        }
+
+        val ticket = ticketEntity.toTicketEntity()
+
+        db.collection("users")
+            .document(userEmail)
+            .collection("tickets")
+            .document(ticket.ticketId)
+            .set(ticket)
+            .addOnSuccessListener {
+                Log.d("ShoppingViewModel", "Ticket subido a Firebase: ${ticket.ticketId}")
+                viewModelScope.launch {
+                    ticketDao.deleteTicketById(ticket.ticketId)
+                    Log.d(
+                        "ShoppingViewModel",
+                        "Ticket eliminado de la base de datos local: ${ticket.ticketId}"
+                    )
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e("ShoppingViewModel", "Error al subir el ticket a Firebase: $e")
+            }
+    }
+
 
     // Función para cargar los productos del carrito desde la base de datos
     private fun loadCartProducts() {
