@@ -3,7 +3,10 @@ package com.elfrikiamv.minegocio_puntodeventa.ui.screens
 // ScanScreen.kt
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.util.Log
 import android.view.MotionEvent
 import android.widget.Toast
@@ -18,6 +21,7 @@ import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -54,6 +58,7 @@ import com.elfrikiamv.minegocio_puntodeventa.viewmodel.ShoppingViewModel
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,6 +78,8 @@ fun ScanScreen(
 
     val context = LocalContext.current
     val cameraPermission = Manifest.permission.CAMERA
+    val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
@@ -117,6 +124,14 @@ fun ScanScreen(
                                     scannedProduct = product
                                     screenColor = Color.Green
                                     quantityDialogVisible = true
+
+                                    // Vibrar al detectar el código de barras
+                                    vibrator.vibrate(
+                                        VibrationEffect.createOneShot(
+                                            200,
+                                            VibrationEffect.DEFAULT_AMPLITUDE
+                                        )
+                                    )
                                 } else {
                                     Toast.makeText(
                                         context,
@@ -132,6 +147,22 @@ fun ScanScreen(
                         showFocusIndicator = true
                     }
                 )
+                // Mostrar indicador visual de enfoque
+                if (showFocusIndicator) {
+                    Canvas(modifier = Modifier.fillMaxSize()) {
+                        drawCircle(
+                            color = Color.Green,
+                            radius = 50f,
+                            center = focusPoint
+                        )
+                    }
+
+                    // Ocultar el indicador después de 0.5 segundos
+                    LaunchedEffect(Unit) {
+                        delay(500)
+                        showFocusIndicator = false
+                    }
+                }
             }
         }
     }
