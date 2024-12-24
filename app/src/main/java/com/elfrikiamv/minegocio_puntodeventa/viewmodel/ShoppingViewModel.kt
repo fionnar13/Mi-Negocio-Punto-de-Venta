@@ -7,8 +7,8 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.elfrikiamv.minegocio_puntodeventa.database.AppDatabase
-import com.elfrikiamv.minegocio_puntodeventa.model.Product
 import com.elfrikiamv.minegocio_puntodeventa.model.ProductEntity
+import com.elfrikiamv.minegocio_puntodeventa.model.ProductFirebase
 import com.elfrikiamv.minegocio_puntodeventa.model.TicketEntity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -33,10 +33,10 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
     private val db = FirebaseFirestore.getInstance() // Firestore Database
 
     // MutableStateFlow que almacena los productos del carrito (estado mutable)
-    private val _cartProducts = MutableStateFlow<List<Product>>(emptyList())
+    private val _cartProducts = MutableStateFlow<List<ProductFirebase>>(emptyList())
 
     // StateFlow expuesto para que las vistas puedan observar los productos del carrito
-    val cartProducts: StateFlow<List<Product>> = _cartProducts
+    val cartProducts: StateFlow<List<ProductFirebase>> = _cartProducts
 
     // Inicializa el ViewModel y carga los productos al abrir la pantalla
     init {
@@ -44,7 +44,7 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
     }
 
     // Función para agregar un producto al carrito de compras
-    fun addToCart(product: Product) {
+    fun addToCart(product: ProductFirebase) {
         // Convertimos el producto de la vista en una entidad para la base de datos (ProductEntity)
         val productEntity = ProductEntity(
             barcode = product.barcode,  // Código de barras del producto
@@ -144,7 +144,7 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
             // Recuperamos todos los productos desde la base de datos (ProductEntity)
             val products = productDao.getAllProducts().map {
                 // Convertimos los productos de la base de datos (ProductEntity) a objetos Product
-                Product(
+                ProductFirebase(
                     barcode = it.barcode,   // Código de barras del producto
                     name = it.name,         // Nombre del producto
                     quantity = it.quantity, // Cantidad del producto

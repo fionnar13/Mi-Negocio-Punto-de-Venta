@@ -3,7 +3,7 @@ package com.elfrikiamv.minegocio_puntodeventa.model
 //Product.kt
 
 // Clase de datos para representar un producto en el inventario
-data class Product(
+data class ProductFirebase(
     val id: String = "",         // Identificador único del producto en Firebase
     val name: String = "",       // Nombre del producto
     val quantity: Int = 0,       // Cantidad disponible del producto

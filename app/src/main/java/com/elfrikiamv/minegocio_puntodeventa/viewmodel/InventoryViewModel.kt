@@ -3,7 +3,7 @@ package com.elfrikiamv.minegocio_puntodeventa.viewmodel
 //InventoryViewModel.kt
 
 import androidx.lifecycle.ViewModel
-import com.elfrikiamv.minegocio_puntodeventa.model.Product
+import com.elfrikiamv.minegocio_puntodeventa.model.ProductFirebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,8 +17,8 @@ class InventoryViewModel : ViewModel() {
     private val db = FirebaseFirestore.getInstance()
 
     // StateFlow que almacenará los productos del inventario
-    private val _products = MutableStateFlow<List<Product>>(emptyList())
-    val products: StateFlow<List<Product>> = _products
+    private val _products = MutableStateFlow<List<ProductFirebase>>(emptyList())
+    val products: StateFlow<List<ProductFirebase>> = _products
 
     init {
         // Cargar los productos al iniciar el ViewModel
@@ -40,7 +40,7 @@ class InventoryViewModel : ViewModel() {
 
                 // Convertir los documentos a objetos Product
                 val productsList = snapshot.documents.mapNotNull { doc ->
-                    doc.toObject(Product::class.java)?.copy(id = doc.id)
+                    doc.toObject(ProductFirebase::class.java)?.copy(id = doc.id)
                 }
                 _products.value = productsList
             }
@@ -50,7 +50,7 @@ class InventoryViewModel : ViewModel() {
     fun addProduct(name: String, quantity: Int, barcode: String) {
         val userEmail = auth.currentUser?.email ?: return
 
-        val newProduct = Product(name = name, quantity = quantity, barcode = barcode)
+        val newProduct = ProductFirebase(name = name, quantity = quantity, barcode = barcode)
 
         // Guardar el producto en Firestore
         db.collection("users")
@@ -60,7 +60,7 @@ class InventoryViewModel : ViewModel() {
     }
 
     //verificar si el producto existe en Firestore
-    fun checkProductExists(barcode: String, callback: (Product?) -> Unit) {
+    fun checkProductExists(barcode: String, callback: (ProductFirebase?) -> Unit) {
         val userEmail = auth.currentUser?.email ?: return
 
         db.collection("users")
@@ -72,7 +72,7 @@ class InventoryViewModel : ViewModel() {
                 if (documents.isEmpty) {
                     callback(null) // Producto no encontrado
                 } else {
-                    val product = documents.documents.first().toObject(Product::class.java)
+                    val product = documents.documents.first().toObject(ProductFirebase::class.java)
                     callback(product)
                 }
             }

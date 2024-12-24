@@ -15,7 +15,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.elfrikiamv.minegocio_puntodeventa.model.Ticket
+import com.elfrikiamv.minegocio_puntodeventa.model.TicketFirebase
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.ActivityViewModel
 
 @Composable
@@ -40,7 +40,7 @@ fun ActivityScreen(
 
 // Composable para mostrar los detalles de un ticket
 @Composable
-fun TicketCard(ticket: Ticket) {
+fun TicketCard(ticket: TicketFirebase) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -49,19 +49,25 @@ fun TicketCard(ticket: Ticket) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = "ID: ${ticket.ticketId}")
             Text(text = "Fecha y Hora: ${ticket.dateTime}")
-            Text(text = "Total: ${ticket.totalPrice}")
             Text(text = "Productos:")
+            // Iterar sobre los productos
             ticket.products.forEach { product ->
-                // Accede a las propiedades usando las claves del mapa
+                // Acceder a las propiedades del mapa con conversiones seguras
                 val name = product["name"] as? String ?: "Desconocido"
-                val quantity = product["quantity"] as? Int ?: 0
-                val price = product["price"] as? Double ?: 0.0
+                val quantity = (product["quantity"] as? Number)?.toInt() ?: 0
+                val price = (product["price"] as? Number)?.toDouble() ?: 0.0
 
+                // Mostrar el producto
                 Text(
-                    text = "- $name x$quantity @${price}",
+                    text = "- $name",
                     modifier = Modifier.padding(start = 8.dp)
                 )
+                Text(
+                    text = "$$price x$quantity = $${price*quantity}",
+                    modifier = Modifier.padding(start = 16.dp)
+                )
             }
+            Text(text = "Total: $${ticket.totalPrice}")
         }
     }
 }

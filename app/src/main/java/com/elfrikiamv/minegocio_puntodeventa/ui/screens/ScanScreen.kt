@@ -52,7 +52,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
-import com.elfrikiamv.minegocio_puntodeventa.model.Product
+import com.elfrikiamv.minegocio_puntodeventa.model.ProductFirebase
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.InventoryViewModel
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.ShoppingViewModel
 import com.google.mlkit.vision.barcode.BarcodeScanning
@@ -72,7 +72,7 @@ fun ScanScreen(
     var showFocusIndicator by remember { mutableStateOf(false) }
     var focusPoint by remember { mutableStateOf(Offset.Zero) }
     var lastScanTime by remember { mutableLongStateOf(0L) }
-    var scannedProduct by remember { mutableStateOf<Product?>(null) }
+    var scannedProduct by remember { mutableStateOf<ProductFirebase?>(null) }
     var quantityDialogVisible by remember { mutableStateOf(false) }
     var screenColor by remember { mutableStateOf(Color.White) }
 
@@ -188,7 +188,7 @@ fun ScanScreen(
 }
 
 @Composable
-fun QuantityDialog(product: Product, onConfirm: (Int) -> Unit, onDismiss: () -> Unit) {
+fun QuantityDialog(product: ProductFirebase, onConfirm: (Int) -> Unit, onDismiss: () -> Unit) {
     var quantity by remember { mutableStateOf(1) }
 
     AlertDialog(

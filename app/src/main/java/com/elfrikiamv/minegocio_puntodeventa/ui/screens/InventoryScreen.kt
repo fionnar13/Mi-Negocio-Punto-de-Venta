@@ -20,7 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.elfrikiamv.minegocio_puntodeventa.model.Product
+import com.elfrikiamv.minegocio_puntodeventa.model.ProductFirebase
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.InventoryViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -53,7 +53,7 @@ fun InventoryScreen(navController: NavController, modifier: Modifier = Modifier)
 }
 
 @Composable
-fun ProductCard(product: Product) {
+fun ProductCard(product: ProductFirebase) {
     Card(
         modifier = Modifier
             .fillMaxWidth()

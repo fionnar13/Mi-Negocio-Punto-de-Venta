@@ -5,7 +5,7 @@ package com.elfrikiamv.minegocio_puntodeventa.viewmodel
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
-import com.elfrikiamv.minegocio_puntodeventa.model.Ticket
+import com.elfrikiamv.minegocio_puntodeventa.model.TicketFirebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,8 +18,8 @@ class ActivityViewModel(application: Application) : AndroidViewModel(application
     private val db = FirebaseFirestore.getInstance() // Instancia de Firestore
 
     // MutableStateFlow para almacenar la lista de tickets
-    private val _tickets = MutableStateFlow<List<Ticket>>(emptyList())
-    val tickets: StateFlow<List<Ticket>> = _tickets // StateFlow expuesto a la vista
+    private val _tickets = MutableStateFlow<List<TicketFirebase>>(emptyList())
+    val tickets: StateFlow<List<TicketFirebase>> = _tickets // StateFlow expuesto a la vista
 
     init {
         // Cargar los tickets al inicializar el ViewModel
@@ -46,10 +46,10 @@ class ActivityViewModel(application: Application) : AndroidViewModel(application
 
                 if (snapshot != null && !snapshot.isEmpty) {
                     val fetchedTickets = snapshot.documents.mapNotNull { doc ->
-                        doc.toObject(Ticket::class.java) // Convertir cada documento a objeto Ticket
+                        doc.toObject(TicketFirebase::class.java) // Convertir cada documento a objeto Ticket
                     }
                     _tickets.value = fetchedTickets // Actualizar el StateFlow
-                    Log.d("ActivityViewModel", "Tickets cargados: $fetchedTickets")
+                    Log.d("ActivityViewModel", "Tickets cargados: ${_tickets.value}")
                 } else {
                     Log.d("ActivityViewModel", "No se encontraron tickets")
                 }

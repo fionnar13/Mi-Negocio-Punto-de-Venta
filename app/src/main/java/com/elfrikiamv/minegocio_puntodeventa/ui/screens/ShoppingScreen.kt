@@ -21,7 +21,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.elfrikiamv.minegocio_puntodeventa.model.Product
+import com.elfrikiamv.minegocio_puntodeventa.model.ProductFirebase
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.ShoppingViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -65,7 +65,7 @@ fun ShoppingScreen(viewModel: ShoppingViewModel, modifier: Modifier = Modifier) 
 }
 
 @Composable
-fun ProductTicket(product: Product) {
+fun ProductTicket(product: ProductFirebase) {
     val total = product.quantity * product.price
 
     Card(

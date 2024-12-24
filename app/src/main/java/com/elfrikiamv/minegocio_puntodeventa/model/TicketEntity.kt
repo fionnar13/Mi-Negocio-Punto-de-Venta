@@ -12,8 +12,8 @@ data class TicketEntity(
     val products: List<ProductEntity>,  // Lista de productos
     val totalPrice: Double          // Precio total del ticket
 ) {
-    fun toTicketEntity(): Ticket {
-        return Ticket(
+    fun toTicketEntity(): TicketFirebase {
+        return TicketFirebase(
             ticketId = this.ticketId,  // Usamos el mismo ticketId
             dateTime = this.dateTime,  // Usamos la misma fecha y hora
             // Convertimos la lista de productos (de ProductEntity a Map) para Firestore
