@@ -60,6 +60,7 @@ fun MainScreen(navController: NavController) {
                 // Obtén el viewModel de la manera que lo necesites
                 viewModelInventory = viewModel(),
                 viewModelShopping = viewModel(),
+                scanViewModel = viewModel(),
                 navController = navController,
                 modifier = Modifier.padding(innerPadding)
             )

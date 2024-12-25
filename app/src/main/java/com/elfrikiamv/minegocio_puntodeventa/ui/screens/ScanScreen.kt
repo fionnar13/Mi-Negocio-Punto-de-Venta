@@ -3,13 +3,8 @@ package com.elfrikiamv.minegocio_puntodeventa.ui.screens
 // ScanScreen.kt
 
 import android.Manifest
-import android.content.Context
-import android.content.pm.PackageManager
-import android.os.VibrationEffect
-import android.os.Vibrator
 import android.util.Log
 import android.view.MotionEvent
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraControl
@@ -38,8 +33,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -54,6 +50,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import com.elfrikiamv.minegocio_puntodeventa.model.ProductFirebase
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.InventoryViewModel
+import com.elfrikiamv.minegocio_puntodeventa.viewmodel.ScanViewModel
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.ShoppingViewModel
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
@@ -65,34 +62,29 @@ import kotlinx.coroutines.delay
 fun ScanScreen(
     viewModelInventory: InventoryViewModel,
     viewModelShopping: ShoppingViewModel,
+    scanViewModel: ScanViewModel,
     navController: NavController,
     modifier: Modifier = Modifier
 ) {
-    var cameraError by remember { mutableStateOf<String?>(null) }
+    val screenColor by scanViewModel.screenColor.collectAsState()
+    val cameraError by scanViewModel.cameraError.collectAsState()
+    val quantityDialogVisible by scanViewModel.quantityDialogVisible.collectAsState()
+    val scannedProduct by scanViewModel.scannedProduct.collectAsState()
     var showFocusIndicator by remember { mutableStateOf(false) }
     var focusPoint by remember { mutableStateOf(Offset.Zero) }
-    var lastScanTime by remember { mutableLongStateOf(0L) }
-    var scannedProduct by remember { mutableStateOf<ProductFirebase?>(null) }
-    var quantityDialogVisible by remember { mutableStateOf(false) }
-    var screenColor by remember { mutableStateOf(Color.White) }
 
     val context = LocalContext.current
-    val cameraPermission = Manifest.permission.CAMERA
-    val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (!isGranted) {
-            cameraError = "Permiso de cámara denegado"
+            scanViewModel.resetScreen()
         }
     }
 
     LaunchedEffect(Unit) {
-        if (ContextCompat.checkSelfPermission(context, cameraPermission)
-            != PackageManager.PERMISSION_GRANTED
-        ) {
-            permissionLauncher.launch(cameraPermission)
+        scanViewModel.checkCameraPermission(context) {
+            permissionLauncher.launch(Manifest.permission.CAMERA)
         }
     }
 
@@ -102,7 +94,7 @@ fun ScanScreen(
         }
     ) { paddingValues ->
         Box(
-            modifier = modifier
+            modifier = Modifier
                 .padding(paddingValues)
                 .fillMaxSize()
                 .background(screenColor)
@@ -116,31 +108,7 @@ fun ScanScreen(
             } else {
                 CameraPreview(
                     onBarcodeDetected = { barcode ->
-                        val currentTime = System.currentTimeMillis()
-                        if (currentTime - lastScanTime >= 2000) {
-                            lastScanTime = currentTime
-                            viewModelInventory.checkProductExists(barcode) { product ->
-                                if (product != null) {
-                                    scannedProduct = product
-                                    screenColor = Color.Green
-                                    quantityDialogVisible = true
-
-                                    // Vibrar al detectar el código de barras
-                                    vibrator.vibrate(
-                                        VibrationEffect.createOneShot(
-                                            200,
-                                            VibrationEffect.DEFAULT_AMPLITUDE
-                                        )
-                                    )
-                                } else {
-                                    Toast.makeText(
-                                        context,
-                                        "Producto no encontrado",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                }
-                            }
-                        }
+                        scanViewModel.onBarcodeDetected(barcode, viewModelInventory)
                     },
                     onFocusTapped = { x, y ->
                         focusPoint = Offset(x, y)
@@ -167,21 +135,15 @@ fun ScanScreen(
         }
     }
 
+    // Mostrar diálogo de cantidad
     if (quantityDialogVisible && scannedProduct != null) {
         QuantityDialog(
             product = scannedProduct!!,
             onConfirm = { quantity ->
-                viewModelShopping.addToCart(
-                    scannedProduct!!.copy(
-                        quantity = quantity
-                    )
-                )
-                screenColor = Color.White
-                quantityDialogVisible = false
+                scanViewModel.confirmQuantity(quantity, viewModelShopping)
             },
             onDismiss = {
-                screenColor = Color.White
-                quantityDialogVisible = false
+                scanViewModel.resetScreen()
             }
         )
     }
@@ -189,7 +151,7 @@ fun ScanScreen(
 
 @Composable
 fun QuantityDialog(product: ProductFirebase, onConfirm: (Int) -> Unit, onDismiss: () -> Unit) {
-    var quantity by remember { mutableStateOf(1) }
+    var quantity by remember { mutableIntStateOf(1) }
 
     AlertDialog(
         onDismissRequest = onDismiss,

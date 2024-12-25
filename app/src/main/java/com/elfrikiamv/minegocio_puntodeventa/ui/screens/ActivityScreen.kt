@@ -63,7 +63,7 @@ fun TicketCard(ticket: TicketFirebase) {
                     modifier = Modifier.padding(start = 8.dp)
                 )
                 Text(
-                    text = "$$price x$quantity = $${price*quantity}",
+                    text = "$$price x$quantity = $${price * quantity}",
                     modifier = Modifier.padding(start = 16.dp)
                 )
             }
