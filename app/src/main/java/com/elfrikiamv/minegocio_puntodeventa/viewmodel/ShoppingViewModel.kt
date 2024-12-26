@@ -50,7 +50,7 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
             barcode = product.barcode,  // Código de barras del producto
             name = product.name,        // Nombre del producto
             quantity = product.quantity, // Cantidad agregada
-            price = product.price        // Precio unitario
+            price = product.salePrice        // Precio unitario
         )
 
         // Ejecutamos la inserción en la base de datos en un hilo de trabajo (viewModelScope)
@@ -148,7 +148,7 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
                     barcode = it.barcode,   // Código de barras del producto
                     name = it.name,         // Nombre del producto
                     quantity = it.quantity, // Cantidad del producto
-                    price = it.price        // Precio unitario del producto
+                    salePrice = it.price        // Precio unitario del producto
                 )
             }
             // Actualizamos el StateFlow con la lista de productos

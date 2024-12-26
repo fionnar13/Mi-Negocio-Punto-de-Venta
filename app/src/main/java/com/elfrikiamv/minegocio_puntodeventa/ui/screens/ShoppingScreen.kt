@@ -66,7 +66,7 @@ fun ShoppingScreen(viewModel: ShoppingViewModel, modifier: Modifier = Modifier) 
 
 @Composable
 fun ProductTicket(product: ProductFirebase) {
-    val total = product.quantity * product.price
+    val total = product.quantity * product.salePrice
 
     Card(
         modifier = Modifier
@@ -76,7 +76,7 @@ fun ProductTicket(product: ProductFirebase) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text("Producto: ${product.name}", style = MaterialTheme.typography.titleMedium)
             Text("Cantidad: ${product.quantity}")
-            Text("Precio Unitario: $${product.price}")
+            Text("Precio Unitario: $${product.salePrice}")
             Text("Total: $${total}")
         }
     }

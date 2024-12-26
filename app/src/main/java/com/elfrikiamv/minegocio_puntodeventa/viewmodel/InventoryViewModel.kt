@@ -47,16 +47,35 @@ class InventoryViewModel : ViewModel() {
     }
 
     // Función para agregar un producto a Firestore
-    fun addProduct(name: String, quantity: Int, barcode: String) {
+    fun addProduct(
+        name: String,
+        quantity: Int,
+        barcode: String,
+        providerPrice: Double,
+        salePrice: Double,
+        description: String
+    ) {
         val userEmail = auth.currentUser?.email ?: return
 
-        val newProduct = ProductFirebase(name = name, quantity = quantity, barcode = barcode)
+        // Generar un ID único con la hora actual
+        val productId = System.currentTimeMillis().toString()
+
+        val newProduct = ProductFirebase(
+            id = productId,
+            name = name,
+            quantity = quantity,
+            barcode = barcode,
+            providerPrice = providerPrice,
+            salePrice = salePrice,
+            description = description
+        )
 
         // Guardar el producto en Firestore
         db.collection("users")
             .document(userEmail)
             .collection("inventories")
-            .add(newProduct)
+            .document(productId)
+            .set(newProduct)
     }
 
     //verificar si el producto existe en Firestore

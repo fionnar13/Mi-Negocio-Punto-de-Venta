@@ -34,6 +34,9 @@ fun AddProductScreen(navController: NavController) {
     var name by remember { mutableStateOf("") }
     var quantity by remember { mutableStateOf("") }
     var barcode by remember { mutableStateOf("") }
+    var providerPrice by remember { mutableStateOf("") }
+    var salePrice by remember { mutableStateOf("") }
+    var description by remember { mutableStateOf("") }
 
     Scaffold(
         topBar = {
@@ -63,11 +66,39 @@ fun AddProductScreen(navController: NavController) {
                 onValueChange = { barcode = it },
                 label = { Text("Código de barras") }
             )
+            TextField(
+                value = providerPrice,
+                onValueChange = { providerPrice = it },
+                label = { Text("Precio provedor") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
+            TextField(
+                value = salePrice,
+                onValueChange = { salePrice = it },
+                label = { Text("Precio de venta") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
+            TextField(
+                value = description,
+                onValueChange = { description = it },
+                label = { Text("Descripción del producto") }
+            )
 
             Button(
                 onClick = {
-                    // Guardar el producto en Firestore y volver a la pantalla de inventario
-                    viewModel.addProduct(name, quantity.toInt(), barcode)
+                    // Validar datos antes de guardar
+                    val providerPriceValue = providerPrice.toDoubleOrNull() ?: 0.0
+                    val salePriceValue = salePrice.toDoubleOrNull() ?: 0.0
+                    val quantityValue = quantity.toIntOrNull() ?: 0
+
+                    viewModel.addProduct(
+                        name = name,
+                        quantity = quantityValue,
+                        barcode = barcode,
+                        providerPrice = providerPriceValue,
+                        salePrice = salePriceValue,
+                        description = description
+                    )
                     navController.popBackStack()
                 },
                 modifier = Modifier.fillMaxWidth()
