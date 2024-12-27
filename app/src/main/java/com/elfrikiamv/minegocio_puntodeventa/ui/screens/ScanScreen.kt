@@ -4,6 +4,7 @@ package com.elfrikiamv.minegocio_puntodeventa.ui.screens
 
 import android.Manifest
 import android.util.Log
+import android.util.Size
 import android.view.MotionEvent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -52,10 +53,12 @@ import com.elfrikiamv.minegocio_puntodeventa.model.ProductFirebase
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.InventoryViewModel
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.ScanViewModel
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.ShoppingViewModel
+import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import kotlinx.coroutines.delay
+import java.util.concurrent.Executors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -83,6 +86,7 @@ fun ScanScreen(
     }
 
     LaunchedEffect(Unit) {
+        // Solicitar permisos de cámara al iniciar la pantalla
         scanViewModel.checkCameraPermission(context) {
             permissionLauncher.launch(Manifest.permission.CAMERA)
         }
@@ -100,6 +104,7 @@ fun ScanScreen(
                 .background(screenColor)
         ) {
             if (cameraError != null) {
+                // Mostrar mensaje de error si ocurre un problema con la cámara
                 Text(
                     text = cameraError ?: "Error desconocido",
                     modifier = Modifier.align(Alignment.Center),
@@ -108,6 +113,7 @@ fun ScanScreen(
             } else {
                 CameraPreview(
                     onBarcodeDetected = { barcode ->
+                        // Manejar el código de barras detectado
                         scanViewModel.onBarcodeDetected(barcode, viewModelInventory)
                     },
                     onFocusTapped = { x, y ->
@@ -124,10 +130,8 @@ fun ScanScreen(
                             center = focusPoint
                         )
                     }
-
-                    // Ocultar el indicador después de 0.5 segundos
                     LaunchedEffect(Unit) {
-                        delay(500)
+                        delay(500) // Ocultar el indicador después de 0.5 segundos
                         showFocusIndicator = false
                     }
                 }
@@ -135,7 +139,7 @@ fun ScanScreen(
         }
     }
 
-    // Mostrar diálogo de cantidad
+    // Diálogo para agregar cantidad de producto
     if (quantityDialogVisible && scannedProduct != null) {
         QuantityDialog(
             product = scannedProduct!!,
@@ -178,10 +182,10 @@ fun QuantityDialog(product: ProductFirebase, onConfirm: (Int) -> Unit, onDismiss
     )
 }
 
-// Componente para la vista previa de la cámara
+// Vista previa de la cámara optimizada
 @Composable
 fun CameraPreview(
-    onBarcodeDetected: (String) -> Unit, // Solo se pasa el código de barras
+    onBarcodeDetected: (String) -> Unit,
     onFocusTapped: (Float, Float) -> Unit
 ) {
     val context = LocalContext.current
@@ -189,12 +193,13 @@ fun CameraPreview(
     var cameraControl: CameraControl? by remember { mutableStateOf(null) }
     var cameraProvider: ProcessCameraProvider? by remember { mutableStateOf(null) }
 
-    // Vista previa de la cámara usando AndroidView
+    // Crear un solo hilo para procesamiento de imágenes
+    val analysisExecutor = remember { Executors.newSingleThreadExecutor() }
+
     AndroidView(
         modifier = Modifier.fillMaxSize(),
         factory = { ctx ->
             PreviewView(ctx).apply {
-                // Inicializar el proveedor de cámara
                 val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
                 cameraProviderFuture.addListener({
                     cameraProvider = cameraProviderFuture.get()
@@ -203,82 +208,87 @@ fun CameraPreview(
                         it.surfaceProvider = surfaceProvider
                     }
 
-                    // Crear el analizador de códigos de barras
-                    val barcodeAnalyzer = BarcodeAnalyzer { barcodes, _ ->
-                        // Llamar a la función cuando se detecta un código de barras
-                        barcodes.firstOrNull()?.rawValue?.let { barcode ->
-                            onBarcodeDetected(barcode) // Pasar el código de barras directamente
-                        }
-                    }
+                    // Opciones para limitar los formatos de código de barras
+                    val barcodeScannerOptions = BarcodeScannerOptions.Builder().build()
 
-                    // Crear la instancia de análisis de imágenes
-                    val analysisUseCase = ImageAnalysis.Builder().build().also {
-                        it.setAnalyzer(ContextCompat.getMainExecutor(context), barcodeAnalyzer)
-                    }
+                    val barcodeAnalyzer = BarcodeAnalyzer(
+                        barcodeScannerOptions, // Analizador para todos los formatos
+                        onBarcodesDetected = { barcodes, _ ->
+                            barcodes.firstOrNull()?.rawValue?.let(onBarcodeDetected) // Manejar el primer código
+                        }
+                    )
+
+                    val analysisUseCase = ImageAnalysis.Builder()
+                        .setTargetResolution(Size(1280, 720)) // Configurar resolución
+                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST) // Evitar acumulaciones
+                        .build()
+                        .also {
+                            it.setAnalyzer(analysisExecutor, barcodeAnalyzer) // Asignar analizador
+                        }
 
                     val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
                     try {
-                        cameraProvider?.unbindAll() // Desvincular cámaras anteriores
+                        cameraProvider?.unbindAll()
                         val camera = cameraProvider?.bindToLifecycle(
                             lifecycleOwner,
                             cameraSelector,
                             preview,
                             analysisUseCase
                         )
-                        cameraControl = camera?.cameraControl // Control de la cámara
+                        cameraControl = camera?.cameraControl
                     } catch (exc: Exception) {
                         Log.e("CameraPreview", "Error al iniciar la cámara: ${exc.message}")
                     }
                 }, ContextCompat.getMainExecutor(context))
 
-                // Manejar toques en la pantalla para enfocar
+                // Manejo de toques para enfoque
                 setOnTouchListener { v, event ->
                     if (event.action == MotionEvent.ACTION_DOWN) {
                         val factory = this.meteringPointFactory
                         val point = factory.createPoint(event.x, event.y)
                         val action = FocusMeteringAction.Builder(point).build()
-                        cameraControl?.startFocusAndMetering(action) // Iniciar enfoque
-                        onFocusTapped(event.x, event.y) // Llamar para mostrar el indicador
+                        cameraControl?.startFocusAndMetering(action)
+                        onFocusTapped(event.x, event.y)
                         v.performClick()
                     }
                     true
                 }
             }
         },
-        update = { /* Manejar actualizaciones si es necesario */ }
+        update = { /* No se requieren actualizaciones dinámicas */ }
     )
 
-    // Limpiar recursos cuando la composición se desmonte
     DisposableEffect(Unit) {
         onDispose {
-            cameraProvider?.unbindAll() // Desvincular cámara
-            cameraControl = null // Limpiar control de cámara
+            cameraProvider?.unbindAll()
+            cameraControl = null
+            analysisExecutor.shutdown() // Liberar el ejecutor
         }
     }
 }
 
-// Clase analizador de códigos de barras
-class BarcodeAnalyzer(private val onBarcodesDetected: (List<Barcode>, ImageProxy) -> Unit) :
-    ImageAnalysis.Analyzer {
-    @androidx.annotation.OptIn(ExperimentalGetImage::class)
+// Clase para procesar códigos de barras
+class BarcodeAnalyzer(
+    options: BarcodeScannerOptions,
+    private val onBarcodesDetected: (List<Barcode>, ImageProxy) -> Unit
+) : ImageAnalysis.Analyzer {
+    private val scanner = BarcodeScanning.getClient(options)
+
+    @ExperimentalGetImage
     override fun analyze(imageProxy: ImageProxy) {
         val mediaImage = imageProxy.image ?: return
         val inputImage = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
 
-        // Procesar la imagen para detectar códigos de barras
-        BarcodeScanning.getClient().process(inputImage)
+        scanner.process(inputImage)
             .addOnSuccessListener { barcodes ->
-                onBarcodesDetected(
-                    barcodes,
-                    imageProxy
-                ) // Llamar cuando se detectan códigos de barras
-            }
-            .addOnCompleteListener {
-                imageProxy.close() // Cerrar el proxy de imagen después de procesar
+                onBarcodesDetected(barcodes, imageProxy)
             }
             .addOnFailureListener { e ->
                 Log.e("BarcodeAnalyzer", "Error al procesar la imagen: ${e.message}")
+            }
+            .addOnCompleteListener {
+                imageProxy.close()
             }
     }
 }
