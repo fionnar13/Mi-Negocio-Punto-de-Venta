@@ -1,17 +1,26 @@
 package com.elfrikiamv.minegocio_puntodeventa.ui.screens
 
-//AddProductScreen.kt
+// AddProductScreen.kt
 
+import android.widget.Toast
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -19,6 +28,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -29,15 +39,17 @@ import com.elfrikiamv.minegocio_puntodeventa.viewmodel.InventoryViewModel
 @Composable
 fun AddProductScreen(navController: NavController) {
     val viewModel: InventoryViewModel = viewModel()
+    val context = LocalContext.current
 
     // Variables para almacenar los valores del formulario
-    var id by remember { mutableStateOf<String?>(null) } // ID del producto (para actualizaciones)
+    var id by remember { mutableStateOf<String?>(null) }
     var name by remember { mutableStateOf("") }
     var quantity by remember { mutableStateOf("") }
     var barcode by remember { mutableStateOf("") }
     var providerPrice by remember { mutableStateOf("") }
     var salePrice by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) } // Estado de carga para el botón
 
     // Calcular si todos los campos están llenos
     val isFormValid = name.isNotBlank() &&
@@ -49,98 +61,191 @@ fun AddProductScreen(navController: NavController) {
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Añadir Producto") })
+            TopAppBar(
+                title = { Text("Añadir Producto") },
+                navigationIcon = {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Regresar",
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
+                            .clickable { navController.popBackStack() }
+                    )
+                }
+            )
         }
-    ) { innerPadding ->
-        // Formulario para añadir un producto
+    ) { paddingValues ->
         Column(
             modifier = Modifier
-                .padding(innerPadding)
+                .padding(paddingValues)
+                .fillMaxWidth()
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Campo de código de barras con lógica para buscar en Firebase
-            TextField(
-                value = barcode,
-                onValueChange = { newValue ->
-                    barcode = newValue
-                    // Buscar producto en Firebase si el código no está vacío
-                    if (newValue.isNotBlank()) {
-                        viewModel.checkProductExists(newValue) { product ->
-                            if (product != null) {
-                                // Si el producto existe, llenar los demás campos
-                                id = product.id // Asignar el ID del producto existente
-                                name = product.name
-                                quantity = product.quantity.toString()
-                                providerPrice = product.providerPrice.toString()
-                                salePrice = product.salePrice.toString()
-                                description = product.description
-                            } else {
-                                // Si no se encuentra, limpiar los demás campos
-                                id = null
-                                name = ""
-                                quantity = ""
-                                providerPrice = ""
-                                salePrice = ""
-                                description = ""
+            ElevatedCard(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text(
+                        text = "Llena todos los campos para agregar el producto al inventario.",
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    // Campo Código de Barras
+                    OutlinedTextField(
+                        value = barcode,
+                        onValueChange = { newValue ->
+                            barcode = newValue
+                            if (newValue.isNotBlank()) {
+                                viewModel.checkProductExists(newValue) { product ->
+                                    if (product != null) {
+                                        id = product.id
+                                        name = product.name
+                                        quantity = product.quantity.toString()
+                                        providerPrice = product.providerPrice.toString()
+                                        salePrice = product.salePrice.toString()
+                                        description = product.description
+                                    } else {
+                                        id = null
+                                        name = ""
+                                        quantity = ""
+                                        providerPrice = ""
+                                        salePrice = ""
+                                        description = ""
+                                    }
+                                }
                             }
+                        },
+                        label = { Text("Código de barras") },
+                        modifier = Modifier.fillMaxWidth(),
+                        isError = barcode.isBlank() // Muestra error si está vacío
+                    )
+                    /*if (barcode.isBlank()) Text(
+                        "Campo requerido",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyMedium
+                    )*/
+
+                    // Campo Nombre del Producto
+                    OutlinedTextField(
+                        value = name,
+                        onValueChange = { name = it },
+                        label = { Text("Nombre del producto") },
+                        modifier = Modifier.fillMaxWidth(),
+                        isError = name.isBlank()
+                    )
+                    /*if (name.isBlank()) Text(
+                        "Campo requerido",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyMedium
+                    )*/
+
+                    // Campo Cantidad
+                    OutlinedTextField(
+                        value = quantity,
+                        onValueChange = { quantity = it },
+                        label = { Text("Cantidad") },
+                        modifier = Modifier.fillMaxWidth(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        isError = quantity.isBlank()
+                    )
+                    /*if (quantity.isBlank()) Text(
+                        "Campo requerido",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyMedium
+                    )*/
+
+                    // Campo Precio Proveedor
+                    OutlinedTextField(
+                        value = providerPrice,
+                        onValueChange = { providerPrice = it },
+                        label = { Text("Precio proveedor") },
+                        modifier = Modifier.fillMaxWidth(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        isError = providerPrice.isBlank()
+                    )
+                    /*if (providerPrice.isBlank()) Text(
+                        "Campo requerido",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyMedium
+                    )*/
+
+                    // Campo Precio de Venta
+                    OutlinedTextField(
+                        value = salePrice,
+                        onValueChange = { salePrice = it },
+                        label = { Text("Precio de venta") },
+                        modifier = Modifier.fillMaxWidth(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        isError = salePrice.isBlank()
+                    )
+                    /*if (salePrice.isBlank()) Text(
+                        "Campo requerido",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyMedium
+                    )*/
+
+                    // Campo Descripción
+                    OutlinedTextField(
+                        value = description,
+                        onValueChange = { description = it },
+                        label = { Text("Descripción del producto") },
+                        modifier = Modifier.fillMaxWidth(),
+                        isError = description.isBlank()
+                    )
+                    /*if (description.isBlank()) Text(
+                        "Campo requerido",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyMedium
+                    )*/
+
+                    // Botón Guardar Producto
+                    Button(
+                        onClick = {
+                            isLoading = true
+                            val providerPriceValue = providerPrice.toDoubleOrNull() ?: 0.0
+                            val salePriceValue = salePrice.toDoubleOrNull() ?: 0.0
+                            val quantityValue = quantity.toIntOrNull() ?: 0
+
+                            viewModel.addOrUpdateProduct(
+                                id = id,
+                                name = name,
+                                quantity = quantityValue,
+                                barcode = barcode,
+                                providerPrice = providerPriceValue,
+                                salePrice = salePriceValue,
+                                description = description
+                            )
+                            isLoading = false
+
+                            // Mostrar un Toast
+                            Toast.makeText(context, "Producto guardado", Toast.LENGTH_SHORT).show()
+
+                            // Limpiar campos después de guardar
+                            id = null
+                            barcode = ""
+                            name = ""
+                            quantity = ""
+                            providerPrice = ""
+                            salePrice = ""
+                            description = ""
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = isFormValid // Activado si el formulario es válido
+                    ) {
+                        if (isLoading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                //color = MaterialTheme.colorScheme.onPrimary
+                            )
+                        } else {
+                            Text("Guardar Producto")
                         }
                     }
-                },
-                label = { Text("Código de barras") }
-            )
-
-            TextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text("Nombre del producto") }
-            )
-            TextField(
-                value = quantity,
-                onValueChange = { quantity = it },
-                label = { Text("Cantidad") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-            )
-            TextField(
-                value = providerPrice,
-                onValueChange = { providerPrice = it },
-                label = { Text("Precio proveedor") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-            )
-            TextField(
-                value = salePrice,
-                onValueChange = { salePrice = it },
-                label = { Text("Precio de venta") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-            )
-            TextField(
-                value = description,
-                onValueChange = { description = it },
-                label = { Text("Descripción del producto") }
-            )
-
-            Button(
-                onClick = {
-                    // Validar datos antes de guardar
-                    val providerPriceValue = providerPrice.toDoubleOrNull() ?: 0.0
-                    val salePriceValue = salePrice.toDoubleOrNull() ?: 0.0
-                    val quantityValue = quantity.toIntOrNull() ?: 0
-
-                    viewModel.addOrUpdateProduct(
-                        id = id, // Enviar el ID si existe, null si es nuevo
-                        name = name,
-                        quantity = quantityValue,
-                        barcode = barcode,
-                        providerPrice = providerPriceValue,
-                        salePrice = salePriceValue,
-                        description = description
-                    )
-                    navController.popBackStack()
-                },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = isFormValid // Botón habilitado solo si el formulario es válido
-            ) {
-                Text("Guardar Producto")
+                }
             }
         }
     }

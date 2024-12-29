@@ -1,6 +1,6 @@
 package com.elfrikiamv.minegocio_puntodeventa.ui.screens
 
-//InventoryScreen.kt
+// InventoryScreen.kt
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -90,20 +90,20 @@ fun InventoryScreen(navController: NavController, modifier: Modifier = Modifier)
                     Button(
                         onClick = { navController.navigate("addProduct") },
                         modifier = Modifier.weight(1f),
-                        contentPadding = PaddingValues(12.dp)
+                        //contentPadding = PaddingValues(12.dp)
                     ) {
                         //Icon(Icons.Filled.Add, contentDescription = "Añadir")
-                        Spacer(modifier = Modifier.width(8.dp))
+                        //Spacer(modifier = Modifier.width(8.dp))
                         Text("Manual")
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     Button(
                         onClick = { navController.navigate("scanProduct") },
                         modifier = Modifier.weight(1f),
-                        contentPadding = PaddingValues(12.dp)
+                        //contentPadding = PaddingValues(12.dp)
                     ) {
                         //Icon(Icons.Filled.Add, contentDescription = "Escanear")
-                        Spacer(modifier = Modifier.width(8.dp))
+                        //Spacer(modifier = Modifier.width(8.dp))
                         Text("Escanear")
                     }
                 }
