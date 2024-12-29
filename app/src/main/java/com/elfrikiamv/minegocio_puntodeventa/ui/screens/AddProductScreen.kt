@@ -50,6 +50,35 @@ fun AddProductScreen(navController: NavController) {
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            // Campo de código de barras con lógica para buscar en Firebase
+            TextField(
+                value = barcode,
+                onValueChange = { newValue ->
+                    barcode = newValue
+                    // Buscar producto en Firebase si el código no está vacío
+                    if (newValue.isNotBlank()) {
+                        viewModel.checkProductExists(newValue) { product ->
+                            if (product != null) {
+                                // Si el producto existe, llenar los demás campos
+                                name = product.name
+                                quantity = product.quantity.toString()
+                                providerPrice = product.providerPrice.toString()
+                                salePrice = product.salePrice.toString()
+                                description = product.description
+                            } else {
+                                // Si no se encuentra, limpiar los demás campos
+                                name = ""
+                                quantity = ""
+                                providerPrice = ""
+                                salePrice = ""
+                                description = ""
+                            }
+                        }
+                    }
+                },
+                label = { Text("Código de barras") }
+            )
+
             TextField(
                 value = name,
                 onValueChange = { name = it },
@@ -62,14 +91,9 @@ fun AddProductScreen(navController: NavController) {
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
             )
             TextField(
-                value = barcode,
-                onValueChange = { barcode = it },
-                label = { Text("Código de barras") }
-            )
-            TextField(
                 value = providerPrice,
                 onValueChange = { providerPrice = it },
-                label = { Text("Precio provedor") },
+                label = { Text("Precio proveedor") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
             )
             TextField(
