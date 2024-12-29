@@ -31,12 +31,21 @@ fun AddProductScreen(navController: NavController) {
     val viewModel: InventoryViewModel = viewModel()
 
     // Variables para almacenar los valores del formulario
+    var id by remember { mutableStateOf<String?>(null) } // ID del producto (para actualizaciones)
     var name by remember { mutableStateOf("") }
     var quantity by remember { mutableStateOf("") }
     var barcode by remember { mutableStateOf("") }
     var providerPrice by remember { mutableStateOf("") }
     var salePrice by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
+
+    // Calcular si todos los campos están llenos
+    val isFormValid = name.isNotBlank() &&
+            quantity.isNotBlank() &&
+            barcode.isNotBlank() &&
+            providerPrice.isNotBlank() &&
+            salePrice.isNotBlank() &&
+            description.isNotBlank()
 
     Scaffold(
         topBar = {
@@ -60,6 +69,7 @@ fun AddProductScreen(navController: NavController) {
                         viewModel.checkProductExists(newValue) { product ->
                             if (product != null) {
                                 // Si el producto existe, llenar los demás campos
+                                id = product.id // Asignar el ID del producto existente
                                 name = product.name
                                 quantity = product.quantity.toString()
                                 providerPrice = product.providerPrice.toString()
@@ -67,6 +77,7 @@ fun AddProductScreen(navController: NavController) {
                                 description = product.description
                             } else {
                                 // Si no se encuentra, limpiar los demás campos
+                                id = null
                                 name = ""
                                 quantity = ""
                                 providerPrice = ""
@@ -115,7 +126,8 @@ fun AddProductScreen(navController: NavController) {
                     val salePriceValue = salePrice.toDoubleOrNull() ?: 0.0
                     val quantityValue = quantity.toIntOrNull() ?: 0
 
-                    viewModel.addProduct(
+                    viewModel.addOrUpdateProduct(
+                        id = id, // Enviar el ID si existe, null si es nuevo
                         name = name,
                         quantity = quantityValue,
                         barcode = barcode,
@@ -125,7 +137,8 @@ fun AddProductScreen(navController: NavController) {
                     )
                     navController.popBackStack()
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                enabled = isFormValid // Botón habilitado solo si el formulario es válido
             ) {
                 Text("Guardar Producto")
             }
