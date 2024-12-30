@@ -26,6 +26,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.elfrikiamv.minegocio_puntodeventa.navigation.Screen
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.AuthViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -92,8 +93,8 @@ fun RegisterScreen(navController: NavController, authViewModel: AuthViewModel = 
                         if (password == confirmPassword) {
                             authViewModel.signUp(email, password) { success, error ->
                                 if (success) {
-                                    navController.navigate("main") {
-                                        popUpTo("register") { inclusive = true }
+                                    navController.navigate(Screen.Login.route) {
+                                        popUpTo(Screen.Register.route) { inclusive = true }
                                     }
                                 } else {
                                     errorMessage = "Error al registrar: $error"

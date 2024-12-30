@@ -14,27 +14,30 @@ import com.elfrikiamv.minegocio_puntodeventa.ui.screens.RegisterScreen
 
 @Composable
 fun NavGraph(navController: NavHostController) {
-    NavHost(navController, startDestination = "login") {
-        // Ruta para la pantalla de login
-        composable("login") {
+    // Configuración del NavHost con la ruta inicial como "login"
+    NavHost(navController = navController, startDestination = Screen.Login.route) {
+
+        // Ruta para la pantalla de Login
+        composable(Screen.Login.route) {
             LoginScreen(navController)
         }
-        // Ruta para la pantalla de registro
-        composable("register") {
+
+        // Ruta para la pantalla de Registro
+        composable(Screen.Register.route) {
             RegisterScreen(navController)
         }
         // Ruta para la pantalla principal
-        composable("main") {
+        composable(Screen.Main.route) {
             MainScreen(navController)
         }
 
-        // Ruta para la pantalla de inventario
-        composable("inventory") {
+        // Ruta para la pantalla de Inventario
+        composable(Screen.Inventory.route) {
             InventoryScreen(navController)
         }
 
-        // Ruta para la pantalla de agregar producto
-        composable("addProduct") {
+        // Ruta para la pantalla de Agregar Producto
+        composable(Screen.AddProduct.route) {
             AddProductScreen(navController)
         }
     }

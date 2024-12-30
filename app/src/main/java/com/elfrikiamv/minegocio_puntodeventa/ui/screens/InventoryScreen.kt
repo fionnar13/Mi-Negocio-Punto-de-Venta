@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.elfrikiamv.minegocio_puntodeventa.model.ProductFirebase
+import com.elfrikiamv.minegocio_puntodeventa.navigation.Screen
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.InventoryViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -88,7 +89,7 @@ fun InventoryScreen(navController: NavController, modifier: Modifier = Modifier)
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     Button(
-                        onClick = { navController.navigate("addProduct") },
+                        onClick = { navController.navigate(Screen.AddProduct.route) },
                         modifier = Modifier.weight(1f),
                         //contentPadding = PaddingValues(12.dp)
                     ) {
@@ -140,7 +141,7 @@ fun InventoryScreen(navController: NavController, modifier: Modifier = Modifier)
                         items(products) { product ->
                             ProductCard(product = product) {
                                 // Acción para editar el producto
-                                navController.navigate("editProduct/${product.id}")
+                                //navController.navigate("editProduct/${product.id}")
                             }
                         }
                     }

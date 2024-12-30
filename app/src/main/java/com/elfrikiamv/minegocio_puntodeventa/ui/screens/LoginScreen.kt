@@ -30,6 +30,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.elfrikiamv.minegocio_puntodeventa.navigation.Screen
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.AuthViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -53,7 +54,7 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel = vie
         isCheckingAuth = true
         if (authViewModel.isUserLoggedIn()) {
             // Si ya está autenticado, navegar directamente a la pantalla principal
-            navController.navigate("main") {
+            navController.navigate(Screen.Main.route) {
                 popUpTo(0) // Elimina todas las pantallas de la pila
             }
         }
@@ -113,7 +114,7 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel = vie
                                     isLoading = false // Desactivar el estado de carga
                                     if (success) {
                                         // Navegar a la pantalla principal al iniciar sesión correctamente
-                                        navController.navigate("main") {
+                                        navController.navigate(Screen.Main.route) {
                                             popUpTo(0) // Elimina todas las pantallas de la pila
                                         }
                                     } else {
@@ -132,7 +133,7 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel = vie
                     // Botón para ir a la pantalla de registro
                     TextButton(
                         onClick = {
-                            navController.navigate("register")
+                            navController.navigate(Screen.Register.route)
                         }
                     ) {
                         Text("Crear Cuenta")

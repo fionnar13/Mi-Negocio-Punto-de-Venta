@@ -79,15 +79,16 @@ fun AddProductScreen(navController: NavController) {
             modifier = Modifier
                 .padding(paddingValues)
                 .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(16.dp)
         ) {
             ElevatedCard(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
                         text = "Llena todos los campos para agregar el producto al inventario.",
@@ -102,6 +103,12 @@ fun AddProductScreen(navController: NavController) {
                             if (newValue.isNotBlank()) {
                                 viewModel.checkProductExists(newValue) { product ->
                                     if (product != null) {
+                                        // Mostrar un Toast
+                                        Toast.makeText(
+                                            context,
+                                            "Producto ya existente en el inventario, recuperando datos.",
+                                            Toast.LENGTH_LONG
+                                        ).show()
                                         id = product.id
                                         name = product.name
                                         quantity = product.quantity.toString()
@@ -137,11 +144,6 @@ fun AddProductScreen(navController: NavController) {
                         modifier = Modifier.fillMaxWidth(),
                         isError = name.isBlank()
                     )
-                    /*if (name.isBlank()) Text(
-                        "Campo requerido",
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodyMedium
-                    )*/
 
                     // Campo Cantidad
                     OutlinedTextField(
@@ -152,11 +154,6 @@ fun AddProductScreen(navController: NavController) {
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         isError = quantity.isBlank()
                     )
-                    /*if (quantity.isBlank()) Text(
-                        "Campo requerido",
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodyMedium
-                    )*/
 
                     // Campo Precio Proveedor
                     OutlinedTextField(
@@ -167,11 +164,6 @@ fun AddProductScreen(navController: NavController) {
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         isError = providerPrice.isBlank()
                     )
-                    /*if (providerPrice.isBlank()) Text(
-                        "Campo requerido",
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodyMedium
-                    )*/
 
                     // Campo Precio de Venta
                     OutlinedTextField(
@@ -182,11 +174,6 @@ fun AddProductScreen(navController: NavController) {
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         isError = salePrice.isBlank()
                     )
-                    /*if (salePrice.isBlank()) Text(
-                        "Campo requerido",
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodyMedium
-                    )*/
 
                     // Campo Descripción
                     OutlinedTextField(
@@ -196,16 +183,11 @@ fun AddProductScreen(navController: NavController) {
                         modifier = Modifier.fillMaxWidth(),
                         isError = description.isBlank()
                     )
-                    /*if (description.isBlank()) Text(
-                        "Campo requerido",
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodyMedium
-                    )*/
 
                     // Botón Guardar Producto
                     Button(
                         onClick = {
-                            isLoading = true
+                            isLoading = true    // activar la animación de carga
                             val providerPriceValue = providerPrice.toDoubleOrNull() ?: 0.0
                             val salePriceValue = salePrice.toDoubleOrNull() ?: 0.0
                             val quantityValue = quantity.toIntOrNull() ?: 0
@@ -219,11 +201,6 @@ fun AddProductScreen(navController: NavController) {
                                 salePrice = salePriceValue,
                                 description = description
                             )
-                            isLoading = false
-
-                            // Mostrar un Toast
-                            Toast.makeText(context, "Producto guardado", Toast.LENGTH_SHORT).show()
-
                             // Limpiar campos después de guardar
                             id = null
                             barcode = ""
@@ -232,14 +209,21 @@ fun AddProductScreen(navController: NavController) {
                             providerPrice = ""
                             salePrice = ""
                             description = ""
+
+                            // Desactivar el animación de carga
+                            isLoading = false
+
+                            // Mostrar mensaje de éxito
+                            Toast.makeText(context, "Producto guardado", Toast.LENGTH_SHORT).show()
                         },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 4.dp),
                         enabled = isFormValid // Activado si el formulario es válido
                     ) {
                         if (isLoading) {
                             CircularProgressIndicator(
-                                modifier = Modifier.size(24.dp),
-                                //color = MaterialTheme.colorScheme.onPrimary
+                                modifier = Modifier.size(24.dp)
                             )
                         } else {
                             Text("Guardar Producto")
