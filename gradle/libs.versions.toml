@@ -4,6 +4,7 @@ barcodeScanning = "17.3.0"
 cameraCamera2 = "1.4.1"
 coreSplashscreen = "1.0.1"
 firebaseBom = "33.7.0"
+foundation = "1.7.6"
 gson = "2.11.0"
 kotlin = "2.0.0"
 coreKtx = "1.15.0"
@@ -23,6 +24,7 @@ roomRuntime = "2.6.1"
 androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "cameraCamera2" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreen" }
+androidx-foundation = { module = "androidx.compose.foundation:foundation", version.ref = "foundation" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 barcode-scanning = { module = "com.google.mlkit:barcode-scanning", version.ref = "barcodeScanning" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }

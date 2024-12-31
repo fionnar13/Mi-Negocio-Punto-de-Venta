@@ -121,4 +121,9 @@ dependencies {
 
     //gson
     implementation(libs.gson)
+
+    // navigation compose
+    implementation (libs.androidx.navigation.compose)
+    implementation (libs.androidx.foundation)
+
 }

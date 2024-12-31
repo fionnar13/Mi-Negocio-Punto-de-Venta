@@ -41,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -88,7 +89,9 @@ fun ScanProductScreen(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Regresar",
-                        modifier = Modifier.clickable { navController.popBackStack() }
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
+                            .clickable { navController.navigateUp() }
                     )
                 }
             )

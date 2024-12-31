@@ -21,12 +21,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.elfrikiamv.minegocio_puntodeventa.model.ProductFirebase
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.ShoppingViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ShoppingScreen(viewModel: ShoppingViewModel, modifier: Modifier = Modifier) {
+fun ShoppingScreen(modifier: Modifier = Modifier) {
+    val viewModel: ShoppingViewModel = viewModel()
     val products by viewModel.cartProducts.collectAsState()
 
     Scaffold(

@@ -47,6 +47,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.elfrikiamv.minegocio_puntodeventa.model.ProductFirebase
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.InventoryViewModel
@@ -62,12 +63,15 @@ import java.util.concurrent.Executors
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScanScreen(
-    viewModelInventory: InventoryViewModel,
+    /*viewModelInventory: InventoryViewModel,
     viewModelShopping: ShoppingViewModel,
-    scanViewModel: ScanViewModel,
+    scanViewModel: ScanViewModel,*/
     navController: NavController,
     modifier: Modifier = Modifier
 ) {
+    val viewModelInventory: InventoryViewModel = viewModel()
+    val viewModelShopping: ShoppingViewModel = viewModel()
+    val scanViewModel: ScanViewModel = viewModel()
     //val screenColor by scanViewModel.screenColor.collectAsState()
     val cameraError by scanViewModel.cameraError.collectAsState()
     val quantityDialogVisible by scanViewModel.quantityDialogVisible.collectAsState()

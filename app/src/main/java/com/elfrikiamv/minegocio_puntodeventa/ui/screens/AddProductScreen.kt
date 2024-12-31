@@ -69,7 +69,7 @@ fun AddProductScreen(navController: NavController) {
                         contentDescription = "Regresar",
                         modifier = Modifier
                             .padding(horizontal = 16.dp)
-                            .clickable { navController.popBackStack() }
+                            .clickable { navController.navigateUp() }
                     )
                 }
             )

@@ -99,7 +99,7 @@ fun InventoryScreen(navController: NavController, modifier: Modifier = Modifier)
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     Button(
-                        onClick = { navController.navigate(Screen.ScanProduct.route) },
+                        onClick = { navController.navigate(Screen.ScanAddProduct.route) },
                         modifier = Modifier.weight(1f),
                         //contentPadding = PaddingValues(12.dp)
                     ) {
@@ -134,7 +134,7 @@ fun InventoryScreen(navController: NavController, modifier: Modifier = Modifier)
                         verticalArrangement = Arrangement.spacedBy(16.dp),
                         contentPadding = PaddingValues(vertical = 8.dp),
                         modifier = Modifier
-                            .padding(bottom = 72.dp)
+                            //.padding(bottom = 72.dp)
                             .fillMaxWidth()
                             .weight(1f), // Permite que la lista ocupe el espacio restante
                     ) {
