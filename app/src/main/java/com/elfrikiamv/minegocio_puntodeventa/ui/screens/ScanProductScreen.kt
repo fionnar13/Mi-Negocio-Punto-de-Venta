@@ -1,6 +1,6 @@
 package com.elfrikiamv.minegocio_puntodeventa.ui.screens
 
-// ScanScreen.kt
+// ScanProductScreen.kt
 
 import android.Manifest
 import android.util.Log
@@ -10,32 +10,29 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraControl
 import androidx.camera.core.CameraSelector
-import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.FocusMeteringAction
 import androidx.camera.core.ImageAnalysis
-import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -47,63 +44,62 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.navigation.NavController
-import com.elfrikiamv.minegocio_puntodeventa.model.ProductFirebase
-import com.elfrikiamv.minegocio_puntodeventa.viewmodel.InventoryViewModel
-import com.elfrikiamv.minegocio_puntodeventa.viewmodel.ScanViewModel
-import com.elfrikiamv.minegocio_puntodeventa.viewmodel.ShoppingViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
+import com.elfrikiamv.minegocio_puntodeventa.viewmodel.ScanProductViewModel
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions
-import com.google.mlkit.vision.barcode.BarcodeScanning
-import com.google.mlkit.vision.barcode.common.Barcode
-import com.google.mlkit.vision.common.InputImage
 import kotlinx.coroutines.delay
 import java.util.concurrent.Executors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ScanScreen(
-    viewModelInventory: InventoryViewModel,
-    viewModelShopping: ShoppingViewModel,
-    scanViewModel: ScanViewModel,
-    navController: NavController,
+fun ScanProductScreen(
+    //scanProductViewModel: ScanProductViewModel,
+    navController: NavHostController,
     modifier: Modifier = Modifier
 ) {
-    //val screenColor by scanViewModel.screenColor.collectAsState()
-    val cameraError by scanViewModel.cameraError.collectAsState()
-    val quantityDialogVisible by scanViewModel.quantityDialogVisible.collectAsState()
-    val scannedProduct by scanViewModel.scannedProduct.collectAsState()
-    var showFocusIndicator by remember { mutableStateOf(false) }
-    var focusPoint by remember { mutableStateOf(Offset.Zero) }
+    val scanProductViewModel: ScanProductViewModel = viewModel()
 
     val context = LocalContext.current
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (!isGranted) {
-            scanViewModel.resetScreen()
+            scanProductViewModel.setCameraError("Permiso de cámara denegado")
         }
     }
 
+    // Solicitar permiso de cámara
     LaunchedEffect(Unit) {
-        // Solicitar permisos de cámara al iniciar la pantalla
-        scanViewModel.checkCameraPermission(context) {
+        scanProductViewModel.checkCameraPermission(context) {
             permissionLauncher.launch(Manifest.permission.CAMERA)
         }
     }
 
+    val cameraError by scanProductViewModel.cameraError.collectAsState()
+    var showFocusIndicator by remember { mutableStateOf(false) }
+    var focusPoint by remember { mutableStateOf(Offset.Zero) }
+
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Escanear Código de Barras") })
+            TopAppBar(
+                title = { Text("Escanear Producto") },
+                navigationIcon = {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Regresar",
+                        modifier = Modifier.clickable { navController.popBackStack() }
+                    )
+                }
+            )
         }
     ) { paddingValues ->
         Box(
             modifier = Modifier
                 .padding(paddingValues)
                 .fillMaxSize()
-            //.background(screenColor)
         ) {
             if (cameraError != null) {
-                // Mostrar mensaje de error si ocurre un problema con la cámara
                 Text(
                     text = cameraError ?: "Error desconocido",
                     modifier = Modifier.align(Alignment.Center),
@@ -112,15 +108,13 @@ fun ScanScreen(
             } else {
                 CameraPreview(
                     onBarcodeDetected = { barcode ->
-                        // Manejar el código de barras detectado
-                        scanViewModel.onBarcodeDetected(barcode, viewModelInventory)
+                        scanProductViewModel.onBarcodeDetected(barcode)
                     },
                     onFocusTapped = { x, y ->
                         focusPoint = Offset(x, y)
                         showFocusIndicator = true
                     }
                 )
-                // Mostrar indicador visual de enfoque
                 if (showFocusIndicator) {
                     Canvas(modifier = Modifier.fillMaxSize()) {
                         drawCircle(
@@ -130,58 +124,15 @@ fun ScanScreen(
                         )
                     }
                     LaunchedEffect(Unit) {
-                        delay(500) // Ocultar el indicador después de 0.5 segundos
+                        delay(500)
                         showFocusIndicator = false
                     }
                 }
             }
         }
     }
-
-    // Diálogo para agregar cantidad de producto
-    if (quantityDialogVisible && scannedProduct != null) {
-        QuantityDialog(
-            product = scannedProduct!!,
-            onConfirm = { quantity ->
-                scanViewModel.confirmQuantity(quantity, viewModelShopping)
-            },
-            onDismiss = {
-                scanViewModel.resetScreen()
-            }
-        )
-    }
 }
 
-@Composable
-fun QuantityDialog(product: ProductFirebase, onConfirm: (Int) -> Unit, onDismiss: () -> Unit) {
-    var quantity by remember { mutableIntStateOf(1) }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Agregar ${product.name}") },
-        text = {
-            Column {
-                Text("Ingrese la cantidad:")
-                TextField(
-                    value = quantity.toString(),
-                    onValueChange = { quantity = it.toIntOrNull() ?: 1 }
-                )
-            }
-        },
-        confirmButton = {
-            Button(onClick = { onConfirm(quantity) }) {
-                Text("Confirmar")
-            }
-        },
-        dismissButton = {
-            Button(onClick = onDismiss) {
-                Text("Cancelar")
-            }
-        }
-    )
-}
-
-// Vista previa de la cámara optimizada
 @Composable
 private fun CameraPreview(
     onBarcodeDetected: (String) -> Unit,
@@ -191,8 +142,6 @@ private fun CameraPreview(
     val lifecycleOwner = LocalLifecycleOwner.current
     var cameraControl: CameraControl? by remember { mutableStateOf(null) }
     var cameraProvider: ProcessCameraProvider? by remember { mutableStateOf(null) }
-
-    // Crear un solo hilo para procesamiento de imágenes
     val analysisExecutor = remember { Executors.newSingleThreadExecutor() }
 
     AndroidView(
@@ -207,22 +156,18 @@ private fun CameraPreview(
                         it.surfaceProvider = surfaceProvider
                     }
 
-                    // Opciones para limitar los formatos de código de barras
                     val barcodeScannerOptions = BarcodeScannerOptions.Builder().build()
 
-                    val barcodeAnalyzer = BarcodeAnalyzer(
-                        barcodeScannerOptions, // Analizador para todos los formatos
-                        onBarcodesDetected = { barcodes, _ ->
-                            barcodes.firstOrNull()?.rawValue?.let(onBarcodeDetected) // Manejar el primer código
-                        }
-                    )
+                    val barcodeAnalyzer = BarcodeAnalyzer(barcodeScannerOptions) { barcodes, _ ->
+                        barcodes.firstOrNull()?.rawValue?.let(onBarcodeDetected)
+                    }
 
                     val analysisUseCase = ImageAnalysis.Builder()
-                        .setTargetResolution(Size(1280, 720)) // Configurar resolución
-                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST) // Evitar acumulaciones
+                        .setTargetResolution(Size(1280, 720))
+                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                         .build()
                         .also {
-                            it.setAnalyzer(analysisExecutor, barcodeAnalyzer) // Asignar analizador
+                            it.setAnalyzer(analysisExecutor, barcodeAnalyzer)
                         }
 
                     val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
@@ -241,7 +186,6 @@ private fun CameraPreview(
                     }
                 }, ContextCompat.getMainExecutor(context))
 
-                // Manejo de toques para enfoque
                 setOnTouchListener { v, event ->
                     if (event.action == MotionEvent.ACTION_DOWN) {
                         val factory = this.meteringPointFactory
@@ -255,39 +199,14 @@ private fun CameraPreview(
                 }
             }
         },
-        update = { /* No se requieren actualizaciones dinámicas */ }
+        update = { }
     )
 
     DisposableEffect(Unit) {
         onDispose {
             cameraProvider?.unbindAll()
             cameraControl = null
-            analysisExecutor.shutdown() // Liberar el ejecutor
+            analysisExecutor.shutdown()
         }
-    }
-}
-
-// Clase para procesar códigos de barras
-class BarcodeAnalyzer(
-    options: BarcodeScannerOptions,
-    private val onBarcodesDetected: (List<Barcode>, ImageProxy) -> Unit
-) : ImageAnalysis.Analyzer {
-    private val scanner = BarcodeScanning.getClient(options)
-
-    @ExperimentalGetImage
-    override fun analyze(imageProxy: ImageProxy) {
-        val mediaImage = imageProxy.image ?: return
-        val inputImage = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
-
-        scanner.process(inputImage)
-            .addOnSuccessListener { barcodes ->
-                onBarcodesDetected(barcodes, imageProxy)
-            }
-            .addOnFailureListener { e ->
-                Log.e("BarcodeAnalyzer", "Error al procesar la imagen: ${e.message}")
-            }
-            .addOnCompleteListener {
-                imageProxy.close()
-            }
     }
 }

@@ -11,6 +11,7 @@ import com.elfrikiamv.minegocio_puntodeventa.ui.screens.InventoryScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.LoginScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.MainScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.RegisterScreen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.ScanProductScreen
 
 @Composable
 fun NavGraph(navController: NavHostController) {
@@ -39,6 +40,11 @@ fun NavGraph(navController: NavHostController) {
         // Ruta para la pantalla de Agregar Producto
         composable(Screen.AddProduct.route) {
             AddProductScreen(navController)
+        }
+
+        // Ruta para la pantalla de escanear producto
+        composable(Screen.ScanProduct.route) {
+            ScanProductScreen(navController)
         }
     }
 }

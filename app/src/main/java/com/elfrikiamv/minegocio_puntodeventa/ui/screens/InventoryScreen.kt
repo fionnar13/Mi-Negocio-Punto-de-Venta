@@ -99,7 +99,7 @@ fun InventoryScreen(navController: NavController, modifier: Modifier = Modifier)
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     Button(
-                        onClick = { navController.navigate("scanProduct") },
+                        onClick = { navController.navigate(Screen.ScanProduct.route) },
                         modifier = Modifier.weight(1f),
                         //contentPadding = PaddingValues(12.dp)
                     ) {

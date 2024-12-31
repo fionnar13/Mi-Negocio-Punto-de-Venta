@@ -8,6 +8,7 @@ sealed class Screen(val route: String) {
     object Main : Screen("main")
     object Inventory : Screen("inventory")
     object AddProduct : Screen("addProduct")
+    object ScanProduct : Screen("scanProduct")
 
     // Si alguna pantalla necesita parámetros, puedes agregar métodos helper.
     object ProductDetail : Screen("productDetail/{productId}") {

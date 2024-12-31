@@ -9,7 +9,6 @@ import android.content.pm.PackageManager
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.widget.Toast
-import androidx.compose.ui.graphics.Color
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import com.elfrikiamv.minegocio_puntodeventa.model.ProductFirebase
@@ -21,8 +20,8 @@ class ScanViewModel(application: Application) : AndroidViewModel(application) {
         application.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
 
     // Estados observables
-    private val _screenColor = MutableStateFlow(Color.White)
-    val screenColor: StateFlow<Color> = _screenColor
+    /*private val _screenColor = MutableStateFlow(Color.White)
+    val screenColor: StateFlow<Color> = _screenColor*/
 
     private val _cameraError = MutableStateFlow<String?>(null)
     val cameraError: StateFlow<String?> = _cameraError
@@ -57,7 +56,7 @@ class ScanViewModel(application: Application) : AndroidViewModel(application) {
             inventoryViewModel.checkProductExists(barcode) { product ->
                 if (product != null) {
                     _scannedProduct.value = product
-                    _screenColor.value = Color.Green
+                    //_screenColor.value = Color.Green
                     _quantityDialogVisible.value = true
 
                     // Vibrar
@@ -87,7 +86,6 @@ class ScanViewModel(application: Application) : AndroidViewModel(application) {
 
     // Restablecer estados de la pantalla
     fun resetScreen() {
-        _screenColor.value = Color.White
         _quantityDialogVisible.value = false
     }
 }
