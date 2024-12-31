@@ -2,6 +2,7 @@ package com.elfrikiamv.minegocio_puntodeventa.ui.screens
 
 // AddProductScreen.kt
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -23,9 +24,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -38,6 +41,7 @@ import com.elfrikiamv.minegocio_puntodeventa.viewmodel.InventoryViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddProductScreen(navController: NavController) {
+
     val viewModel: InventoryViewModel = viewModel()
     val context = LocalContext.current
 
@@ -45,11 +49,66 @@ fun AddProductScreen(navController: NavController) {
     var id by remember { mutableStateOf<String?>(null) }
     var name by remember { mutableStateOf("") }
     var quantity by remember { mutableStateOf("") }
-    var barcode by remember { mutableStateOf("") }
+    //var barcode by remember { mutableStateOf("") }
+    var barcode by remember {
+        mutableStateOf(
+            navController.previousBackStackEntry?.savedStateHandle?.get<String>(
+                "barcode"
+            ) ?: ""
+        )
+    }
     var providerPrice by remember { mutableStateOf("") }
     var salePrice by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) } // Estado de carga para el botón
+    var errorMessage by remember { mutableStateOf<String?>(null) } // Para mostrar un error si algo sale mal
+
+    // Verificación automática cuando el código de barras cambia
+    val currentBarcode by rememberUpdatedState(barcode) // Evitar problemas de estado obsoleto
+
+    LaunchedEffect(currentBarcode) {
+        if (currentBarcode.isNotBlank()) {
+            isLoading = true // Habilitar indicador de carga
+
+            try {
+                viewModel.checkProductExists(currentBarcode) { product ->
+                    if (product != null) {
+                        // Mostrar un Toast
+                        Toast.makeText(
+                            context,
+                            "Producto ya existente en el inventario, recuperando datos.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        id = product.id
+                        name = product.name
+                        quantity = product.quantity.toString()
+                        providerPrice = product.providerPrice.toString()
+                        salePrice = product.salePrice.toString()
+                        description = product.description
+                    } else {
+                        id = null
+                        name = ""
+                        quantity = ""
+                        providerPrice = ""
+                        salePrice = ""
+                        description = ""
+                    }
+                }
+            } catch (e: Exception) {
+                errorMessage = "Hubo un error al verificar el producto."
+                Log.e("AddProductScreen", "Error al verificar producto: $e")
+            } finally {
+                isLoading = false // Desactivar indicador de carga
+            }
+        }
+        Log.d("AddProductScreen", "Código de barras recibido: $barcode")
+    }
+
+    // Mostrar mensaje de error si es necesario
+    errorMessage?.let {
+        Toast.makeText(context, it, Toast.LENGTH_LONG).show()
+        errorMessage = null
+    }
 
     // Calcular si todos los campos están llenos
     val isFormValid = name.isNotBlank() &&
@@ -99,32 +158,7 @@ fun AddProductScreen(navController: NavController) {
                     OutlinedTextField(
                         value = barcode,
                         onValueChange = { newValue ->
-                            barcode = newValue
-                            if (newValue.isNotBlank()) {
-                                viewModel.checkProductExists(newValue) { product ->
-                                    if (product != null) {
-                                        // Mostrar un Toast
-                                        Toast.makeText(
-                                            context,
-                                            "Producto ya existente en el inventario, recuperando datos.",
-                                            Toast.LENGTH_LONG
-                                        ).show()
-                                        id = product.id
-                                        name = product.name
-                                        quantity = product.quantity.toString()
-                                        providerPrice = product.providerPrice.toString()
-                                        salePrice = product.salePrice.toString()
-                                        description = product.description
-                                    } else {
-                                        id = null
-                                        name = ""
-                                        quantity = ""
-                                        providerPrice = ""
-                                        salePrice = ""
-                                        description = ""
-                                    }
-                                }
-                            }
+                            barcode = newValue // Esto disparará LaunchedEffect automáticamente
                         },
                         label = { Text("Código de barras") },
                         modifier = Modifier.fillMaxWidth(),

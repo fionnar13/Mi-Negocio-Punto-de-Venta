@@ -47,6 +47,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.elfrikiamv.minegocio_puntodeventa.navigation.Screen
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.ScanProductViewModel
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import kotlinx.coroutines.delay
@@ -55,7 +56,6 @@ import java.util.concurrent.Executors
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScanProductScreen(
-    //scanProductViewModel: ScanProductViewModel,
     navController: NavHostController,
     modifier: Modifier = Modifier
 ) {
@@ -111,7 +111,13 @@ fun ScanProductScreen(
             } else {
                 CameraPreview(
                     onBarcodeDetected = { barcode ->
-                        scanProductViewModel.onBarcodeDetected(barcode)
+                        scanProductViewModel.onBarcodeDetected(barcode) { detectedBarcode ->
+                            navController.currentBackStackEntry?.savedStateHandle?.set(
+                                "barcode",
+                                detectedBarcode
+                            )
+                            navController.navigate(Screen.AddProduct.route)
+                        }
                     },
                     onFocusTapped = { x, y ->
                         focusPoint = Offset(x, y)
