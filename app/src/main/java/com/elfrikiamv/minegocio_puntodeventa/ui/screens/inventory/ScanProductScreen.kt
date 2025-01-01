@@ -1,4 +1,4 @@
-package com.elfrikiamv.minegocio_puntodeventa.ui.screens
+package com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory
 
 // ScanProductScreen.kt
 
@@ -48,6 +48,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.elfrikiamv.minegocio_puntodeventa.navigation.Screen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.BarcodeAnalyzer
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.ScanProductViewModel
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import kotlinx.coroutines.delay
@@ -91,7 +92,11 @@ fun ScanProductScreen(
                         contentDescription = "Regresar",
                         modifier = Modifier
                             .padding(horizontal = 16.dp)
-                            .clickable { navController.navigateUp() }
+                            .clickable {
+                                navController.navigate(Screen.Inventory.route) {
+                                    popUpTo(Screen.Inventory.route) { inclusive = true }
+                                }
+                            }
                     )
                 }
             )

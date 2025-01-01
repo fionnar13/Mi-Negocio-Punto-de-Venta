@@ -20,6 +20,11 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.elfrikiamv.minegocio_puntodeventa.R
 import com.elfrikiamv.minegocio_puntodeventa.navigation.Screen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory.AddProductScreen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory.DetailsInventoryScreen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory.DetailsProductScreen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory.InventoryScreen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory.ScanProductScreen
 
 @Composable
 fun MainScreen() {
@@ -79,17 +84,13 @@ fun MainScreen() {
         ) {
             composable(Screen.Main.route) { HomeScreen(navController = navController) }
             composable(Screen.Activity.route) { ActivityScreen(viewModel = viewModel()) }
-            composable(Screen.ScanProduct.route) {
-                ScanScreen(
-                    navController = navController
-                )
-            }
+            composable(Screen.ScanProduct.route) { ScanScreen(navController = navController) }
             composable(Screen.Shopping.route) { ShoppingScreen() }
-            composable(Screen.Inventory.route) {
-                InventoryScreen(navController = navController)
-            }
+            composable(Screen.Inventory.route) { InventoryScreen(navController = navController) }
             composable(Screen.AddProduct.route) { AddProductScreen(navController = navController) }
             composable(Screen.ScanAddProduct.route) { ScanProductScreen(navController = navController) }
+            composable(Screen.DetailsProduct.route) { DetailsProductScreen(navController = navController) }
+            composable(Screen.DetailsInventory.route) { DetailsInventoryScreen(navController = navController) }
         }
     }
 }

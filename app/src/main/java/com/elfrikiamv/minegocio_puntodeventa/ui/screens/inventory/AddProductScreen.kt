@@ -1,4 +1,4 @@
-package com.elfrikiamv.minegocio_puntodeventa.ui.screens
+package com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory
 
 // AddProductScreen.kt
 
@@ -36,6 +36,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.elfrikiamv.minegocio_puntodeventa.navigation.Screen
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.InventoryViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -128,7 +129,11 @@ fun AddProductScreen(navController: NavController) {
                         contentDescription = "Regresar",
                         modifier = Modifier
                             .padding(horizontal = 16.dp)
-                            .clickable { navController.navigateUp() }
+                            .clickable {
+                                navController.navigate(Screen.Inventory.route) {
+                                    popUpTo(Screen.Inventory.route) { inclusive = true }
+                                }
+                            }
                     )
                 }
             )

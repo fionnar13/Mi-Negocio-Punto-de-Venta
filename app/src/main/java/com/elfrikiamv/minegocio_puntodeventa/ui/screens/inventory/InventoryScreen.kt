@@ -1,7 +1,8 @@
-package com.elfrikiamv.minegocio_puntodeventa.ui.screens
+package com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory
 
 // InventoryScreen.kt
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -60,6 +61,7 @@ fun InventoryScreen(navController: NavController, modifier: Modifier = Modifier)
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 16.dp)
+                        .clickable { onInventoryDetails(navController = navController) }
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
@@ -140,8 +142,8 @@ fun InventoryScreen(navController: NavController, modifier: Modifier = Modifier)
                     ) {
                         items(products) { product ->
                             ProductCard(product = product) {
-                                // Acción para editar el producto
-                                //navController.navigate("editProduct/${product.id}")
+                                // Acción para ver detalles el producto
+                                navController.navigate(Screen.DetailsProduct.route)
                             }
                         }
                     }
@@ -151,12 +153,17 @@ fun InventoryScreen(navController: NavController, modifier: Modifier = Modifier)
     )
 }
 
+fun onInventoryDetails(navController: NavController) {
+    // Acción para ver detalles del inventario
+    navController.navigate(Screen.DetailsInventory.route)
+}
+
 @Composable
-fun ProductCard(product: ProductFirebase, onEdit: () -> Unit) {
+fun ProductCard(product: ProductFirebase, onProductDetails: () -> Unit) {
     ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
-        //.clickable { onEdit() }
+            .clickable { onProductDetails() }
     ) {
         Column(
             modifier = Modifier

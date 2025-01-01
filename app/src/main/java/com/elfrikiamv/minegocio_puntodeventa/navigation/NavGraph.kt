@@ -7,14 +7,16 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.ActivityScreen
-import com.elfrikiamv.minegocio_puntodeventa.ui.screens.AddProductScreen
-import com.elfrikiamv.minegocio_puntodeventa.ui.screens.InventoryScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.LoginScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.MainScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.RegisterScreen
-import com.elfrikiamv.minegocio_puntodeventa.ui.screens.ScanProductScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.ScanScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.ShoppingScreen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory.AddProductScreen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory.DetailsInventoryScreen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory.DetailsProductScreen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory.InventoryScreen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory.ScanProductScreen
 
 @Composable
 fun NavGraph(navController: NavHostController) {
@@ -62,6 +64,16 @@ fun NavGraph(navController: NavHostController) {
         // Ruta para la pantalla de escanear producto
         composable(Screen.Shopping.route) {
             ShoppingScreen()
+        }
+
+        // Ruta para la pantalla de detalles producto
+        composable(Screen.DetailsProduct.route) {
+            DetailsProductScreen(navController)
+        }
+
+        // Ruta para la pantalla de detalles del inventario
+        composable(Screen.DetailsInventory.route) {
+            DetailsInventoryScreen(navController)
         }
     }
 }

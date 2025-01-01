@@ -8,13 +8,15 @@ sealed class Screen(val route: String) {
     object Main : Screen("main")
     object Inventory : Screen("inventory")
     object AddProduct : Screen("addProduct")
+    object DetailsProduct : Screen("detailsProduct")
+    object DetailsInventory : Screen("detailsInventory")
     object ScanProduct : Screen("scanProduct")
     object ScanAddProduct : Screen("scanAddProduct")
     object Activity : Screen("activity")
     object Shopping : Screen("shopping")
 
     // Si alguna pantalla necesita parámetros, puedes agregar métodos helper.
-    object ProductDetail : Screen("productDetail/{productId}") {
+    /*object ProductDetail : Screen("productDetail/{productId}") {
         fun createRoute(productId: Int) = "productDetail/$productId"
-    }
+    }*/
 }
