@@ -15,18 +15,36 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.elfrikiamv.minegocio_puntodeventa.R
+import com.elfrikiamv.minegocio_puntodeventa.model.ProductFirebase
 import com.elfrikiamv.minegocio_puntodeventa.navigation.Screen
+import com.elfrikiamv.minegocio_puntodeventa.viewmodel.InventoryViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DetailsProductScreen(navController: NavHostController) {
+fun DetailsProductScreen(navController: NavHostController, barcode: String?) {
+    val viewModel: InventoryViewModel = viewModel()
+    var productDetails by remember { mutableStateOf<ProductFirebase?>(null) }
 
-    // Contenido de la pantalla que muestra los detalles del producto
+    // Cargar los detalles del producto
+    LaunchedEffect(barcode) {
+        barcode?.let {
+            viewModel.checkProductExists(it) { product ->
+                productDetails = product
+            }
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -53,21 +71,47 @@ fun DetailsProductScreen(navController: NavHostController) {
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            ElevatedCard(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+            if (productDetails == null) {
+                Text(
+                    "Cargando detalles del producto...",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            } else {
+                // Mostrar detalles del producto
+                ElevatedCard(
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(
-                        text = "Details Product Screen xd",
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
+                    Column(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = "Nombre: ${productDetails!!.name}",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Text(
+                            text = "Cantidad: ${productDetails!!.quantity}",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = "Código de barras: ${productDetails!!.barcode}",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = "Precio proveedor: ${productDetails!!.providerPrice}",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = "Precio venta: ${productDetails!!.salePrice}",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = "Descripción: ${productDetails!!.description}",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
                 }
             }
         }

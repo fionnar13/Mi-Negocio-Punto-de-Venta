@@ -142,8 +142,8 @@ fun InventoryScreen(navController: NavController, modifier: Modifier = Modifier)
                     ) {
                         items(products) { product ->
                             ProductCard(product = product) {
-                                // Acción para ver detalles el producto
-                                navController.navigate(Screen.DetailsProduct.route)
+                                // Navegar a DetailsProductScreen pasando el código de barras
+                                navController.navigate(Screen.DetailsProduct.route + "?barcode=${product.barcode}")
                             }
                         }
                     }

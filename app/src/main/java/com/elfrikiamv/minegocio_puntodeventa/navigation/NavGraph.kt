@@ -4,8 +4,10 @@ package com.elfrikiamv.minegocio_puntodeventa.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.ActivityScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.LoginScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.MainScreen
@@ -67,8 +69,12 @@ fun NavGraph(navController: NavHostController) {
         }
 
         // Ruta para la pantalla de detalles producto
-        composable(Screen.DetailsProduct.route) {
-            DetailsProductScreen(navController)
+        composable(
+            route = Screen.DetailsProduct.route + "?barcode={barcode}",
+            arguments = listOf(navArgument("barcode") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val barcode = backStackEntry.arguments?.getString("barcode")
+            DetailsProductScreen(navController = navController, barcode = barcode)
         }
 
         // Ruta para la pantalla de detalles del inventario

@@ -14,10 +14,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.elfrikiamv.minegocio_puntodeventa.R
 import com.elfrikiamv.minegocio_puntodeventa.navigation.Screen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory.AddProductScreen
@@ -89,7 +91,13 @@ fun MainScreen() {
             composable(Screen.Inventory.route) { InventoryScreen(navController = navController) }
             composable(Screen.AddProduct.route) { AddProductScreen(navController = navController) }
             composable(Screen.ScanAddProduct.route) { ScanProductScreen(navController = navController) }
-            composable(Screen.DetailsProduct.route) { DetailsProductScreen(navController = navController) }
+            composable(
+                route = Screen.DetailsProduct.route + "?barcode={barcode}",
+                arguments = listOf(navArgument("barcode") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val barcode = backStackEntry.arguments?.getString("barcode")
+                DetailsProductScreen(navController = navController, barcode = barcode)
+            }
             composable(Screen.DetailsInventory.route) { DetailsInventoryScreen(navController = navController) }
         }
     }
