@@ -45,8 +45,12 @@ fun NavGraph(navController: NavHostController) {
         }
 
         // Ruta para la pantalla de Agregar Producto
-        composable(Screen.AddProduct.route) {
-            AddProductScreen(navController)
+        composable(
+            route = Screen.AddProduct.route + "?barcode={barcode}",
+            arguments = listOf(navArgument("barcode") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val barcode = backStackEntry.arguments?.getString("barcode")
+            AddProductScreen(navController = navController, barcodeDetails = barcode)
         }
 
         // Ruta para la pantalla de escanear producto para agregarlo al inventario

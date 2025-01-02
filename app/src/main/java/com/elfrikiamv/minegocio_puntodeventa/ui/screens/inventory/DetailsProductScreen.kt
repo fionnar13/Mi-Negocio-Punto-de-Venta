@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -111,6 +112,19 @@ fun DetailsProductScreen(navController: NavHostController, barcode: String?) {
                             text = "Descripción: ${productDetails!!.description}",
                             style = MaterialTheme.typography.bodyMedium
                         )
+
+                        // Botón editar Producto
+                        Button(
+                            onClick = {
+                                // Navegar a DetailsProductScreen pasando el código de barras
+                                navController.navigate(Screen.AddProduct.route + "?barcode=${productDetails!!.barcode}")
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 4.dp)
+                        ) {
+                            Text("Editar Producto")
+                        }
                     }
                 }
             }

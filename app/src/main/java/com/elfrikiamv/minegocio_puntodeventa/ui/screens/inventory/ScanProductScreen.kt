@@ -122,7 +122,8 @@ fun ScanProductScreen(
                                 "barcode",
                                 detectedBarcode
                             )
-                            navController.navigate(Screen.AddProduct.route)
+                            val barcodeRoute = ""
+                            navController.navigate(Screen.AddProduct.route + "?barcode=${barcodeRoute}")
                         }
                     },
                     onFocusTapped = { x, y ->

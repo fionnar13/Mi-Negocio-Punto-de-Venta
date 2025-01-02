@@ -89,7 +89,13 @@ fun MainScreen() {
             composable(Screen.ScanProduct.route) { ScanScreen(navController = navController) }
             composable(Screen.Shopping.route) { ShoppingScreen() }
             composable(Screen.Inventory.route) { InventoryScreen(navController = navController) }
-            composable(Screen.AddProduct.route) { AddProductScreen(navController = navController) }
+            composable(
+                route = Screen.AddProduct.route + "?barcode={barcode}",
+                arguments = listOf(navArgument("barcode") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val barcode = backStackEntry.arguments?.getString("barcode")
+                AddProductScreen(navController = navController, barcodeDetails = barcode)
+            }
             composable(Screen.ScanAddProduct.route) { ScanProductScreen(navController = navController) }
             composable(
                 route = Screen.DetailsProduct.route + "?barcode={barcode}",

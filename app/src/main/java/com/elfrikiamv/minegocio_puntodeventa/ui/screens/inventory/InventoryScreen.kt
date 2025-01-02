@@ -91,7 +91,10 @@ fun InventoryScreen(navController: NavController, modifier: Modifier = Modifier)
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     Button(
-                        onClick = { navController.navigate(Screen.AddProduct.route) },
+                        onClick = {
+                            val barcodeRoute = ""
+                            navController.navigate(Screen.AddProduct.route + "?barcode=${barcodeRoute}")
+                        },
                         modifier = Modifier.weight(1f),
                         //contentPadding = PaddingValues(12.dp)
                     ) {

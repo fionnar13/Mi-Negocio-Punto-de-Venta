@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -79,7 +80,10 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel = vie
             ) {
                 // Mostrar CircularProgressIndicator durante la verificación inicial de autenticación
                 if (isCheckingAuth) {
-                    CircularProgressIndicator()
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = MaterialTheme.colorScheme.inversePrimary
+                    )
                 } else {
                     // Campo de texto para el correo electrónico
                     OutlinedTextField(
@@ -103,7 +107,10 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel = vie
 
                     // Mostrar el indicador de carga durante la autenticación
                     if (isLoading) {
-                        CircularProgressIndicator()
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = MaterialTheme.colorScheme.inversePrimary
+                        )
                     } else {
                         // Botón para iniciar sesión
                         Button(

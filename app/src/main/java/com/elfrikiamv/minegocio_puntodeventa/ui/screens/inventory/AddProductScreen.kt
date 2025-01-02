@@ -44,7 +44,7 @@ import com.elfrikiamv.minegocio_puntodeventa.viewmodel.InventoryViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddProductScreen(navController: NavController) {
+fun AddProductScreen(navController: NavController, barcodeDetails: String?) {
 
     val viewModel: InventoryViewModel = viewModel()
     val context = LocalContext.current
@@ -53,12 +53,12 @@ fun AddProductScreen(navController: NavController) {
     var id by remember { mutableStateOf<String?>(null) }
     var name by remember { mutableStateOf("") }
     var quantity by remember { mutableStateOf("") }
-    //var barcode by remember { mutableStateOf("") }
     var barcode by remember {
         mutableStateOf(
-            navController.previousBackStackEntry?.savedStateHandle?.get<String>(
-                "barcode"
-            ) ?: ""
+            barcodeDetails.takeIf { !it.isNullOrEmpty() }
+                ?: navController.previousBackStackEntry?.savedStateHandle?.get<String>(
+                    "barcode"
+                ) ?: ""
         )
     }
     var providerPrice by remember { mutableStateOf("") }
@@ -71,6 +71,7 @@ fun AddProductScreen(navController: NavController) {
     val currentBarcode by rememberUpdatedState(barcode) // Evitar problemas de estado obsoleto
 
     LaunchedEffect(currentBarcode) {
+
         if (currentBarcode.isNotBlank()) {
             isLoading = true // Habilitar indicador de carga
 
@@ -80,7 +81,7 @@ fun AddProductScreen(navController: NavController) {
                         // Mostrar un Toast
                         Toast.makeText(
                             context,
-                            "Producto ya existente en el inventario, recuperando datos.",
+                            "Recuperando datos del producto.",
                             Toast.LENGTH_SHORT
                         ).show()
                         id = product.id
@@ -106,6 +107,7 @@ fun AddProductScreen(navController: NavController) {
             }
         }
         Log.d("AddProductScreen", "Código de barras recibido: $barcode")
+        Log.d("AddProductScreen", "Código de barras recibido de detalles: $barcodeDetails")
     }
 
     // Mostrar mensaje de error si es necesario
@@ -297,7 +299,8 @@ fun AddProductScreen(navController: NavController) {
                     ) {
                         if (isLoading) {
                             CircularProgressIndicator(
-                                modifier = Modifier.size(24.dp)
+                                modifier = Modifier.size(24.dp),
+                                color = MaterialTheme.colorScheme.inversePrimary
                             )
                         } else {
                             Text("Guardar Producto")
