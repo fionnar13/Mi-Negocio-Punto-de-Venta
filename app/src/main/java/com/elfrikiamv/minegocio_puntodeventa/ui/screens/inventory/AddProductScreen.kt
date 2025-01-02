@@ -7,17 +7,17 @@ import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -30,12 +30,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.elfrikiamv.minegocio_puntodeventa.R
 import com.elfrikiamv.minegocio_puntodeventa.navigation.Screen
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.InventoryViewModel
 
@@ -125,7 +128,7 @@ fun AddProductScreen(navController: NavController) {
                 title = { Text("Añadir Producto") },
                 navigationIcon = {
                     Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        painter = painterResource(id = R.drawable.baseline_arrow_back_ios_new_24),
                         contentDescription = "Regresar",
                         modifier = Modifier
                             .padding(horizontal = 16.dp)
@@ -159,8 +162,40 @@ fun AddProductScreen(navController: NavController) {
                         style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.fillMaxWidth()
                     )
-                    // Campo Código de Barras
-                    OutlinedTextField(
+                    // Campo Código de Barras con botón de cámara
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = barcode,
+                            onValueChange = { newValue ->
+                                barcode = newValue // Esto disparará LaunchedEffect automáticamente
+                            },
+                            label = { Text("Código de barras") },
+                            modifier = Modifier
+                                .weight(1f) // Ajusta el ancho para que ocupe el espacio restante
+                                .fillMaxWidth(),
+                            isError = barcode.isBlank() // Muestra error si está vacío
+                        )
+                        IconButton(
+                            onClick = {
+                                // Lógica para abrir la cámara o navegar a una pantalla de escaneo
+                                navController.navigate(Screen.ScanAddProduct.route)
+                            },
+                            //modifier = Modifier.size(48.dp) // Tamaño del ícono
+                            modifier = Modifier.align(Alignment.CenterVertically)
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.baseline_camera_alt_24), // Usa un ícono de cámara
+                                contentDescription = "Abrir cámara",
+                                modifier = Modifier.size(24.dp) // Tamaño del ícono
+                            )
+                        }
+                    }
+
+
+                    /*OutlinedTextField(
                         value = barcode,
                         onValueChange = { newValue ->
                             barcode = newValue // Esto disparará LaunchedEffect automáticamente
@@ -168,7 +203,7 @@ fun AddProductScreen(navController: NavController) {
                         label = { Text("Código de barras") },
                         modifier = Modifier.fillMaxWidth(),
                         isError = barcode.isBlank() // Muestra error si está vacío
-                    )
+                    )*/
                     /*if (barcode.isBlank()) Text(
                         "Campo requerido",
                         color = MaterialTheme.colorScheme.error,
