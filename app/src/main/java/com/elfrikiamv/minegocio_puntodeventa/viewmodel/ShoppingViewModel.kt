@@ -90,7 +90,10 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
                         .document(document.id)
                         .update("quantity", newQuantity)
                         .addOnSuccessListener {
-                            Log.d("ShoppingViewModel", "Cantidad actualizada en Firebase: $newQuantity")
+                            Log.d(
+                                "ShoppingViewModel",
+                                "Cantidad actualizada en Firebase: $newQuantity"
+                            )
                         }
                         .addOnFailureListener { e ->
                             Log.e("ShoppingViewModel", "Error al actualizar Firebase: $e")
@@ -203,7 +206,10 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
                     updateFirebaseQuantity(barcode, -1) // Reducir 1 en Firebase
                     loadCartProducts()
                 } else {
-                    Log.e("ShoppingViewModel", "No hay suficiente stock en Firebase para incrementar.")
+                    Log.e(
+                        "ShoppingViewModel",
+                        "No hay suficiente stock en Firebase para incrementar."
+                    )
                 }
             }
         }

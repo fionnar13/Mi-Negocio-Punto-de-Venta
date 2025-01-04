@@ -196,22 +196,6 @@ fun AddProductScreen(navController: NavController, barcodeDetails: String?) {
                         }
                     }
 
-
-                    /*OutlinedTextField(
-                        value = barcode,
-                        onValueChange = { newValue ->
-                            barcode = newValue // Esto disparará LaunchedEffect automáticamente
-                        },
-                        label = { Text("Código de barras") },
-                        modifier = Modifier.fillMaxWidth(),
-                        isError = barcode.isBlank() // Muestra error si está vacío
-                    )*/
-                    /*if (barcode.isBlank()) Text(
-                        "Campo requerido",
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodyMedium
-                    )*/
-
                     // Campo Nombre del Producto
                     OutlinedTextField(
                         value = name,

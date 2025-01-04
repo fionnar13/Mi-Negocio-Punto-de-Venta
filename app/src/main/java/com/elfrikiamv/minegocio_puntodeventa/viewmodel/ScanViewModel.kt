@@ -69,7 +69,11 @@ class ScanViewModel(application: Application) : AndroidViewModel(application) {
                 } else {
                     //_cameraError.value = "Producto no encontrado"
                     //resetScreen()
-                    Toast.makeText(getApplication(), "Producto no encontrado en el inventario.", Toast.LENGTH_SHORT)
+                    Toast.makeText(
+                        getApplication(),
+                        "Producto no encontrado en el inventario.",
+                        Toast.LENGTH_SHORT
+                    )
                         .show()
                 }
             }

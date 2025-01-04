@@ -12,7 +12,7 @@ data class TicketEntity(
     val products: List<ProductEntity>,  // Lista de productos
     val totalPrice: Double          // Precio total del ticket
 ) {
-    fun toTicketEntity(): TicketFirebase {
+    /*fun toTicketEntity(): TicketFirebase {
         return TicketFirebase(
             ticketId = this.ticketId,  // Usamos el mismo ticketId
             dateTime = this.dateTime,  // Usamos la misma fecha y hora
@@ -27,6 +27,6 @@ data class TicketEntity(
             },
             totalPrice = this.totalPrice  // Usamos el mismo precio total
         )
-    }
+    }*/
 
 }
