@@ -3,9 +3,11 @@ package com.elfrikiamv.minegocio_puntodeventa.dao
 // ProductDao.kt
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import com.elfrikiamv.minegocio_puntodeventa.model.ProductEntity
 
 @Dao
@@ -21,4 +23,13 @@ interface ProductDao {
 
     @Query("DELETE FROM products")
     suspend fun deleteAllProducts()
+
+    @Query("SELECT * FROM products WHERE barcode = :barcode LIMIT 1")
+    suspend fun getProductByBarcode(barcode: String): ProductEntity?
+
+    @Update
+    suspend fun updateProduct(product: ProductEntity)
+
+    @Delete
+    suspend fun deleteProduct(product: ProductEntity)
 }

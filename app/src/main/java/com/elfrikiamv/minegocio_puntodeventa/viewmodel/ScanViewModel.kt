@@ -69,7 +69,7 @@ class ScanViewModel(application: Application) : AndroidViewModel(application) {
                 } else {
                     //_cameraError.value = "Producto no encontrado"
                     //resetScreen()
-                    Toast.makeText(getApplication(), "Producto no encontrado", Toast.LENGTH_SHORT)
+                    Toast.makeText(getApplication(), "Producto no encontrado en el inventario.", Toast.LENGTH_SHORT)
                         .show()
                 }
             }
@@ -79,7 +79,15 @@ class ScanViewModel(application: Application) : AndroidViewModel(application) {
     // Confirmar cantidad del producto
     fun confirmQuantity(quantity: Int, shoppingViewModel: ShoppingViewModel) {
         _scannedProduct.value?.let { product ->
-            shoppingViewModel.addToCart(product.copy(quantity = quantity))
+            if (quantity in 1..product.quantity) { // Validación final de cantidad
+                shoppingViewModel.addToCart(product.copy(quantity = quantity))
+            } else {
+                Toast.makeText(
+                    getApplication(),
+                    "Cantidad inválida. No se agregó al carrito.",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
             resetScreen()
         }
     }

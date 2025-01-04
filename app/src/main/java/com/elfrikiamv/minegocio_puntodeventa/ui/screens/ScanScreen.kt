@@ -35,7 +35,6 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -157,23 +156,42 @@ fun ScanScreen(
 }
 
 @Composable
-fun QuantityDialog(product: ProductFirebase, onConfirm: (Int) -> Unit, onDismiss: () -> Unit) {
-    var quantity by remember { mutableIntStateOf(1) }
+fun QuantityDialog(
+    product: ProductFirebase,
+    onConfirm: (Int) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var quantityInput by remember { mutableStateOf("") }
+    val isInputValid = quantityInput.toIntOrNull()?.let { it in 1..product.quantity } == true
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Agregar ${product.name}") },
         text = {
             Column {
-                Text("Ingrese la cantidad:")
+                Text("Cantidad disponible: ${product.quantity}")
                 TextField(
-                    value = quantity.toString(),
-                    onValueChange = { quantity = it.toIntOrNull() ?: 1 }
+                    value = quantityInput,
+                    onValueChange = { input ->
+                        quantityInput = input.filter { it.isDigit() }
+                    },
+                    label = { Text("Ingrese la cantidad") }
                 )
+                if (!isInputValid && quantityInput.isNotEmpty()) {
+                    Text(
+                        "Cantidad inválida. Debe estar entre 1 y ${product.quantity}.",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
             }
         },
         confirmButton = {
-            Button(onClick = { onConfirm(quantity) }) {
+            Button(
+                onClick = {
+                    if (isInputValid) onConfirm(quantityInput.toInt())
+                },
+                enabled = isInputValid // Deshabilita el botón si la entrada no es válida
+            ) {
                 Text("Confirmar")
             }
         },

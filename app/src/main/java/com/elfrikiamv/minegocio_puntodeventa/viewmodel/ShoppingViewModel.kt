@@ -18,118 +18,147 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.coroutines.suspendCoroutine
 
 // ViewModel para manejar el carrito de compras usando el patrón MVVM
 class ShoppingViewModel(application: Application) : AndroidViewModel(application) {
 
-    // Instancia de ProductDao y TicketDao obtenidas de la base de datos
-    private val productDao = AppDatabase.getDatabase(application)
-        .productDao() // Para manejar productos en la base de datos
-    private val ticketDao =
-        AppDatabase.getDatabase(application).ticketDao() // Para manejar tickets en la base de datos
+    private val productDao = AppDatabase.getDatabase(application).productDao()
+    private val ticketDao = AppDatabase.getDatabase(application).ticketDao()
+    private val auth = FirebaseAuth.getInstance()
+    private val db = FirebaseFirestore.getInstance()
 
-    private val auth = FirebaseAuth.getInstance() // Firebase Authentication
-
-    private val db = FirebaseFirestore.getInstance() // Firestore Database
-
-    // MutableStateFlow que almacena los productos del carrito (estado mutable)
     private val _cartProducts = MutableStateFlow<List<ProductFirebase>>(emptyList())
-
-    // StateFlow expuesto para que las vistas puedan observar los productos del carrito
     val cartProducts: StateFlow<List<ProductFirebase>> = _cartProducts
 
-    // Inicializa el ViewModel y carga los productos al abrir la pantalla
     init {
         loadCartProducts()
     }
 
-    // Función para agregar un producto al carrito de compras
     fun addToCart(product: ProductFirebase) {
-        // Convertimos el producto de la vista en una entidad para la base de datos (ProductEntity)
         val productEntity = ProductEntity(
-            barcode = product.barcode,  // Código de barras del producto
-            name = product.name,        // Nombre del producto
-            quantity = product.quantity, // Cantidad agregada
-            price = product.salePrice        // Precio unitario
+            barcode = product.barcode,
+            name = product.name,
+            quantity = product.quantity,
+            price = product.salePrice
         )
 
-        // Ejecutamos la inserción en la base de datos en un hilo de trabajo (viewModelScope)
         viewModelScope.launch {
-            // Insertamos el producto en la base de datos
-            productDao.insertProduct(productEntity)
-            // Recargamos los productos del carrito para reflejar la actualización
+            val existingProduct = productDao.getProductByBarcode(product.barcode)
+            if (existingProduct == null) {
+                // Nuevo producto
+                productDao.insertProduct(productEntity)
+                updateFirebaseQuantity(product.barcode, -product.quantity) // Restar en Firebase
+            } else {
+                // Producto existente
+                val updatedQuantity = existingProduct.quantity + product.quantity
+                productDao.updateProduct(
+                    existingProduct.copy(quantity = updatedQuantity)
+                )
+                updateFirebaseQuantity(product.barcode, -product.quantity) // Ajustar en Firebase
+            }
             loadCartProducts()
-            // Log para verificar que el producto fue guardado correctamente
-            Log.d("ShoppingViewModel", "Producto agregado al carrito: $productEntity")
         }
     }
 
-    // Función para confirmar el ticket de compra
+    fun deleteCartProduct(barcode: String) {
+        viewModelScope.launch {
+            val product = productDao.getProductByBarcode(barcode)
+            if (product != null) {
+                productDao.deleteProduct(product)
+                updateFirebaseQuantity(barcode, product.quantity) // Revertir en Firebase
+                loadCartProducts()
+            }
+        }
+    }
+
+    private fun updateFirebaseQuantity(barcode: String, quantityChange: Int) {
+        val userEmail = auth.currentUser?.email ?: return
+        db.collection("users")
+            .document(userEmail)
+            .collection("inventories")
+            .whereEqualTo("barcode", barcode)
+            .get()
+            .addOnSuccessListener { documents ->
+                if (!documents.isEmpty) {
+                    val document = documents.documents.first()
+                    val currentQuantity = document.getLong("quantity") ?: 0
+                    val newQuantity = (currentQuantity + quantityChange).coerceAtLeast(0)
+                    db.collection("users")
+                        .document(userEmail)
+                        .collection("inventories")
+                        .document(document.id)
+                        .update("quantity", newQuantity)
+                        .addOnSuccessListener {
+                            Log.d("ShoppingViewModel", "Cantidad actualizada en Firebase: $newQuantity")
+                        }
+                        .addOnFailureListener { e ->
+                            Log.e("ShoppingViewModel", "Error al actualizar Firebase: $e")
+                        }
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e("ShoppingViewModel", "Error al consultar Firebase: $e")
+            }
+    }
+
     fun confirmTicket() {
         viewModelScope.launch {
-            // Genera un ID único basado en la fecha y hora actual
             val currentDateTime = System.currentTimeMillis()
-            // Formateamos la fecha y hora en un formato legible
             val dateTimeFormatted = SimpleDateFormat(
                 "yyyy-MM-dd HH:mm:ss", Locale.getDefault()
             ).format(Date(currentDateTime))
 
-            // Calculamos el precio total de los productos del carrito
-            val totalPrice = productDao.getAllProducts()
-                .sumOf { it.price * it.quantity } // Suma de precios por cantidad
+            val products = productDao.getAllProducts()
+            if (products.isEmpty()) {
+                Log.e("ShoppingViewModel", "No hay productos en el carrito.")
+                return@launch
+            }
 
-            // Creamos el objeto TicketEntity con el precio total
+            val totalPrice = products.sumOf { it.price * it.quantity }
             val ticket = TicketEntity(
-                ticketId = currentDateTime.toString(), // ID único del ticket
-                dateTime = dateTimeFormatted,           // Fecha y hora del ticket
-                products = productDao.getAllProducts(), // Lista de productos del carrito
-                totalPrice = totalPrice                // Precio total de los productos en el carrito
+                ticketId = currentDateTime.toString(),
+                dateTime = dateTimeFormatted,
+                products = products,
+                totalPrice = totalPrice
             )
 
             // Insertamos el ticket en la base de datos
             ticketDao.insertTicket(ticket)
-            // Log para verificar que el ticket fue guardado correctamente
-            Log.d("ShoppingViewModel", "Ticket insertado en la base de datos room: $ticket")
-
-            // Limpiamos los productos del carrito (después de confirmar el ticket)
+            /*products.forEach { product ->
+                updateFirebaseQuantity(product.barcode, product.quantity) // Revertir en Firebase
+            }*/
             productDao.deleteAllProducts()
-
-            // Recargamos la lista del carrito (que ahora estará vacía)
             loadCartProducts()
-
-            // Log para verificar que los productos fueron eliminados del carrito
-            Log.d(
-                "ShoppingViewModel",
-                "Productos eliminados del carrito después de confirmar el ticket"
-            )
-
-            // Subir ticket a Firebase
             uploadTicketToFirebase(ticket)
         }
     }
 
-    private fun uploadTicketToFirebase(ticketEntity: TicketEntity) {
-        val userEmail = auth.currentUser?.email
-        if (userEmail.isNullOrEmpty()) {
-            Log.e("ShoppingViewModel", "No se encontró un usuario autenticado.")
-            return
+    private fun loadCartProducts() {
+        viewModelScope.launch {
+            val products = productDao.getAllProducts().map {
+                ProductFirebase(
+                    barcode = it.barcode,
+                    name = it.name,
+                    quantity = it.quantity,
+                    salePrice = it.price
+                )
+            }
+            _cartProducts.value = products
         }
+    }
 
-        val ticket = ticketEntity.toTicketEntity()
+    private fun uploadTicketToFirebase(ticketEntity: TicketEntity) {
+        val userEmail = auth.currentUser?.email ?: return
 
         db.collection("users")
             .document(userEmail)
             .collection("tickets")
-            .document(ticket.ticketId)
-            .set(ticket)
+            .document(ticketEntity.ticketId)
+            .set(ticketEntity)
             .addOnSuccessListener {
-                Log.d("ShoppingViewModel", "Ticket subido a Firebase: ${ticket.ticketId}")
                 viewModelScope.launch {
-                    ticketDao.deleteTicketById(ticket.ticketId)
-                    Log.d(
-                        "ShoppingViewModel",
-                        "Ticket eliminado de la base de datos local: ${ticket.ticketId}"
-                    )
+                    ticketDao.deleteTicketById(ticketEntity.ticketId)
                 }
             }
             .addOnFailureListener { e ->
@@ -137,24 +166,61 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
             }
     }
 
+    private suspend fun getFirebaseStock(barcode: String): Int = suspendCoroutine { continuation ->
+        val userEmail = auth.currentUser?.email
+        if (userEmail == null) {
+            continuation.resumeWith(Result.success(0))
+            return@suspendCoroutine
+        }
 
-    // Función para cargar los productos del carrito desde la base de datos
-    private fun loadCartProducts() {
-        viewModelScope.launch {
-            // Recuperamos todos los productos desde la base de datos (ProductEntity)
-            val products = productDao.getAllProducts().map {
-                // Convertimos los productos de la base de datos (ProductEntity) a objetos Product
-                ProductFirebase(
-                    barcode = it.barcode,   // Código de barras del producto
-                    name = it.name,         // Nombre del producto
-                    quantity = it.quantity, // Cantidad del producto
-                    salePrice = it.price        // Precio unitario del producto
-                )
+        db.collection("users")
+            .document(userEmail)
+            .collection("inventories")
+            .whereEqualTo("barcode", barcode)
+            .get()
+            .addOnSuccessListener { documents ->
+                if (!documents.isEmpty) {
+                    val stock = documents.documents.first().getLong("quantity")?.toInt() ?: 0
+                    continuation.resumeWith(Result.success(stock))
+                } else {
+                    continuation.resumeWith(Result.success(0)) // Si no hay documentos, devolvemos 0
+                }
             }
-            // Actualizamos el StateFlow con la lista de productos
-            _cartProducts.value = products
-            // Log para verificar que los productos se cargaron correctamente
-            Log.d("ShoppingViewModel", "Productos cargados del carrito: $products")
+            .addOnFailureListener { e ->
+                Log.e("ShoppingViewModel", "Error al consultar stock en Firebase: $e")
+                continuation.resumeWith(Result.success(0)) // En caso de error, devolvemos 0
+            }
+    }
+
+    fun increaseCartProductQuantity(barcode: String) {
+        viewModelScope.launch {
+            val existingProduct = productDao.getProductByBarcode(barcode)
+            if (existingProduct != null) {
+                val currentStock = getFirebaseStock(barcode) // Consultar existencias en Firebase
+                if (existingProduct.quantity < currentStock) {
+                    val newQuantity = existingProduct.quantity + 1
+                    productDao.updateProduct(existingProduct.copy(quantity = newQuantity))
+                    updateFirebaseQuantity(barcode, -1) // Reducir 1 en Firebase
+                    loadCartProducts()
+                } else {
+                    Log.e("ShoppingViewModel", "No hay suficiente stock en Firebase para incrementar.")
+                }
+            }
         }
     }
+
+    fun decreaseCartProductQuantity(barcode: String) {
+        viewModelScope.launch {
+            val existingProduct = productDao.getProductByBarcode(barcode)
+            if (existingProduct != null && existingProduct.quantity > 1) {
+                val newQuantity = existingProduct.quantity - 1
+                productDao.updateProduct(existingProduct.copy(quantity = newQuantity))
+                updateFirebaseQuantity(barcode, 1) // Incrementar 1 en Firebase
+                loadCartProducts()
+            } else {
+                Log.e("ShoppingViewModel", "No se puede disminuir más la cantidad.")
+            }
+        }
+    }
+
 }
