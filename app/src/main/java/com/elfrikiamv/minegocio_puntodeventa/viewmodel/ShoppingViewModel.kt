@@ -105,7 +105,7 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
             }
     }
 
-    fun confirmTicket() {
+    fun confirmTicket(totalProducts: Int, totalPurchase: Double, amountReceived: Double) {
         viewModelScope.launch {
             val currentDateTime = System.currentTimeMillis()
             val dateTimeFormatted = SimpleDateFormat(
@@ -119,18 +119,21 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
             }
 
             val totalPrice = products.sumOf { it.price * it.quantity }
+            val change = amountReceived - totalPurchase
+
             val ticket = TicketEntity(
                 ticketId = currentDateTime.toString(),
                 dateTime = dateTimeFormatted,
                 products = products,
-                totalPrice = totalPrice
+                totalPrice = totalPrice,
+                totalProducts = totalProducts,
+                amountReceived = amountReceived,
+                change = change
             )
 
             // Insertamos el ticket en la base de datos
             ticketDao.insertTicket(ticket)
-            /*products.forEach { product ->
-                updateFirebaseQuantity(product.barcode, product.quantity) // Revertir en Firebase
-            }*/
+            Log.d("ShoppingViewModel", "Ticket guardado en Room: $ticket")
             productDao.deleteAllProducts()
             loadCartProducts()
             uploadTicketToFirebase(ticket)

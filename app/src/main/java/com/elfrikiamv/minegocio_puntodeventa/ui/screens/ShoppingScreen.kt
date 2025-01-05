@@ -162,7 +162,10 @@ fun ShoppingScreen(modifier: Modifier = Modifier) {
                             ) {
                                 isLoading = true // Activar animación de carga
 
-                                viewModel.confirmTicket()
+                                // Llamar a confirmTicket con los valores del resumen del ticket
+                                viewModel.confirmTicket(totalProducts, totalPurchase, amountReceived.toDoubleOrNull() ?: 0.0)
+                                amountReceived = ""
+
                                 isLoading = false // Desactivar animación de carga
 
                                 Toast.makeText(context, "Ticket guardado", Toast.LENGTH_SHORT)
