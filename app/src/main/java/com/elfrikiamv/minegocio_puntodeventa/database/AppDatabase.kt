@@ -15,7 +15,7 @@ import com.elfrikiamv.minegocio_puntodeventa.model.TicketEntity
 
 @Database(
     entities = [ProductEntity::class, TicketEntity::class],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 @TypeConverters(ProductListConverter::class)

@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
-import java.util.Date
+import java.util.Calendar
 import java.util.Locale
 import kotlin.coroutines.suspendCoroutine
 
@@ -107,10 +107,14 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
 
     fun confirmTicket(totalProducts: Int, totalPurchase: Double, amountReceived: Double) {
         viewModelScope.launch {
-            val currentDateTime = System.currentTimeMillis()
-            val dateTimeFormatted = SimpleDateFormat(
-                "yyyy-MM-dd HH:mm:ss", Locale.getDefault()
-            ).format(Date(currentDateTime))
+
+            val currentDateTimeTicketId = System.currentTimeMillis()
+            val currentDateTime = Calendar.getInstance()
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val timeFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+
+            val dateFormatted = dateFormat.format(currentDateTime.time)
+            val timeFormatted = timeFormat.format(currentDateTime.time)
 
             val products = productDao.getAllProducts()
             if (products.isEmpty()) {
@@ -122,8 +126,9 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
             val change = amountReceived - totalPurchase
 
             val ticket = TicketEntity(
-                ticketId = currentDateTime.toString(),
-                dateTime = dateTimeFormatted,
+                ticketId = currentDateTimeTicketId.toString(),
+                date = dateFormatted, // Nuevo campo para la fecha
+                time = timeFormatted, // Nuevo campo para la hora
                 products = products,
                 totalPrice = totalPrice,
                 totalProducts = totalProducts,

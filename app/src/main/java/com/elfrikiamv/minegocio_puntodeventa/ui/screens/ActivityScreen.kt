@@ -48,7 +48,7 @@ fun TicketCard(ticket: TicketFirebase) {
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = "ID: ${ticket.ticketId}")
-            Text(text = "Fecha y Hora: ${ticket.dateTime}")
+            Text(text = "Fecha y Hora: ${ticket.date}, ${ticket.time}")
             Text(text = "Productos:")
             // Iterar sobre los productos
             ticket.products.forEach { product ->
