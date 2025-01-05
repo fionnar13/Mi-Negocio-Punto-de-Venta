@@ -204,70 +204,75 @@ fun ProductTicket(
     val subTotal = product.quantity * product.salePrice // Total del producto
 
     ElevatedCard(
-        modifier = Modifier
-            .fillMaxWidth()
-        //.padding(8.dp)
+        modifier = Modifier.fillMaxWidth()
     ) {
         Column(
-            modifier = Modifier.padding(
-                start = 16.dp,
-                top = 16.dp,
-                end = 16.dp,
-                bottom = 8.dp
-            )
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text("Producto: ${product.name}", style = MaterialTheme.typography.titleMedium)
-            Text("Cantidad: ${product.quantity}")
-            Text("Precio Unitario: $${product.salePrice}")
-            Text("SubTotal: $${subTotal}")
 
-            //Spacer(modifier = Modifier.height(8.dp))
-
+            // Campo Código de Barras con botón de cámara
             Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                //.padding(bottom = 16.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
+                modifier = Modifier.fillMaxWidth(),
+                //horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Botón para disminuir cantidad
-                IconButton(
-                    onClick = onDecreaseQuantity,
-                    modifier = Modifier.weight(1f),
-                    enabled = false
-                    //contentPadding = PaddingValues(12.dp)
+
+                Column(
+                    modifier = Modifier
+                        .weight(1f) // Ajusta el ancho para que ocupe el espacio restante
+                        .fillMaxWidth()
+                        .align(Alignment.CenterVertically)
                 ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.baseline_remove_24), // Usa un ícono de cámara
-                        contentDescription = "Disminuir Cantidad",
-                        modifier = Modifier.size(24.dp) // Tamaño del ícono
-                    )
+                    Text("Producto: ${product.name}", style = MaterialTheme.typography.titleMedium)
+                    Text("Cantidad: ${product.quantity}")
+                    Text("Precio Unitario: $${product.salePrice}")
+                    Text("SubTotal: $${subTotal}")
                 }
-                //Spacer(modifier = Modifier.width(8.dp))
-                // Botón para incrementar cantidad
-                IconButton(
-                    onClick = onIncreaseQuantity,
-                    modifier = Modifier.weight(1f),
-                    enabled = false
-                    //contentPadding = PaddingValues(12.dp)
+                Column(
+                    modifier = Modifier.align(Alignment.CenterVertically)
                 ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.baseline_add_24), // Usa un ícono de cámara
-                        contentDescription = "Incrementar Cantidad",
-                        modifier = Modifier.size(24.dp) // Tamaño del ícono
-                    )
-                }
-                //Spacer(modifier = Modifier.width(8.dp))
-                // Botón para eliminar producto
-                IconButton(
-                    onClick = onDelete,
-                    modifier = Modifier.weight(1f),
-                    //contentPadding = PaddingValues(12.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.baseline_delete_24), // Usa un ícono de cámara
-                        contentDescription = "Eliminar",
-                        modifier = Modifier.size(24.dp) // Tamaño del ícono
-                    )
+                    // Botón para disminuir cantidad
+                    /*IconButton(
+                        onClick = onDecreaseQuantity,
+                        //modifier = Modifier.weight(1f),
+                        enabled = false
+                        //contentPadding = PaddingValues(12.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.baseline_remove_24), // Usa un ícono de cámara
+                            contentDescription = "Disminuir Cantidad",
+                            modifier = Modifier.size(24.dp) // Tamaño del ícono
+                        )
+                    }*/
+                    //Spacer(modifier = Modifier.width(8.dp))
+                    // Botón para incrementar cantidad
+                    /*IconButton(
+                        onClick = onIncreaseQuantity,
+                        //modifier = Modifier.weight(1f),
+                        enabled = false
+                        //contentPadding = PaddingValues(12.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.baseline_add_24), // Usa un ícono de cámara
+                            contentDescription = "Incrementar Cantidad",
+                            modifier = Modifier.size(24.dp) // Tamaño del ícono
+                        )
+                    }*/
+                    //Spacer(modifier = Modifier.width(8.dp))
+                    // Botón para eliminar producto
+                    IconButton(
+                        onClick = onDelete,
+                        //modifier = Modifier.weight(1f),
+                        //contentPadding = PaddingValues(12.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.baseline_delete_24), // Usa un ícono de cámara
+                            contentDescription = "Eliminar",
+                            modifier = Modifier.size(24.dp) // Tamaño del ícono
+                        )
+                    }
                 }
             }
         }
