@@ -6,7 +6,6 @@ import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -119,7 +118,7 @@ fun ShoppingScreen(modifier: Modifier = Modifier) {
 
                 // Divider entre los botones y la lista de productos
                 HorizontalDivider(
-                    modifier = Modifier.padding(bottom = 8.dp),
+                    modifier = Modifier.padding(bottom = 16.dp),
                     thickness = 1.dp
                 )
 
@@ -139,7 +138,7 @@ fun ShoppingScreen(modifier: Modifier = Modifier) {
                 } else {
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(16.dp),
-                        contentPadding = PaddingValues(vertical = 8.dp),
+                        //contentPadding = PaddingValues(vertical = 8.dp),
                         modifier = Modifier
                             .fillMaxWidth()
                             .weight(1f)
