@@ -1,7 +1,8 @@
-package com.elfrikiamv.minegocio_puntodeventa.ui.screens
+package com.elfrikiamv.minegocio_puntodeventa.ui.screens.activity
 
 // ActivityScreen.kt
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -28,13 +29,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.elfrikiamv.minegocio_puntodeventa.R
 import com.elfrikiamv.minegocio_puntodeventa.model.TicketFirebase
+import com.elfrikiamv.minegocio_puntodeventa.navigation.Screen
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.ActivityViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ActivityScreen(
+    navController: NavController,
     modifier: Modifier = Modifier,
     viewModel: ActivityViewModel = viewModel()
 ) {
@@ -62,7 +66,10 @@ fun ActivityScreen(
                         .weight(1f), // Permite que la lista ocupe el espacio restante
                 ) {
                     items(tickets.value) { ticket ->
-                        TicketCard(ticket = ticket)
+                        TicketCard(ticket = ticket) {
+                            // Navegar a DetailsTicketScreen pasando el ID del ticket
+                            navController.navigate(Screen.DetailsTicket.route + "?ticketId=${ticket.ticketId}")
+                        }
                     }
                 }
             }
@@ -72,9 +79,11 @@ fun ActivityScreen(
 
 // Composable para mostrar los detalles de un ticket
 @Composable
-fun TicketCard(ticket: TicketFirebase) {
+fun TicketCard(ticket: TicketFirebase, onTicketDetails: () -> Unit) {
     ElevatedCard(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onTicketDetails() }
         //.padding(vertical = 8.dp)
     ) {
         Column(

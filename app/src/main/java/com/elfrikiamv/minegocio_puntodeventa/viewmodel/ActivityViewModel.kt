@@ -55,4 +55,27 @@ class ActivityViewModel(application: Application) : AndroidViewModel(application
                 }
             }
     }
+
+    //verificar si el ticket existe en Firestore
+    fun checkTicketExists(ticketId: String, callback: (TicketFirebase?) -> Unit) {
+        val userEmail = auth.currentUser?.email ?: return
+
+        db.collection("users")
+            .document(userEmail)
+            .collection("tickets")
+            .whereEqualTo("ticketId", ticketId)
+            .get()
+            .addOnSuccessListener { documents ->
+                if (documents.isEmpty) {
+                    callback(null) // Producto no encontrado
+                } else {
+                    val fetchedTicket =
+                        documents.documents.first().toObject(TicketFirebase::class.java)
+                    callback(fetchedTicket)
+                }
+            }
+            .addOnFailureListener {
+                callback(null) // En caso de error
+            }
+    }
 }

@@ -13,7 +13,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -22,6 +21,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.elfrikiamv.minegocio_puntodeventa.R
 import com.elfrikiamv.minegocio_puntodeventa.navigation.Screen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.activity.ActivityScreen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.activity.DetailsTicketScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory.AddProductScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory.DetailsInventoryScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory.DetailsProductScreen
@@ -85,7 +86,7 @@ fun MainScreen() {
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(Screen.Main.route) { HomeScreen(navController = navController) }
-            composable(Screen.Activity.route) { ActivityScreen(viewModel = viewModel()) }
+            composable(Screen.Activity.route) { ActivityScreen(navController = navController) }
             composable(Screen.ScanProduct.route) { ScanScreen(navController = navController) }
             composable(Screen.Shopping.route) { ShoppingScreen() }
             composable(Screen.Inventory.route) { InventoryScreen(navController = navController) }
@@ -105,6 +106,13 @@ fun MainScreen() {
                 DetailsProductScreen(navController = navController, barcode = barcode)
             }
             composable(Screen.DetailsInventory.route) { DetailsInventoryScreen(navController = navController) }
+            composable(
+                route = Screen.DetailsTicket.route + "?ticketId={ticketId}",
+                arguments = listOf(navArgument("ticketId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val ticketId = backStackEntry.arguments?.getString("ticketId")
+                DetailsTicketScreen(navController = navController, ticketId = ticketId)
+            }
         }
     }
 }

@@ -8,12 +8,13 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.elfrikiamv.minegocio_puntodeventa.ui.screens.ActivityScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.LoginScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.MainScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.RegisterScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.ScanScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.ShoppingScreen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.activity.ActivityScreen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.activity.DetailsTicketScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory.AddProductScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory.DetailsInventoryScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory.DetailsProductScreen
@@ -64,7 +65,7 @@ fun NavGraph(navController: NavHostController) {
 
         // Ruta para la pantalla de escanear producto
         composable(Screen.Activity.route) {
-            ActivityScreen()
+            ActivityScreen(navController)
         }
 
         // Ruta para la pantalla de escanear producto
@@ -84,6 +85,15 @@ fun NavGraph(navController: NavHostController) {
         // Ruta para la pantalla de detalles del inventario
         composable(Screen.DetailsInventory.route) {
             DetailsInventoryScreen(navController)
+        }
+
+        // Ruta para la pantalla de detalles del ticket
+        composable(
+            route = Screen.DetailsTicket.route + "?ticketId={ticketId}",
+            arguments = listOf(navArgument("ticketId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val ticketId = backStackEntry.arguments?.getString("ticketId")
+            DetailsTicketScreen(navController = navController, ticketId = ticketId)
         }
     }
 }
