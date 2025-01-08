@@ -5,18 +5,21 @@ package com.elfrikiamv.minegocio_puntodeventa.viewmodel
 import android.app.Application
 import android.content.Context
 import android.content.Intent
-import android.graphics.Paint
-import android.graphics.pdf.PdfDocument
 import android.util.Log
 import androidx.core.content.FileProvider
 import androidx.lifecycle.AndroidViewModel
 import com.elfrikiamv.minegocio_puntodeventa.model.TicketFirebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.tom_roush.pdfbox.android.PDFBoxResourceLoader
+import com.tom_roush.pdfbox.pdmodel.PDDocument
+import com.tom_roush.pdfbox.pdmodel.PDPage
+import com.tom_roush.pdfbox.pdmodel.PDPageContentStream
+import com.tom_roush.pdfbox.pdmodel.common.PDRectangle
+import com.tom_roush.pdfbox.pdmodel.font.PDType1Font
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import java.io.File
-import java.io.FileOutputStream
 
 // ViewModel para manejar la lógica de ActivityScreen
 class ActivityViewModel(application: Application) : AndroidViewModel(application) {
@@ -88,58 +91,67 @@ class ActivityViewModel(application: Application) : AndroidViewModel(application
 
     // Generar un archivo PDF para el ticket
     fun generatePDF(context: Context, ticket: TicketFirebase): File {
-        Log.d(
-            "ActivityViewModel",
-            "Iniciando la generación del PDF para el ticket: ${ticket.ticketId}"
-        )
+        // Enable Android asset loading
+        PDFBoxResourceLoader.init(context)
 
-        val pdfDocument = PdfDocument()
+        val document = PDDocument()
+        val page = PDPage(PDRectangle.A4)
+        document.addPage(page)
+
         try {
-            val pageInfo = PdfDocument.PageInfo.Builder(300, 600, 1).create()
-            val page = pdfDocument.startPage(pageInfo)
-            val canvas = page.canvas
+            val contentStream = PDPageContentStream(document, page)
 
-            // Escribir contenido en el PDF
-            Log.d("ActivityViewModel", "Escribiendo información del ticket en el PDF.")
-            canvas.drawText(
-                "Ticket ID: ${ticket.ticketId}",
-                10f,
-                50f,
-                Paint().apply { textSize = 12f })
-            canvas.drawText("Fecha: ${ticket.date}", 10f, 70f, Paint().apply { textSize = 12f })
-            canvas.drawText("Hora: ${ticket.time}", 10f, 90f, Paint().apply { textSize = 12f })
+            // Configurar fuente y tamaño
+            val font = PDType1Font.HELVETICA
+            val fontSize = 12f
+            val yPosition = page.mediaBox.height - 50 // Posición inicial en Y
 
+            contentStream.beginText()
+            contentStream.setFont(font, fontSize)
+            contentStream.newLineAtOffset(50f, yPosition)
+
+            // Agregar encabezado
+            contentStream.showText("Detalles del Ticket")
+            contentStream.newLineAtOffset(0f, -20f)
+            contentStream.showText("Ticket ID: ${ticket.ticketId}")
+            contentStream.newLineAtOffset(0f, -15f)
+            contentStream.showText("Fecha: ${ticket.date}")
+            contentStream.newLineAtOffset(0f, -15f)
+            contentStream.showText("Hora: ${ticket.time}")
+            contentStream.newLineAtOffset(0f, -20f)
+
+            // Agregar productos
+            contentStream.showText("Productos:")
+            contentStream.newLineAtOffset(0f, -15f)
             ticket.products.forEachIndexed { index, product ->
-                val yPosition = 110 + (index * 20)
-                canvas.drawText(
-                    "${index + 1}. ${product["name"]} - ${product["quantity"]} x $${product["price"]}",
-                    10f, yPosition.toFloat(), Paint().apply { textSize = 12f }
-                )
-                Log.d(
-                    "ActivityViewModel",
-                    "Producto ${index + 1}: ${product["name"]}, Cantidad: ${product["quantity"]}, Precio: ${product["price"]}"
-                )
+                val productText =
+                    "${index + 1}. (${product["barcode"]}) ${product["name"]} - ${product["quantity"]} x $${product["price"]}"
+                contentStream.showText(productText)
+                contentStream.newLineAtOffset(0f, -15f)
             }
 
-            canvas.drawText(
-                "Total: $${ticket.totalPrice}",
-                10f,
-                200f,
-                Paint().apply { textSize = 14f })
-            pdfDocument.finishPage(page)
+            // Agregar totales
+            contentStream.newLineAtOffset(0f, -20f)
+            contentStream.showText("Total de Productos: ${ticket.totalProducts}")
+            contentStream.newLineAtOffset(0f, -15f)
+            contentStream.showText("Total Precio: $${ticket.totalPrice}")
+            contentStream.newLineAtOffset(0f, -15f)
+            contentStream.showText("Pago Recibido: $${ticket.amountReceived}")
+            contentStream.newLineAtOffset(0f, -15f)
+            contentStream.showText("Cambio: $${ticket.change}")
+
+            contentStream.endText()
+            contentStream.close()
 
             // Guardar archivo en caché
             val file = File(context.cacheDir, "ticket_${ticket.ticketId}.pdf")
-            Log.d("ActivityViewModel", "Guardando el archivo en caché: ${file.absolutePath}")
-            pdfDocument.writeTo(FileOutputStream(file))
-            pdfDocument.close()
+            document.save(file)
+            document.close()
 
-            Log.d("ActivityViewModel", "PDF generado con éxito: ${file.absolutePath}")
             return file
 
         } catch (e: Exception) {
-            Log.e("ActivityViewModel", "Error al generar el PDF: ${e.message}")
-            pdfDocument.close()
+            document.close()
             throw e
         }
     }
