@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
@@ -54,6 +55,9 @@ fun ShoppingScreen(modifier: Modifier = Modifier) {
     var amountReceived by remember { mutableStateOf("") } // Cantidad de pago recibida
     var isLoading by remember { mutableStateOf(false) } // Estado de carga para el botón
     val context = LocalContext.current
+
+    var showEmailDialog by remember { mutableStateOf(false) }
+    var email by remember { mutableStateOf("") }
 
     // Calcular el total de productos y el total de la compra
     val totalProducts = products.sumOf { it.quantity }
@@ -155,19 +159,17 @@ fun ShoppingScreen(modifier: Modifier = Modifier) {
 
                     // Botón para confirmar el ticket
                     Button(
+                        //onClick = { showEmailDialog = true },
                         onClick = {
                             if (amountReceived.toFloatOrNull()
                                     ?.let { it >= totalPurchase } == true
                             ) {
                                 isLoading = true // Activar animación de carga
 
-                                // Llamar a confirmTicket con los valores del resumen del ticket
-                                viewModel.confirmTicket(
-                                    totalProducts,
-                                    totalPurchase,
-                                    amountReceived.toDoubleOrNull() ?: 0.0
-                                )
-                                amountReceived = ""
+                                // Llamar al AlertDialog para ingresar el correo electrónico
+                                showEmailDialog = true
+
+                                //amountReceived = "" // Limpiar el campo de cantidad de pago
 
                                 isLoading = false // Desactivar animación de carga
 
@@ -198,6 +200,58 @@ fun ShoppingScreen(modifier: Modifier = Modifier) {
             }
         }
     )
+
+    // Diálogo para ingresar correo electrónico
+    if (showEmailDialog) {
+        AlertDialog(
+            onDismissRequest = { showEmailDialog = false },
+            title = { Text("Ingrese correo electrónico") },
+            text = {
+                OutlinedTextField(
+                    value = email,
+                    onValueChange = { email = it },
+                    label = { Text("Correo electrónico") },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if (email.isNotBlank() && android.util.Patterns.EMAIL_ADDRESS.matcher(email)
+                                .matches()
+                        ) {
+                            showEmailDialog = false
+                            isLoading = true
+
+                            viewModel.confirmTicket(
+                                totalProducts,
+                                totalPurchase,
+                                amountReceived.toDoubleOrNull() ?: 0.0,
+                                context = context,
+                                email = email
+                            )
+
+                            amountReceived = "" // Limpiar el campo de cantidad de pago
+                            isLoading = false
+
+                            Toast.makeText(context, "Ticket guardado", Toast.LENGTH_SHORT).show()
+                        } else {
+                            Toast.makeText(context, "Ingrese un correo válido", Toast.LENGTH_SHORT)
+                                .show()
+                        }
+                    }
+                ) {
+                    Text("Confirmar")
+                }
+            },
+            dismissButton = {
+                Button(onClick = { showEmailDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
 }
 
 @Composable

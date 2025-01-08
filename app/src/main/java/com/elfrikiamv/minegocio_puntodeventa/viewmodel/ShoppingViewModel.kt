@@ -3,6 +3,7 @@ package com.elfrikiamv.minegocio_puntodeventa.viewmodel
 // ShoppingViewModel.kt
 
 import android.app.Application
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -10,6 +11,7 @@ import com.elfrikiamv.minegocio_puntodeventa.database.AppDatabase
 import com.elfrikiamv.minegocio_puntodeventa.model.ProductEntity
 import com.elfrikiamv.minegocio_puntodeventa.model.ProductFirebase
 import com.elfrikiamv.minegocio_puntodeventa.model.TicketEntity
+import com.elfrikiamv.minegocio_puntodeventa.model.TicketFirebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -105,9 +107,15 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
             }
     }
 
-    fun confirmTicket(totalProducts: Int, totalPurchase: Double, amountReceived: Double) {
+    fun confirmTicket(
+        totalProducts: Int,
+        totalPurchase: Double,
+        amountReceived: Double,
+        context: Context,
+        email: String
+    ) {
         viewModelScope.launch {
-
+            // Obtener información de fecha y hora
             val currentDateTimeTicketId = System.currentTimeMillis()
             val currentDateTime = Calendar.getInstance()
             val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
@@ -116,6 +124,7 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
             val dateFormatted = dateFormat.format(currentDateTime.time)
             val timeFormatted = timeFormat.format(currentDateTime.time)
 
+            // Obtener productos del carrito
             val products = productDao.getAllProducts()
             if (products.isEmpty()) {
                 Log.e("ShoppingViewModel", "No hay productos en el carrito.")
@@ -125,10 +134,11 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
             val totalPrice = products.sumOf { it.price * it.quantity }
             val change = amountReceived - totalPurchase
 
+            // Crear el ticket
             val ticket = TicketEntity(
                 ticketId = currentDateTimeTicketId.toString(),
-                date = dateFormatted, // Nuevo campo para la fecha
-                time = timeFormatted, // Nuevo campo para la hora
+                date = dateFormatted,
+                time = timeFormatted,
                 products = products,
                 totalPrice = totalPrice,
                 totalProducts = totalProducts,
@@ -136,12 +146,44 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
                 change = change
             )
 
-            // Insertamos el ticket en la base de datos
+            // Guardar en Room
             ticketDao.insertTicket(ticket)
             Log.d("ShoppingViewModel", "Ticket guardado en Room: $ticket")
+
+            // Limpiar carrito
             productDao.deleteAllProducts()
             loadCartProducts()
+
+            // Subir a Firebase
             uploadTicketToFirebase(ticket)
+
+            // Generar PDF y enviar por correo
+            try {
+                val activityViewModel = ActivityViewModel(getApplication()) // Crear instancia
+                val firebaseTicket = TicketFirebase(
+                    ticketId = ticket.ticketId,
+                    date = ticket.date,
+                    time = ticket.time,
+                    products = ticket.products.map {
+                        mapOf(
+                            "name" to it.name,
+                            "quantity" to it.quantity.toString(),
+                            "price" to it.price.toString()
+                        )
+                    },
+                    totalPrice = ticket.totalPrice
+                )
+
+                // Generar PDF
+                val pdfFile = activityViewModel.generatePDF(context, firebaseTicket)
+                Log.d("ShoppingViewModel", "PDF generado: ${pdfFile.absolutePath}")
+
+                // Enviar correo
+                activityViewModel.sendEmail(context, email, pdfFile)
+                Log.d("ShoppingViewModel", "Correo enviado con éxito.")
+            } catch (e: Exception) {
+                Log.e("ShoppingViewModel", "Error al generar/enviar PDF: ${e.message}")
+            }
         }
     }
 
