@@ -2,10 +2,6 @@ package com.elfrikiamv.minegocio_puntodeventa.ui.screens.activity
 
 // DetailsTicketScreen.kt
 
-import android.content.Context
-import android.content.Intent
-import android.graphics.Paint
-import android.graphics.pdf.PdfDocument
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -37,7 +33,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.core.content.FileProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.elfrikiamv.minegocio_puntodeventa.R
@@ -45,8 +40,6 @@ import com.elfrikiamv.minegocio_puntodeventa.model.TicketFirebase
 import com.elfrikiamv.minegocio_puntodeventa.navigation.Screen
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.ActivityViewModel
 import kotlinx.coroutines.launch
-import java.io.File
-import java.io.FileOutputStream
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -123,6 +116,7 @@ fun DetailsTicketScreen(navController: NavController, ticketId: String?) {
 
 @Composable
 fun TicketDetailsCard(ticketDetails: TicketFirebase) {
+    val viewModel: ActivityViewModel = viewModel()
     val totalPrice = String.format(Locale.getDefault(), "%.2f", ticketDetails.totalPrice)
     val amountReceived = String.format(Locale.getDefault(), "%.2f", ticketDetails.amountReceived)
     val change = String.format(Locale.getDefault(), "%.2f", ticketDetails.change)
@@ -221,8 +215,8 @@ fun TicketDetailsCard(ticketDetails: TicketFirebase) {
                         Button(onClick = {
                             showDialog = false
                             scope.launch {
-                                val pdfFile = generatePDF(context, ticketDetails)
-                                sendEmail(context, emailInput, pdfFile)
+                                val pdfFile = viewModel.generatePDF(context, ticketDetails)
+                                viewModel.sendEmail(context, emailInput, pdfFile)
                             }
                         }) {
                             Text("Enviar")
@@ -238,55 +232,6 @@ fun TicketDetailsCard(ticketDetails: TicketFirebase) {
 
         }
     }
-}
-
-fun generatePDF(context: Context, ticket: TicketFirebase): File {
-    val pdfDocument = PdfDocument()
-    val pageInfo = PdfDocument.PageInfo.Builder(300, 600, 1).create()
-    val page = pdfDocument.startPage(pageInfo)
-    val canvas = page.canvas
-
-    // Escribir el contenido del ticket en el PDF
-    canvas.drawText("Ticket ID: ${ticket.ticketId}", 10f, 50f, Paint().apply { textSize = 12f })
-    canvas.drawText("Fecha: ${ticket.date}", 10f, 70f, Paint().apply { textSize = 12f })
-    canvas.drawText("Hora: ${ticket.time}", 10f, 90f, Paint().apply { textSize = 12f })
-
-    ticket.products.forEachIndexed { index, product ->
-        val yPosition = 110 + (index * 20)
-        canvas.drawText(
-            "${index + 1}. ${product["name"]} - ${product["quantity"]} x $${product["price"]}",
-            10f, yPosition.toFloat(), Paint().apply { textSize = 12f }
-        )
-    }
-
-    canvas.drawText("Total: $${ticket.totalPrice}", 10f, 200f, Paint().apply { textSize = 14f })
-    pdfDocument.finishPage(page)
-
-    // Guardar el archivo en el almacenamiento local
-    val file = File(context.cacheDir, "ticket_${ticket.ticketId}.pdf")
-    pdfDocument.writeTo(FileOutputStream(file))
-    pdfDocument.close()
-
-    return file
-}
-
-fun sendEmail(context: Context, email: String, file: File) {
-    val fileUri = FileProvider.getUriForFile(
-        context,
-        "com.elfrikiamv.minegocio_puntodeventa.fileprovider",
-        file
-    )
-
-    val emailIntent = Intent(Intent.ACTION_SEND).apply {
-        type = "application/pdf"
-        putExtra(Intent.EXTRA_EMAIL, arrayOf(email))
-        putExtra(Intent.EXTRA_SUBJECT, "Detalles del Ticket")
-        putExtra(Intent.EXTRA_TEXT, "Adjunto encontrarás los detalles del ticket.")
-        putExtra(Intent.EXTRA_STREAM, fileUri)
-        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-    }
-
-    context.startActivity(Intent.createChooser(emailIntent, "Compartir archivo"))
 }
 
 @Composable
