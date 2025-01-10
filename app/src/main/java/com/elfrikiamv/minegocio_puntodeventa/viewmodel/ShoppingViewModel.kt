@@ -11,7 +11,6 @@ import com.elfrikiamv.minegocio_puntodeventa.database.AppDatabase
 import com.elfrikiamv.minegocio_puntodeventa.model.ProductEntity
 import com.elfrikiamv.minegocio_puntodeventa.model.ProductFirebase
 import com.elfrikiamv.minegocio_puntodeventa.model.TicketEntity
-import com.elfrikiamv.minegocio_puntodeventa.model.TicketFirebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -172,36 +171,7 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
             loadCartProducts()
 
             // Subir a Firebase
-            uploadTicketToFirebase(ticket)
-
-            // Generar PDF y enviar por correo
-            try {
-                val activityViewModel = ActivityViewModel(getApplication()) // Crear instancia
-                val firebaseTicket = TicketFirebase(
-                    ticketId = ticket.ticketId,
-                    date = ticket.date,
-                    time = ticket.time,
-                    products = ticket.products.map {
-                        mapOf(
-                            "name" to it.name,
-                            "quantity" to it.quantity.toString(),
-                            "price" to it.price.toString()
-                        )
-                    },
-                    totalPrice = ticket.totalPrice
-                )
-
-                // Generar PDF
-                val pdfFile = activityViewModel.generatePDF(context, firebaseTicket)
-                Log.d("ShoppingViewModel", "PDF generado: ${pdfFile.absolutePath}")
-
-                // Enviar correo
-                activityViewModel.sendEmail(context, email, pdfFile)
-                Log.d("ShoppingViewModel", "Correo enviado con éxito.")
-            } catch (e: Exception) {
-                Log.e("ShoppingViewModel", "Error al generar/enviar PDF: ${e.message}")
-            }
-
+            uploadTicketToFirebase(ticket, context, email)
         }
     }
 
@@ -219,7 +189,11 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    private fun uploadTicketToFirebase(ticketEntity: TicketEntity) {
+    private fun uploadTicketToFirebase(
+        ticketEntity: TicketEntity,
+        context: Context,
+        email: String
+    ) {
         val userEmail = auth.currentUser?.email ?: return
 
         db.collection("users")
@@ -234,12 +208,41 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
             .set(ticketEntity)
             .addOnSuccessListener {
                 viewModelScope.launch {
+
+                    // compartir ticket
+                    val ticketId = ticketEntity.ticketId
+                    sharePDF(ticketId, context, email)
+                    // Eliminar ticket de Room
                     ticketDao.deleteTicketById(ticketEntity.ticketId)
                 }
             }
             .addOnFailureListener { e ->
                 Log.e("ShoppingViewModel", "Error al subir el ticket a Firebase: $e")
             }
+    }
+
+    private fun sharePDF(ticketId: String, context: Context, email: String) {
+
+        // Obtener ticket de Firebase y generar PDF
+        val activityViewModel = ActivityViewModel(getApplication())
+        activityViewModel.checkTicketExists(ticketId) { firebaseTicket ->
+            if (firebaseTicket != null) {
+                // El ticket existe, generar el PDF
+                try {
+                    val pdfFile = activityViewModel.generatePDF(context, firebaseTicket)
+                    Log.d("ShoppingViewModel", "PDF generado: ${pdfFile.absolutePath}")
+
+                    // Enviar correo
+                    activityViewModel.sendEmail(context, email, pdfFile)
+                    Log.d("ShoppingViewModel", "Correo enviado con éxito.")
+                } catch (e: Exception) {
+                    Log.e("ShoppingViewModel", "Error al generar/enviar PDF: ${e.message}")
+                }
+            } else {
+                // El ticket no existe, registrar un error o manejar el caso
+                Log.e("ShoppingViewModel", "El ticket con ID $ticketId no existe en Firebase.")
+            }
+        }
     }
 
     private suspend fun getFirebaseStock(barcode: String): Int = suspendCoroutine { continuation ->
