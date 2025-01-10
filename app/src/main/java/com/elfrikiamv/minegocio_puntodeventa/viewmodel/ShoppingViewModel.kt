@@ -33,6 +33,11 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
     private val _cartProducts = MutableStateFlow<List<ProductFirebase>>(emptyList())
     val cartProducts: StateFlow<List<ProductFirebase>> = _cartProducts
 
+    private val userMyBusinesses = "defaultBusiness"
+    private val userMyInventories = "defaultInventory"
+
+    private val userMyTickets = "defaultTickets"
+
     init {
         loadCartProducts()
     }
@@ -78,7 +83,13 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
         val userEmail = auth.currentUser?.email ?: return
         db.collection("users")
             .document(userEmail)
-            .collection("inventories")
+            .collection("userMyBusinesses")
+            .document(userMyBusinesses)
+            .collection("userMyInventories")
+            .document(userMyInventories)
+            .collection("userInventory")
+
+            //.collection("inventories")
             .whereEqualTo("barcode", barcode)
             .get()
             .addOnSuccessListener { documents ->
@@ -88,7 +99,13 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
                     val newQuantity = (currentQuantity + quantityChange).coerceAtLeast(0)
                     db.collection("users")
                         .document(userEmail)
-                        .collection("inventories")
+                        .collection("userMyBusinesses")
+                        .document(userMyBusinesses)
+                        .collection("userMyInventories")
+                        .document(userMyInventories)
+                        .collection("userInventory")
+
+                        //.collection("inventories")
                         .document(document.id)
                         .update("quantity", newQuantity)
                         .addOnSuccessListener {
@@ -184,6 +201,7 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
             } catch (e: Exception) {
                 Log.e("ShoppingViewModel", "Error al generar/enviar PDF: ${e.message}")
             }
+
         }
     }
 
@@ -206,7 +224,12 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
 
         db.collection("users")
             .document(userEmail)
-            .collection("tickets")
+            .collection("userMyBusinesses")
+            .document(userMyBusinesses)
+            .collection("userMyTickets")
+            .document(userMyTickets)
+            .collection("userTickets")
+
             .document(ticketEntity.ticketId)
             .set(ticketEntity)
             .addOnSuccessListener {
@@ -228,7 +251,13 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
 
         db.collection("users")
             .document(userEmail)
-            .collection("inventories")
+            .collection("userMyBusinesses")
+            .document(userMyBusinesses)
+            .collection("userMyInventories")
+            .document(userMyInventories)
+            .collection("userInventory")
+
+            //.collection("inventories")
             .whereEqualTo("barcode", barcode)
             .get()
             .addOnSuccessListener { documents ->

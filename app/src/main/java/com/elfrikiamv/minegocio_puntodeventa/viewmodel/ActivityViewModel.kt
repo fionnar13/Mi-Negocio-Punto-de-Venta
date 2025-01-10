@@ -31,6 +31,10 @@ class ActivityViewModel(application: Application) : AndroidViewModel(application
     private val _tickets = MutableStateFlow<List<TicketFirebase>>(emptyList())
     val tickets: StateFlow<List<TicketFirebase>> = _tickets // StateFlow expuesto a la vista
 
+    private val userMyBusinesses = "defaultBusiness"
+
+    private val userMyTickets = "defaultTickets"
+
     init {
         // Cargar los tickets al inicializar el ViewModel
         loadTicketsFromFirebase()
@@ -47,7 +51,13 @@ class ActivityViewModel(application: Application) : AndroidViewModel(application
         // Escuchar cambios en tiempo real en la colección de tickets
         db.collection("users")
             .document(userEmail)
-            .collection("tickets")
+            .collection("userMyBusinesses")
+            .document(userMyBusinesses)
+            .collection("userMyTickets")
+            .document(userMyTickets)
+            .collection("userTickets")
+
+            //.collection("tickets")
             .addSnapshotListener { snapshot, e ->
                 if (e != null) {
                     Log.e("ActivityViewModel", "Error al obtener los tickets: $e")
@@ -72,7 +82,13 @@ class ActivityViewModel(application: Application) : AndroidViewModel(application
 
         db.collection("users")
             .document(userEmail)
-            .collection("tickets")
+            .collection("userMyBusinesses")
+            .document(userMyBusinesses)
+            .collection("userMyTickets")
+            .document(userMyTickets)
+            .collection("userTickets")
+
+            //.collection("tickets")
             .whereEqualTo("ticketId", ticketId)
             .get()
             .addOnSuccessListener { documents ->

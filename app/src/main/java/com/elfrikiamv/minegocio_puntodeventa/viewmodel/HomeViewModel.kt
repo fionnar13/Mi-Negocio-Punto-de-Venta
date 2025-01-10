@@ -4,6 +4,4 @@ package com.elfrikiamv.minegocio_puntodeventa.viewmodel
 
 import androidx.lifecycle.ViewModel
 
-class HomeViewModel : ViewModel() {
-
-}
+class HomeViewModel : ViewModel()

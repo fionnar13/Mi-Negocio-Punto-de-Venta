@@ -20,6 +20,9 @@ class InventoryViewModel : ViewModel() {
     private val _products = MutableStateFlow<List<ProductFirebase>>(emptyList())
     val products: StateFlow<List<ProductFirebase>> = _products
 
+    private val userMyBusinesses = "defaultBusiness"
+    private val userMyInventories = "defaultInventory"
+
     init {
         // Cargar los productos al iniciar el ViewModel
         loadProducts()
@@ -31,7 +34,11 @@ class InventoryViewModel : ViewModel() {
 
         db.collection("users")
             .document(userEmail)
-            .collection("inventories")
+            .collection("userMyBusinesses")
+            .document(userMyBusinesses)
+            .collection("userMyInventories")
+            .document(userMyInventories)
+            .collection("userInventory")
             .addSnapshotListener { snapshot, e ->
                 if (e != null || snapshot == null) {
                     // Manejar error
@@ -74,7 +81,11 @@ class InventoryViewModel : ViewModel() {
         // Guardar o actualizar el producto en Firestore
         db.collection("users")
             .document(userEmail)
-            .collection("inventories")
+            .collection("userMyBusinesses")
+            .document(userMyBusinesses)
+            .collection("userMyInventories")
+            .document(userMyInventories)
+            .collection("userInventory")
             .document(productId)
             .set(product)
     }
@@ -85,7 +96,11 @@ class InventoryViewModel : ViewModel() {
 
         db.collection("users")
             .document(userEmail)
-            .collection("inventories")
+            .collection("userMyBusinesses")
+            .document(userMyBusinesses)
+            .collection("userMyInventories")
+            .document(userMyInventories)
+            .collection("userInventory")
             .whereEqualTo("barcode", barcode)
             .get()
             .addOnSuccessListener { documents ->
