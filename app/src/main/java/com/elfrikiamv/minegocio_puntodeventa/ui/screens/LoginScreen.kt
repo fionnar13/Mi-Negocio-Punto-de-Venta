@@ -74,6 +74,7 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel = vie
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .padding(padding)
                     .padding(16.dp),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally

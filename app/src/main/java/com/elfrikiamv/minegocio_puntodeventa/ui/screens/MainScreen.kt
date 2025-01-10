@@ -78,43 +78,44 @@ fun MainScreen() {
                     )
                 }
             }
+        },
+        content = { paddingValues ->
+            NavHost(
+                navController = navController,
+                startDestination = Screen.Main.route,
+                modifier = Modifier.padding(paddingValues)
+            ) {
+                composable(Screen.Main.route) { HomeScreen(navController = navController) }
+                composable(Screen.Activity.route) { ActivityScreen(navController = navController) }
+                composable(Screen.ScanProduct.route) { ScanScreen(navController = navController) }
+                composable(Screen.Shopping.route) { ShoppingScreen() }
+                composable(Screen.Inventory.route) { InventoryScreen(navController = navController) }
+                composable(
+                    route = Screen.AddProduct.route + "?barcode={barcode}",
+                    arguments = listOf(navArgument("barcode") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val barcode = backStackEntry.arguments?.getString("barcode")
+                    AddProductScreen(navController = navController, barcodeDetails = barcode)
+                }
+                composable(Screen.ScanAddProduct.route) { ScanProductScreen(navController = navController) }
+                composable(
+                    route = Screen.DetailsProduct.route + "?barcode={barcode}",
+                    arguments = listOf(navArgument("barcode") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val barcode = backStackEntry.arguments?.getString("barcode")
+                    DetailsProductScreen(navController = navController, barcode = barcode)
+                }
+                composable(Screen.DetailsInventory.route) { DetailsInventoryScreen(navController = navController) }
+                composable(
+                    route = Screen.DetailsTicket.route + "?ticketId={ticketId}",
+                    arguments = listOf(navArgument("ticketId") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val ticketId = backStackEntry.arguments?.getString("ticketId")
+                    DetailsTicketScreen(navController = navController, ticketId = ticketId)
+                }
+            }
         }
-    ) { innerPadding ->
-        NavHost(
-            navController = navController,
-            startDestination = Screen.Main.route,
-            modifier = Modifier.padding(innerPadding)
-        ) {
-            composable(Screen.Main.route) { HomeScreen(navController = navController) }
-            composable(Screen.Activity.route) { ActivityScreen(navController = navController) }
-            composable(Screen.ScanProduct.route) { ScanScreen(navController = navController) }
-            composable(Screen.Shopping.route) { ShoppingScreen() }
-            composable(Screen.Inventory.route) { InventoryScreen(navController = navController) }
-            composable(
-                route = Screen.AddProduct.route + "?barcode={barcode}",
-                arguments = listOf(navArgument("barcode") { type = NavType.StringType })
-            ) { backStackEntry ->
-                val barcode = backStackEntry.arguments?.getString("barcode")
-                AddProductScreen(navController = navController, barcodeDetails = barcode)
-            }
-            composable(Screen.ScanAddProduct.route) { ScanProductScreen(navController = navController) }
-            composable(
-                route = Screen.DetailsProduct.route + "?barcode={barcode}",
-                arguments = listOf(navArgument("barcode") { type = NavType.StringType })
-            ) { backStackEntry ->
-                val barcode = backStackEntry.arguments?.getString("barcode")
-                DetailsProductScreen(navController = navController, barcode = barcode)
-            }
-            composable(Screen.DetailsInventory.route) { DetailsInventoryScreen(navController = navController) }
-            composable(
-                route = Screen.DetailsTicket.route + "?ticketId={ticketId}",
-                arguments = listOf(navArgument("ticketId") { type = NavType.StringType })
-            ) { backStackEntry ->
-                val ticketId = backStackEntry.arguments?.getString("ticketId")
-                DetailsTicketScreen(navController = navController, ticketId = ticketId)
-            }
-        }
-    }
+    )
 }
 
 // Clase de datos para los elementos de navegación
