@@ -178,6 +178,7 @@ class ActivityViewModel(application: Application) : AndroidViewModel(application
                 putExtra(Intent.EXTRA_SUBJECT, "Detalles del Ticket")
                 putExtra(Intent.EXTRA_TEXT, "Adjunto encontrarás los detalles del ticket.")
                 putExtra(Intent.EXTRA_STREAM, fileUri)
+                setPackage("com.google.android.gm") // Use Gmail app
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
 

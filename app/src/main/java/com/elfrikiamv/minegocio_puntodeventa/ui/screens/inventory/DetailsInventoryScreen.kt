@@ -3,14 +3,13 @@ package com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory
 // DetailsInventoryScreen.kt
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -45,31 +44,25 @@ fun DetailsInventoryScreen(navController: NavHostController) {
                     )
                 }
             )
-        }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .padding(paddingValues)
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            ElevatedCard(
-                modifier = Modifier.fillMaxWidth()
+        },
+        content = { paddingValues ->
+            Column(
+                modifier = Modifier
+                    .padding(paddingValues)
+                    .fillMaxSize()
+                    .padding(16.dp)
             ) {
-                Column(
+                // Tarjeta de Inicio
+                ElevatedCard(
                     modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp)
                 ) {
-                    Text(
-                        text = "Details Inventory Screen xd",
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(text = "Detalles de mi inventario")
+                    }
                 }
             }
         }
-    }
+    )
 }
