@@ -39,6 +39,7 @@ fun HomeScreen(navController: NavController) {
     val viewModel: HomeViewModel = viewModel()
     val totalQuantity by viewModel.totalQuantity.collectAsState()
     val totalSalePrice by viewModel.totalSalePrice.collectAsState()
+    val lowStockList by viewModel.lowStockProducts.collectAsState()
 
     // Contenido de la pantalla de inicio
     Scaffold(
@@ -62,7 +63,7 @@ fun HomeScreen(navController: NavController) {
                         .weight(1f)
                 ) {
                     item {
-                        MyReport(navController, totalQuantity, totalSalePrice)
+                        MyReport(navController, totalQuantity, totalSalePrice, lowStockList)
                     }
                 }
             }
@@ -71,7 +72,12 @@ fun HomeScreen(navController: NavController) {
 }
 
 @Composable
-fun MyReport(navController: NavController, totalQuantity: Int, totalSalePrice: Double) {
+fun MyReport(
+    navController: NavController,
+    totalQuantity: Int,
+    totalSalePrice: Double,
+    lowStockList: List<Map<String, Any>>
+) {
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -281,7 +287,7 @@ fun MyReport(navController: NavController, totalQuantity: Int, totalSalePrice: D
                         modifier = Modifier.weight(1f)
                     ) {
                         Text(text = "Productos con\nbajo inventario:")
-                        Text(text = "#")
+                        Text(text = "${lowStockList.size}")
                     }
                     Icon(
                         painter = painterResource(id = R.drawable.baseline_arrow_forward_ios_24),
