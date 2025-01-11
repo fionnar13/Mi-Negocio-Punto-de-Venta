@@ -20,6 +20,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -29,11 +31,14 @@ import androidx.navigation.NavController
 import com.elfrikiamv.minegocio_puntodeventa.R
 import com.elfrikiamv.minegocio_puntodeventa.navigation.Screen
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.HomeViewModel
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavController) {
     val viewModel: HomeViewModel = viewModel()
+    val totalQuantity by viewModel.totalQuantity.collectAsState()
+    val totalSalePrice by viewModel.totalSalePrice.collectAsState()
 
     // Contenido de la pantalla de inicio
     Scaffold(
@@ -57,7 +62,7 @@ fun HomeScreen(navController: NavController) {
                         .weight(1f)
                 ) {
                     item {
-                        MyReport(navController)
+                        MyReport(navController, totalQuantity, totalSalePrice)
                     }
                 }
             }
@@ -66,7 +71,7 @@ fun HomeScreen(navController: NavController) {
 }
 
 @Composable
-fun MyReport(navController: NavController) {
+fun MyReport(navController: NavController, totalQuantity: Int, totalSalePrice: Double) {
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -159,7 +164,7 @@ fun MyReport(navController: NavController) {
         }
 
         Text(text = "Resumen de mi inventario:")
-        // Tarjeta de mi lista de faltantes
+        // Tarjeta de resumen de mi inventario
         ElevatedCard(
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -169,10 +174,6 @@ fun MyReport(navController: NavController) {
                     .fillMaxWidth()
             ) {
 
-                /*Text(
-                    text = "Total en mi inventario:",
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                )*/
                 Row(
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 ) {
@@ -184,7 +185,23 @@ fun MyReport(navController: NavController) {
                             text = "Productos:",
                             modifier = Modifier.align(Alignment.CenterHorizontally)
                         )
-                        Text(text = "#", modifier = Modifier.align(Alignment.CenterHorizontally))
+                        Row(
+                            modifier = Modifier.align(Alignment.CenterHorizontally)
+                        ) {
+
+                            Icon(
+                                painter = painterResource(id = R.drawable.baseline_shopping_bag_24),
+                                contentDescription = "shopping icon",
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .align(Alignment.CenterVertically)
+                            )
+                            Spacer(modifier = Modifier.width(3.dp))
+                            Text(
+                                text = "$totalQuantity",
+                                modifier = Modifier.align(Alignment.CenterVertically)
+                            )
+                        }
                     }
                     Spacer(modifier = Modifier.width(16.dp))
                     Column(
@@ -194,7 +211,22 @@ fun MyReport(navController: NavController) {
                             text = "Valor:",
                             modifier = Modifier.align(Alignment.CenterHorizontally)
                         )
-                        Text(text = "#", modifier = Modifier.align(Alignment.CenterHorizontally))
+                        Row(
+                            modifier = Modifier.align(Alignment.CenterHorizontally)
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.baseline_attach_money_24),
+                                contentDescription = "money icon",
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .align(Alignment.CenterVertically)
+                            )
+                            Spacer(modifier = Modifier.width(3.dp))
+                            Text(
+                                text = String.format(Locale.getDefault(), "%.2f", totalSalePrice),
+                                modifier = Modifier.align(Alignment.CenterVertically)
+                            )
+                        }
                     }
                 }
             }

@@ -114,9 +114,9 @@ fun TicketCard(ticket: TicketFirebase, onTicketDetails: () -> Unit) {
                         )
                         Spacer(modifier = Modifier.width(3.dp))
                         Icon(
-                            painter = painterResource(id = R.drawable.baseline_calendar_today_24), // Usa un ícono de cámara
+                            painter = painterResource(id = R.drawable.baseline_calendar_today_24),
                             contentDescription = "calendar icon",
-                            modifier = Modifier.size(24.dp) // Tamaño del ícono
+                            modifier = Modifier.size(24.dp)
                         )
                     }
                     Spacer(modifier = Modifier.height(3.dp))
@@ -130,9 +130,9 @@ fun TicketCard(ticket: TicketFirebase, onTicketDetails: () -> Unit) {
                         )
                         Spacer(modifier = Modifier.width(3.dp))
                         Icon(
-                            painter = painterResource(id = R.drawable.baseline_access_time_24), // Usa un ícono de cámara
+                            painter = painterResource(id = R.drawable.baseline_access_time_24),
                             contentDescription = "clock icon",
-                            modifier = Modifier.size(24.dp), // Tamaño del ícono
+                            modifier = Modifier.size(24.dp),
                         )
                     }
                 }
@@ -151,9 +151,9 @@ fun TicketCard(ticket: TicketFirebase, onTicketDetails: () -> Unit) {
                     modifier = Modifier.weight(1f)
                 ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.baseline_shopping_bag_24), // Usa un ícono de cámara
+                        painter = painterResource(id = R.drawable.baseline_shopping_bag_24),
                         contentDescription = "bag icon",
-                        modifier = Modifier.size(24.dp), // Tamaño del ícono
+                        modifier = Modifier.size(24.dp),
                     )
                     Spacer(modifier = Modifier.width(3.dp))
                     Text(
