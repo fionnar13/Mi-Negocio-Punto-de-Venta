@@ -40,6 +40,7 @@ fun HomeScreen(navController: NavController) {
     val totalQuantity by viewModel.totalQuantity.collectAsState()
     val totalSalePrice by viewModel.totalSalePrice.collectAsState()
     val lowStockList by viewModel.lowStockProducts.collectAsState()
+    val outStockList by viewModel.outStockProducts.collectAsState()
 
     // Contenido de la pantalla de inicio
     Scaffold(
@@ -63,7 +64,13 @@ fun HomeScreen(navController: NavController) {
                         .weight(1f)
                 ) {
                     item {
-                        MyReport(navController, totalQuantity, totalSalePrice, lowStockList)
+                        MyReport(
+                            navController,
+                            totalQuantity,
+                            totalSalePrice,
+                            lowStockList,
+                            outStockList
+                        )
                     }
                 }
             }
@@ -76,7 +83,8 @@ fun MyReport(
     navController: NavController,
     totalQuantity: Int,
     totalSalePrice: Double,
-    lowStockList: List<Map<String, Any>>
+    lowStockList: List<Map<String, Any>>,
+    outStockList: List<Map<String, Any>>
 ) {
 
     Column(
@@ -321,7 +329,7 @@ fun MyReport(
                         modifier = Modifier.weight(1f)
                     ) {
                         Text(text = "Productos\nagotados:")
-                        Text(text = "#")
+                        Text(text = "${outStockList.size}")
                     }
                     Icon(
                         painter = painterResource(id = R.drawable.baseline_arrow_forward_ios_24),

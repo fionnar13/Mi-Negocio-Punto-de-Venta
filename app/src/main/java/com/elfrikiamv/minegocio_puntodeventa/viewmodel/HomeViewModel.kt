@@ -16,6 +16,7 @@ class HomeViewModel : ViewModel() {
         private const val DEFAULT_BUSINESS = "defaultBusiness"
         private const val DEFAULT_INVENTORY = "defaultInventory"
         private const val LOW_STOCK_THRESHOLD = 6 // Umbral de stock bajo
+        private const val OUT_STOCK_THRESHOLD = 0 // Umbral de stock bajo
     }
 
     private val auth = FirebaseAuth.getInstance()
@@ -30,6 +31,9 @@ class HomeViewModel : ViewModel() {
     private val _lowStockProducts = MutableStateFlow<List<Map<String, Any>>>(emptyList())
     val lowStockProducts: StateFlow<List<Map<String, Any>>> = _lowStockProducts
 
+    private val _outStockProducts = MutableStateFlow<List<Map<String, Any>>>(emptyList())
+    val outStockProducts: StateFlow<List<Map<String, Any>>> = _outStockProducts
+
     init {
         val userEmail = auth.currentUser?.email
         if (userEmail == null) {
@@ -39,6 +43,7 @@ class HomeViewModel : ViewModel() {
             loadTotalQuantity(userEmail)
             loadTotalSalePrice(userEmail)
             loadLowStockProducts(userEmail)
+            loadOutStockProducts(userEmail)
         }
     }
 
@@ -66,7 +71,7 @@ class HomeViewModel : ViewModel() {
                 Log.d(TAG, "Procesando ${snapshot.documents.size} documentos para stock bajo.")
                 val lowStockList = snapshot.documents.filter { doc ->
                     val quantity = doc.getLong("quantity")?.toInt() ?: 0
-                    quantity <= LOW_STOCK_THRESHOLD
+                    quantity in 1..LOW_STOCK_THRESHOLD
                 }.mapNotNull { doc ->
 
                     // Validar los datos y construir el mapa de producto
@@ -79,6 +84,46 @@ class HomeViewModel : ViewModel() {
 
                 Log.d(TAG, "Productos con stock bajo encontrados: ${lowStockList.size}")
                 _lowStockProducts.value = lowStockList
+            }
+    }
+
+    private fun loadOutStockProducts(userEmail: String) {
+        Log.d(TAG, "Cargando productos sin stock para el usuario: $userEmail")
+
+        db.collection("users")
+            .document(userEmail)
+            .collection("userMyBusinesses")
+            .document(DEFAULT_BUSINESS)
+            .collection("userMyInventories")
+            .document(DEFAULT_INVENTORY)
+            .collection("userInventory")
+            .addSnapshotListener { snapshot, e ->
+                if (e != null) {
+                    Log.e(TAG, "Error al escuchar cambios en Firestore: ${e.message}")
+                    return@addSnapshotListener
+                }
+
+                if (snapshot == null) {
+                    Log.e(TAG, "Snapshot vacío o nulo al cargar productos sin stock.")
+                    return@addSnapshotListener
+                }
+
+                Log.d(TAG, "Procesando ${snapshot.documents.size} documentos para sin stock.")
+                val outStockList = snapshot.documents.filter { doc ->
+                    val quantity = doc.getLong("quantity")?.toInt() ?: 0
+                    quantity <= OUT_STOCK_THRESHOLD
+                }.mapNotNull { doc ->
+
+                    // Validar los datos y construir el mapa de producto
+                    val product = mapOf(
+                        "id" to doc.id
+                    )
+                    Log.d(TAG, "Producto sin stock: $product")
+                    product
+                }
+
+                Log.d(TAG, "Productos sin stock encontrados: ${outStockList.size}")
+                _outStockProducts.value = outStockList
             }
     }
 
