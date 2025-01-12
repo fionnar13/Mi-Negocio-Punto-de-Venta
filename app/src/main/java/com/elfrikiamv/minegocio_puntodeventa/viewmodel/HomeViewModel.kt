@@ -58,7 +58,35 @@ class HomeViewModel : ViewModel() {
             loadLowStockProducts(userEmail)
             loadOutStockProducts(userEmail)
             loadTotalTicketsSold(userEmail)
+            loadTotalTransactions(userEmail)
         }
+    }
+
+    // Función para cargar el número total de transacciones (tickets)
+    private fun loadTotalTransactions(userEmail: String) {
+        Log.d(TAG, "Cargando número total de transacciones para el usuario: $userEmail")
+
+        db.collection("users")
+            .document(userEmail)
+            .collection("userMyBusinesses")
+            .document(DEFAULT_BUSINESS)
+            .collection("userMyTickets")
+            .document(DEFAULT_TICKETS)
+            .collection("userTickets")
+            .addSnapshotListener { snapshot, e ->
+                if (e != null) {
+                    Log.e(TAG, "Error al escuchar cambios en la colección de tickets: ${e.message}")
+                    return@addSnapshotListener
+                }
+
+                if (snapshot == null) {
+                    Log.e(TAG, "Snapshot vacío o nulo al cargar el número total de transacciones.")
+                    return@addSnapshotListener
+                }
+
+                Log.d(TAG, "Número total de tickets procesados: ${snapshot.documents.size}")
+                _totalTransactions.value = snapshot.documents.size // Actualiza el flujo
+            }
     }
 
     // Saca el total de tickets vendidos para el usuario

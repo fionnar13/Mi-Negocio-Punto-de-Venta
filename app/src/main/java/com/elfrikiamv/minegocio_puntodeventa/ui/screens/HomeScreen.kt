@@ -42,6 +42,7 @@ fun HomeScreen(navController: NavController) {
     val lowStockList by viewModel.lowStockProducts.collectAsState()
     val outStockList by viewModel.outStockProducts.collectAsState()
     val totalTicketsSold by viewModel.totalTicketsSold.collectAsState()
+    val totalTransactions by viewModel.totalTransactions.collectAsState()
 
     // Contenido de la pantalla de inicio
     Scaffold(
@@ -71,7 +72,8 @@ fun HomeScreen(navController: NavController) {
                             totalSalePrice,
                             lowStockList,
                             outStockList,
-                            totalTicketsSold
+                            totalTicketsSold,
+                            totalTransactions
                         )
                     }
                 }
@@ -87,7 +89,8 @@ fun MyReport(
     totalSalePrice: Double,
     lowStockList: List<Map<String, Any>>,
     outStockList: List<Map<String, Any>>,
-    totalTicketsSold: Double
+    totalTicketsSold: Double,
+    totalTransactions: Int
 ) {
 
     Column(
@@ -175,7 +178,7 @@ fun MyReport(
                         .padding(16.dp)
                 ) {
                     Text(text = "Transacciones\ntotales:")
-                    Text(text = "#")
+                    Text(text = "$totalTransactions")
                 }
             }
         }
