@@ -41,6 +41,7 @@ fun HomeScreen(navController: NavController) {
     val totalSalePrice by viewModel.totalSalePrice.collectAsState()
     val lowStockList by viewModel.lowStockProducts.collectAsState()
     val outStockList by viewModel.outStockProducts.collectAsState()
+    val totalTicketsSold by viewModel.totalTicketsSold.collectAsState()
 
     // Contenido de la pantalla de inicio
     Scaffold(
@@ -69,7 +70,8 @@ fun HomeScreen(navController: NavController) {
                             totalQuantity,
                             totalSalePrice,
                             lowStockList,
-                            outStockList
+                            outStockList,
+                            totalTicketsSold
                         )
                     }
                 }
@@ -84,7 +86,8 @@ fun MyReport(
     totalQuantity: Int,
     totalSalePrice: Double,
     lowStockList: List<Map<String, Any>>,
-    outStockList: List<Map<String, Any>>
+    outStockList: List<Map<String, Any>>,
+    totalTicketsSold: Double
 ) {
 
     Column(
@@ -109,7 +112,7 @@ fun MyReport(
                         .padding(16.dp)
                 ) {
                     Text(text = "Has\nvendido:")
-                    Text(text = "#")
+                    Text(text = String.format(Locale.getDefault(), "%.2f", totalTicketsSold))
                 }
             }
             Spacer(modifier = Modifier.width(16.dp))

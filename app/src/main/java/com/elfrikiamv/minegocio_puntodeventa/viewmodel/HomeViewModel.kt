@@ -15,6 +15,7 @@ class HomeViewModel : ViewModel() {
         private const val TAG = "HomeViewModel"
         private const val DEFAULT_BUSINESS = "defaultBusiness"
         private const val DEFAULT_INVENTORY = "defaultInventory"
+        private const val DEFAULT_TICKETS = "defaultTickets"
         private const val LOW_STOCK_THRESHOLD = 6 // Umbral de stock bajo
         private const val OUT_STOCK_THRESHOLD = 0 // Umbral de stock bajo
     }
@@ -22,17 +23,29 @@ class HomeViewModel : ViewModel() {
     private val auth = FirebaseAuth.getInstance()
     private val db = FirebaseFirestore.getInstance()
 
+    // Nuevo campo para la cantidad total de productos en el inventario
     private val _totalQuantity = MutableStateFlow(0)
     val totalQuantity: StateFlow<Int> = _totalQuantity
 
+    // Nuevo campo para el valor total del inventario
     private val _totalSalePrice = MutableStateFlow(0.0)
     val totalSalePrice: StateFlow<Double> = _totalSalePrice
 
+    // Nuevo campo para los productos con stock bajo
     private val _lowStockProducts = MutableStateFlow<List<Map<String, Any>>>(emptyList())
     val lowStockProducts: StateFlow<List<Map<String, Any>>> = _lowStockProducts
 
+    // Nuevo campo para los productos sin stock
     private val _outStockProducts = MutableStateFlow<List<Map<String, Any>>>(emptyList())
     val outStockProducts: StateFlow<List<Map<String, Any>>> = _outStockProducts
+
+    // Nuevo campo para el total de tickets vendidos
+    private val _totalTicketsSold = MutableStateFlow(0.0)
+    val totalTicketsSold: StateFlow<Double> = _totalTicketsSold
+
+    // Nuevo campo para el total de transacciones (número de tickets)
+    private val _totalTransactions = MutableStateFlow(0)
+    val totalTransactions: StateFlow<Int> = _totalTransactions
 
     init {
         val userEmail = auth.currentUser?.email
@@ -44,9 +57,43 @@ class HomeViewModel : ViewModel() {
             loadTotalSalePrice(userEmail)
             loadLowStockProducts(userEmail)
             loadOutStockProducts(userEmail)
+            loadTotalTicketsSold(userEmail)
         }
     }
 
+    // Saca el total de tickets vendidos para el usuario
+    private fun loadTotalTicketsSold(userEmail: String) {
+        Log.d(TAG, "Cargando total de ventas de tickets para el usuario: $userEmail")
+
+        db.collection("users")
+            .document(userEmail)
+            .collection("userMyBusinesses")
+            .document(DEFAULT_BUSINESS)
+            .collection("userMyTickets")
+            .document(DEFAULT_TICKETS)
+            .collection("userTickets")
+            .addSnapshotListener { snapshot, e ->
+                if (e != null) {
+                    Log.e(TAG, "Error al escuchar cambios en la colección de tickets: ${e.message}")
+                    return@addSnapshotListener
+                }
+
+                if (snapshot == null) {
+                    Log.e(TAG, "Snapshot vacío o nulo al cargar las ventas de tickets.")
+                    return@addSnapshotListener
+                }
+
+                Log.d(TAG, "Procesando ${snapshot.documents.size} documentos de tickets.")
+                val total = snapshot.documents.sumOf { doc ->
+                    doc.getDouble("totalPrice") ?: 0.0
+                }
+
+                Log.d(TAG, "Total de ventas calculado: $total")
+                _totalTicketsSold.value = total
+            }
+    }
+
+    // Saca los productos con stock bajo para el usuario
     private fun loadLowStockProducts(userEmail: String) {
         Log.d(TAG, "Cargando productos con stock bajo para el usuario: $userEmail")
 
@@ -87,6 +134,7 @@ class HomeViewModel : ViewModel() {
             }
     }
 
+    // Saca los productos sin stock para el usuario
     private fun loadOutStockProducts(userEmail: String) {
         Log.d(TAG, "Cargando productos sin stock para el usuario: $userEmail")
 
