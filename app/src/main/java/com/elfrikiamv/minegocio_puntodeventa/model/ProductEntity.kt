@@ -10,5 +10,6 @@ data class ProductEntity(
     @PrimaryKey val barcode: String,  // Código de barras como ID único
     val name: String,                 // Nombre del producto
     var quantity: Int,                // Cantidad del producto
-    val price: Double                 // Precio unitario
+    val providerPrice: Double,        // Precio del proveedor
+    val salePrice: Double             // Precio de venta
 )

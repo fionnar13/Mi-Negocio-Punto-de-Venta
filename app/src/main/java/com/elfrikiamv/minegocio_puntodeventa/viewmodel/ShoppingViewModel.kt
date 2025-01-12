@@ -46,7 +46,8 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
             barcode = product.barcode,
             name = product.name,
             quantity = product.quantity,
-            price = product.salePrice
+            salePrice = product.salePrice,
+            providerPrice = product.providerPrice
         )
 
         viewModelScope.launch {
@@ -147,7 +148,7 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
                 return@launch
             }
 
-            val totalPrice = products.sumOf { it.price * it.quantity }
+            val totalPrice = products.sumOf { it.salePrice * it.quantity }
             val change = amountReceived - totalPurchase
 
             // Crear el ticket
@@ -182,7 +183,8 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
                     barcode = it.barcode,
                     name = it.name,
                     quantity = it.quantity,
-                    salePrice = it.price
+                    salePrice = it.salePrice,
+                    providerPrice = it.providerPrice
                 )
             }
             _cartProducts.value = products

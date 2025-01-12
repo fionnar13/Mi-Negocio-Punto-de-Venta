@@ -141,7 +141,7 @@ class ActivityViewModel(application: Application) : AndroidViewModel(application
             contentStream.newLineAtOffset(0f, -15f)
             ticket.products.forEachIndexed { index, product ->
                 val productText =
-                    "${index + 1}. (${product["barcode"]}) ${product["name"]} - ${product["quantity"]} x $${product["price"]}"
+                    "${index + 1}. (${product["barcode"]}) ${product["name"]} - ${product["quantity"]} x $${product["salePrice"]}"
                 contentStream.showText(productText)
                 contentStream.newLineAtOffset(0f, -15f)
             }

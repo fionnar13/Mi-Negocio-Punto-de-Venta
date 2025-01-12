@@ -236,7 +236,7 @@ fun TicketDetailsCard(ticketDetails: TicketFirebase) {
 
 @Composable
 fun ProductDetails(product: Map<String, Any>, index: Int) {
-    val price = (product["price"] as? Number)?.toDouble() ?: 0.0
+    val price = (product["salePrice"] as? Number)?.toDouble() ?: 0.0
     val quantity = (product["quantity"] as? Number)?.toInt() ?: 0
     val subTotal = price * quantity
     Column(
