@@ -22,6 +22,7 @@ import androidx.navigation.navArgument
 import com.elfrikiamv.minegocio_puntodeventa.R
 import com.elfrikiamv.minegocio_puntodeventa.navigation.Screen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.activity.ActivityScreen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.activity.BestSellersScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.activity.DetailsTicketScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory.AddProductScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory.DetailsInventoryScreen
@@ -113,6 +114,7 @@ fun MainScreen() {
                     val ticketId = backStackEntry.arguments?.getString("ticketId")
                     DetailsTicketScreen(navController = navController, ticketId = ticketId)
                 }
+                composable(Screen.BestSellersProducts.route) { BestSellersScreen(navController) }
             }
         }
     )

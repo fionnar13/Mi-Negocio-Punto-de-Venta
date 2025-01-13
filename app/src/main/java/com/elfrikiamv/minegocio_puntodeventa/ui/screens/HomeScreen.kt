@@ -365,8 +365,8 @@ fun MyReport(
                     Column(
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text(text = "Productos\nmás vendidos:")
                         Text(text = "#")
+                        Text(text = "Productos\nmás vendidos:")
                     }
                     Icon(
                         painter = painterResource(id = R.drawable.baseline_arrow_forward_ios_24),
@@ -403,5 +403,5 @@ fun onOutOfStock(navController: NavController) {
 
 fun onBestSellers(navController: NavController) {
     // Acción para ver productos mas vendidos
-    navController.navigate(Screen.DetailsInventory.route)
+    navController.navigate(Screen.BestSellersProducts.route)
 }

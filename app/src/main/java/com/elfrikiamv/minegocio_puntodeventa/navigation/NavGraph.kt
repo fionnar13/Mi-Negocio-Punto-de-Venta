@@ -14,6 +14,7 @@ import com.elfrikiamv.minegocio_puntodeventa.ui.screens.RegisterScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.ScanScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.ShoppingScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.activity.ActivityScreen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.activity.BestSellersScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.activity.DetailsTicketScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory.AddProductScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory.DetailsInventoryScreen
@@ -94,6 +95,11 @@ fun NavGraph(navController: NavHostController) {
         ) { backStackEntry ->
             val ticketId = backStackEntry.arguments?.getString("ticketId")
             DetailsTicketScreen(navController = navController, ticketId = ticketId)
+        }
+
+        // Ruta para la pantalla con los productos mas vendidos
+        composable(Screen.BestSellersProducts.route) {
+            BestSellersScreen(navController)
         }
     }
 }
