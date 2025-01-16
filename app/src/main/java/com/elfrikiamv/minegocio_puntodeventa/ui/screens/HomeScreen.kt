@@ -365,7 +365,11 @@ fun MyReport(
                     Column(
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text(text = "#")
+                        Icon(
+                            painter = painterResource(id = R.drawable.baseline_sell_24),
+                            contentDescription = "forward icon",
+                            modifier = Modifier.size(24.dp)
+                        )
                         Text(text = "Productos\nmás vendidos:")
                     }
                     Icon(
