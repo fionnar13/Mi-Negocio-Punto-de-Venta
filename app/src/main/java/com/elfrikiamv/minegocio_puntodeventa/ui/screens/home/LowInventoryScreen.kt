@@ -3,6 +3,7 @@ package com.elfrikiamv.minegocio_puntodeventa.ui.screens.home
 // LowInventoryScreen.kt
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -74,23 +75,35 @@ fun LowInventoryScreen(navController: NavController) {
                 if (productDetails.isEmpty()) {
                     Text("No hay productos con bajo stock.")
                 } else {
-                    LazyColumn {
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .weight(1f)
+                    ) {
                         items(productDetails) { product ->
-                            ElevatedCard(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(bottom = 8.dp)
-                            ) {
-                                Column(modifier = Modifier.padding(16.dp)) {
-                                    Text("ID: ${product["id"]}")
-                                    Text("Nombre: ${product["name"]}")
-                                    Text("Código de barras: ${product["barcode"]}")
-                                }
-                            }
+                            LowInventoryCard(product)
                         }
                     }
                 }
             }
         }
     )
+}
+
+@Composable
+fun LowInventoryCard(product: Map<String, Any>) {
+    ElevatedCard(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth()
+        ) {
+            Text("ID: ${product["id"]}")
+            Text("Nombre: ${product["name"]}")
+            Text("Código de barras: ${product["barcode"]}")
+        }
+    }
 }
