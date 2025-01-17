@@ -22,8 +22,13 @@ import androidx.navigation.navArgument
 import com.elfrikiamv.minegocio_puntodeventa.R
 import com.elfrikiamv.minegocio_puntodeventa.navigation.Screen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.activity.ActivityScreen
-import com.elfrikiamv.minegocio_puntodeventa.ui.screens.activity.BestSellersScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.activity.DetailsTicketScreen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.BestSellersScreen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.ExpensesDetailsScreen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.HomeScreen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.LowInventoryScreen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.MissingListScreen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.OutOfStockScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory.AddProductScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory.DetailsInventoryScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory.DetailsProductScreen
@@ -115,6 +120,10 @@ fun MainScreen() {
                     DetailsTicketScreen(navController = navController, ticketId = ticketId)
                 }
                 composable(Screen.BestSellersProducts.route) { BestSellersScreen(navController) }
+                composable(Screen.LowInventoryProducts.route) { LowInventoryScreen(navController) }
+                composable(Screen.OutOfStockProducts.route) { OutOfStockScreen(navController) }
+                composable(Screen.MissingListProducts.route) { MissingListScreen(navController) }
+                composable(Screen.ExpensesDetails.route) { ExpensesDetailsScreen(navController) }
             }
         }
     )

@@ -1,4 +1,4 @@
-package com.elfrikiamv.minegocio_puntodeventa.ui.screens
+package com.elfrikiamv.minegocio_puntodeventa.ui.screens.home
 
 // HomeScreen.kt
 
@@ -271,8 +271,12 @@ fun MyReport(
                     Column(
                         modifier = Modifier.weight(1f)
                     ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.baseline_format_list_bulleted_24),
+                            contentDescription = "list icon",
+                            modifier = Modifier.size(24.dp)
+                        )
                         Text(text = "Mi lista\nde faltantes:")
-                        Text(text = "#")
                     }
                     Icon(
                         painter = painterResource(id = R.drawable.baseline_arrow_forward_ios_24),
@@ -367,7 +371,7 @@ fun MyReport(
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.baseline_sell_24),
-                            contentDescription = "forward icon",
+                            contentDescription = "sell icon",
                             modifier = Modifier.size(24.dp)
                         )
                         Text(text = "Productos\nmás vendidos:")
@@ -387,22 +391,22 @@ fun MyReport(
 
 fun onExpenseDetails(navController: NavController) {
     // Acción para ver detalles de gastos
-    navController.navigate(Screen.DetailsInventory.route)
+    navController.navigate(Screen.ExpensesDetails.route)
 }
 
 fun onMissingList(navController: NavController) {
     // Acción para ver mi lista de faltantes
-    navController.navigate(Screen.DetailsInventory.route)
+    navController.navigate(Screen.MissingListProducts.route)
 }
 
 fun onLowInventory(navController: NavController) {
     // Acción para ver productos bajos en inventario
-    navController.navigate(Screen.DetailsInventory.route)
+    navController.navigate(Screen.LowInventoryProducts.route)
 }
 
 fun onOutOfStock(navController: NavController) {
     // Acción para ver productos agotados
-    navController.navigate(Screen.DetailsInventory.route)
+    navController.navigate(Screen.OutOfStockProducts.route)
 }
 
 fun onBestSellers(navController: NavController) {

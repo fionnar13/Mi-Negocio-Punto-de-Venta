@@ -14,8 +14,12 @@ import com.elfrikiamv.minegocio_puntodeventa.ui.screens.RegisterScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.ScanScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.ShoppingScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.activity.ActivityScreen
-import com.elfrikiamv.minegocio_puntodeventa.ui.screens.activity.BestSellersScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.activity.DetailsTicketScreen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.BestSellersScreen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.ExpensesDetailsScreen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.LowInventoryScreen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.MissingListScreen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.OutOfStockScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory.AddProductScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory.DetailsInventoryScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory.DetailsProductScreen
@@ -101,5 +105,26 @@ fun NavGraph(navController: NavHostController) {
         composable(Screen.BestSellersProducts.route) {
             BestSellersScreen(navController)
         }
+
+        // Ruta para la pantalla con los productos con bajo inventario
+        composable(Screen.LowInventoryProducts.route) {
+            LowInventoryScreen(navController)
+        }
+
+        // Ruta para la pantalla con los productos agotados
+        composable(Screen.OutOfStockProducts.route) {
+            OutOfStockScreen(navController)
+        }
+
+        // Ruta para la pantalla con los productos faltantes
+        composable(Screen.MissingListProducts.route) {
+            MissingListScreen(navController)
+        }
+
+        // Ruta para la pantalla con los detalles de los gastos
+        composable(Screen.ExpensesDetails.route) {
+            ExpensesDetailsScreen(navController)
+        }
+
     }
 }
