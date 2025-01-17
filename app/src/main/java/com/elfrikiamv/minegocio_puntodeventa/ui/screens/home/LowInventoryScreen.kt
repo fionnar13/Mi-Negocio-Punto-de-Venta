@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -14,16 +16,33 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.elfrikiamv.minegocio_puntodeventa.R
 import com.elfrikiamv.minegocio_puntodeventa.navigation.Screen
+import com.elfrikiamv.minegocio_puntodeventa.viewmodel.HomeViewModel
+import com.elfrikiamv.minegocio_puntodeventa.viewmodel.ProductDetailsByIdViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LowInventoryScreen(navController: NavController) {
+    val homeViewModel: HomeViewModel = viewModel()
+    val productDetailsViewModel: ProductDetailsByIdViewModel = viewModel()
+
+    val lowStockProducts by homeViewModel.lowStockProducts.collectAsState()
+    val productDetails by productDetailsViewModel.products.collectAsState()
+
+    // Cargar detalles de productos cuando cambie la lista de IDs
+    LaunchedEffect(lowStockProducts) {
+        val productIds = lowStockProducts.map { it["id"].toString() }
+        productDetailsViewModel.loadProductDetailsByIds(productIds)
+    }
 
     // Contenido de la pantalla que muestra LowInventoryScreen
     Scaffold(
@@ -52,14 +71,23 @@ fun LowInventoryScreen(navController: NavController) {
                     .fillMaxSize()
                     .padding(16.dp)
             ) {
-                // Tarjeta de Inicio
-                ElevatedCard(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp)
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(text = "LowInventoryScreen")
+                if (productDetails.isEmpty()) {
+                    Text("No hay productos con bajo stock.")
+                } else {
+                    LazyColumn {
+                        items(productDetails) { product ->
+                            ElevatedCard(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 8.dp)
+                            ) {
+                                Column(modifier = Modifier.padding(16.dp)) {
+                                    Text("ID: ${product["id"]}")
+                                    Text("Nombre: ${product["name"]}")
+                                    Text("Código de barras: ${product["barcode"]}")
+                                }
+                            }
+                        }
                     }
                 }
             }
