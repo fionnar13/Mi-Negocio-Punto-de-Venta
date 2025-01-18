@@ -104,6 +104,7 @@ fun LowInventoryCard(product: Map<String, Any>) {
             Text("ID: ${product["id"]}")
             Text("Nombre: ${product["name"]}")
             Text("Código de barras: ${product["barcode"]}")
+            Text("Cantidad: ${product["quantity"]}")
         }
     }
 }

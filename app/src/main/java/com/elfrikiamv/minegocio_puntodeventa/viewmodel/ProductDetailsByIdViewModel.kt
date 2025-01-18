@@ -45,7 +45,8 @@ class ProductDetailsByIdViewModel : ViewModel() {
                     mapOf(
                         "id" to doc.id,
                         "name" to doc.getString("name").orEmpty(),
-                        "barcode" to doc.getString("barcode").orEmpty()
+                        "barcode" to doc.getString("barcode").orEmpty(),
+                        "quantity" to ((doc["quantity"] as? Number)?.toInt() ?: 0)
                     )
                 }
                 _products.value = products
