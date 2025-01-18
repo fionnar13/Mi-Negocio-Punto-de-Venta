@@ -3,6 +3,7 @@ package com.elfrikiamv.minegocio_puntodeventa.ui.screens.home
 // OutOfStockScreen.kt
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -68,14 +69,21 @@ fun OutOfStockScreen(navController: NavController) {
             )
         },
         content = { paddingValues ->
-            LazyColumn(
+            Column(
                 modifier = Modifier
                     .padding(paddingValues)
                     .fillMaxSize()
                     .padding(16.dp)
             ) {
-                items(outOfStockProducts) { product ->
-                    OutOfStockCard(product)
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .weight(1f)
+                ) {
+                    items(outOfStockProducts) { product ->
+                        OutOfStockCard(product)
+                    }
                 }
             }
         }
@@ -85,11 +93,13 @@ fun OutOfStockScreen(navController: NavController) {
 @Composable
 fun OutOfStockCard(product: Map<String, Any>) {
     ElevatedCard(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp)
+        modifier = Modifier.fillMaxWidth()
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth()
+        ) {
             Text(text = "Nombre: ${product["name"]}")
             Text(text = "Código de barras: ${product["barcode"]}")
             Text(text = "ID: ${product["id"]}")
