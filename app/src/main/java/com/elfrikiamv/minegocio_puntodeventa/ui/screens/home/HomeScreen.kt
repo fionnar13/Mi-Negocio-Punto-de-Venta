@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -37,12 +38,19 @@ import java.util.Locale
 @Composable
 fun HomeScreen(navController: NavController) {
     val viewModel: HomeViewModel = viewModel()
+
+    // Observamos los datos necesarios
     val totalQuantity by viewModel.totalQuantity.collectAsState()
     val totalSalePrice by viewModel.totalSalePrice.collectAsState()
     val lowStockList by viewModel.lowStockProducts.collectAsState()
     val outStockList by viewModel.outStockProducts.collectAsState()
     val totalTicketsSold by viewModel.totalTicketsSold.collectAsState()
     val totalTransactions by viewModel.totalTransactions.collectAsState()
+
+    // Estado de carga: verificar si algún dato aún no está disponible
+    val isLoading = totalQuantity == 0 && totalSalePrice == 0.0 &&
+            lowStockList.isEmpty() && outStockList.isEmpty() &&
+            totalTicketsSold == 0.0 && totalTransactions == 0
 
     // Contenido de la pantalla de inicio
     Scaffold(
@@ -56,25 +64,29 @@ fun HomeScreen(navController: NavController) {
                 modifier = Modifier
                     .padding(paddingValues)
                     .fillMaxSize()
-                    .padding(16.dp)
             ) {
-
-                // Mostrar resumen de mi negocio
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .weight(1f)
-                ) {
-                    item {
-                        MyReport(
-                            navController,
-                            totalQuantity,
-                            totalSalePrice,
-                            lowStockList,
-                            outStockList,
-                            totalTicketsSold,
-                            totalTransactions
-                        )
+                // Mostrar indicador de carga mientras se cargan todos los datos
+                if (isLoading) {
+                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                } else {
+                    // Mostrar contenido principal cuando los datos estén listos
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .weight(1f)
+                            .padding(16.dp)
+                    ) {
+                        item {
+                            MyReport(
+                                navController,
+                                totalQuantity,
+                                totalSalePrice,
+                                lowStockList,
+                                outStockList,
+                                totalTicketsSold,
+                                totalTransactions
+                            )
+                        }
                     }
                 }
             }

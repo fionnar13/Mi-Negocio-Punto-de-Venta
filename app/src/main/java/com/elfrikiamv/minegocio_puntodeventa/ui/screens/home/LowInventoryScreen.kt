@@ -73,15 +73,10 @@ fun LowInventoryScreen(navController: NavController) {
                 modifier = Modifier
                     .padding(paddingValues)
                     .fillMaxSize()
-                    .padding(16.dp)
             ) {
                 // Mostrar el LinearProgressIndicator mientras se cargan los datos
                 if (isLoading) {
-                    LinearProgressIndicator(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 16.dp)
-                    )
+                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                 }
 
                 if (productDetails.isEmpty() && !isLoading) {
@@ -92,6 +87,7 @@ fun LowInventoryScreen(navController: NavController) {
                         modifier = Modifier
                             .fillMaxSize()
                             .weight(1f)
+                            .padding(16.dp)
                     ) {
                         items(productDetails) { product ->
                             LowInventoryCard(product)
