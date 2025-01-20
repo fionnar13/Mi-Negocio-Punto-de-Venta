@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -39,13 +40,15 @@ fun LowInventoryScreen(navController: NavController) {
     val lowStockProducts by homeViewModel.lowStockProducts.collectAsState()
     val productDetails by productDetailsViewModel.products.collectAsState()
 
+    // Estado para gestionar si está cargando
+    val isLoading = productDetails.isEmpty() && lowStockProducts.isNotEmpty()
+
     // Cargar detalles de productos cuando cambie la lista de IDs
     LaunchedEffect(lowStockProducts) {
         val productIds = lowStockProducts.map { it["id"].toString() }
         productDetailsViewModel.loadProductDetailsByIds(productIds)
     }
 
-    // Contenido de la pantalla que muestra LowInventoryScreen
     Scaffold(
         topBar = {
             TopAppBar(
@@ -72,7 +75,16 @@ fun LowInventoryScreen(navController: NavController) {
                     .fillMaxSize()
                     .padding(16.dp)
             ) {
-                if (productDetails.isEmpty()) {
+                // Mostrar el LinearProgressIndicator mientras se cargan los datos
+                if (isLoading) {
+                    LinearProgressIndicator(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 16.dp)
+                    )
+                }
+
+                if (productDetails.isEmpty() && !isLoading) {
                     Text("No hay productos con bajo stock.")
                 } else {
                     LazyColumn(
