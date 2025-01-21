@@ -19,6 +19,7 @@ import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -45,6 +46,9 @@ fun ActivityScreen(
     // Observar la lista de tickets desde el ViewModel
     val tickets = viewModel.tickets.collectAsState()
 
+    // Verificar si los datos están cargando (vacío en este caso significa que no hay datos aún)
+    val isLoading = tickets.value.isEmpty()
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -56,19 +60,24 @@ fun ActivityScreen(
                 modifier = Modifier
                     .padding(paddingValues)
                     .fillMaxSize()
-                    .padding(16.dp)
             ) {
-                // Mostrar los tickets en una lista
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f), // Permite que la lista ocupe el espacio restante
-                ) {
-                    items(tickets.value) { ticket ->
-                        TicketCard(ticket = ticket) {
-                            // Navegar a DetailsTicketScreen pasando el ID del ticket
-                            navController.navigate(Screen.DetailsTicket.route + "?ticketId=${ticket.ticketId}")
+                // Mostrar indicador de carga mientras los datos están cargándose
+                if (isLoading) {
+                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                } else {
+                    // Mostrar los tickets en una lista cuando los datos estén listos
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                            .padding(16.dp)
+                    ) {
+                        items(tickets.value) { ticket ->
+                            TicketCard(ticket = ticket) {
+                                // Navegar a DetailsTicketScreen pasando el ID del ticket
+                                navController.navigate(Screen.DetailsTicket.route + "?ticketId=${ticket.ticketId}")
+                            }
                         }
                     }
                 }
