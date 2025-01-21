@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -37,6 +38,10 @@ fun OutOfStockScreen(navController: NavController) {
     val homeViewModel: HomeViewModel = viewModel()
 
     val outOfStockIds by homeViewModel.outStockProducts.collectAsState()
+    val outOfStockProducts by outOfStockViewModel.products.collectAsState()
+
+    // Estado para gestionar si está cargando
+    val isLoading = outOfStockIds.isEmpty() && outOfStockProducts.isNotEmpty()
 
     // Cuando se actualice la lista de IDs, cargar los detalles de productos
     LaunchedEffect(outOfStockIds) {
@@ -45,8 +50,6 @@ fun OutOfStockScreen(navController: NavController) {
             outOfStockViewModel.loadProductDetailsByIds(ids)
         }
     }
-
-    val outOfStockProducts by outOfStockViewModel.products.collectAsState()
 
     // Contenido de la pantalla que muestra OutOfStockScreen
     Scaffold(
@@ -73,16 +76,25 @@ fun OutOfStockScreen(navController: NavController) {
                 modifier = Modifier
                     .padding(paddingValues)
                     .fillMaxSize()
-                    .padding(16.dp)
             ) {
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .weight(1f)
-                ) {
-                    items(outOfStockProducts) { product ->
-                        OutOfStockCard(product)
+                // Mostrar el LinearProgressIndicator mientras se cargan los datos
+                if (isLoading) {
+                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                }
+
+                if (outOfStockProducts.isEmpty() && !isLoading) {
+                    Text("No hay productos sin stock.")
+                } else {
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .weight(1f)
+                            .padding(16.dp)
+                    ) {
+                        items(outOfStockProducts) { product ->
+                            OutOfStockCard(product)
+                        }
                     }
                 }
             }
