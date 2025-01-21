@@ -25,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -38,16 +39,14 @@ import com.elfrikiamv.minegocio_puntodeventa.viewmodel.ActivityViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ActivityScreen(
-    navController: NavController,
-    modifier: Modifier = Modifier,
-    viewModel: ActivityViewModel = viewModel()
-) {
+fun ActivityScreen(navController: NavController) {
+
+    val viewModel: ActivityViewModel = viewModel()
     // Observar la lista de tickets desde el ViewModel
-    val tickets = viewModel.tickets.collectAsState()
+    val tickets by viewModel.tickets.collectAsState()
 
     // Verificar si los datos están cargando (vacío en este caso significa que no hay datos aún)
-    val isLoading = tickets.value.isEmpty()
+    val isLoading = tickets.isEmpty()
 
     Scaffold(
         topBar = {
@@ -73,7 +72,7 @@ fun ActivityScreen(
                             .weight(1f)
                             .padding(16.dp)
                     ) {
-                        items(tickets.value) { ticket ->
+                        items(tickets) { ticket ->
                             TicketCard(ticket = ticket) {
                                 // Navegar a DetailsTicketScreen pasando el ID del ticket
                                 navController.navigate(Screen.DetailsTicket.route + "?ticketId=${ticket.ticketId}")

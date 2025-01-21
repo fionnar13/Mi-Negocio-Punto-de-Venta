@@ -34,6 +34,7 @@ import com.elfrikiamv.minegocio_puntodeventa.viewmodel.ProductDetailsByIdViewMod
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OutOfStockScreen(navController: NavController) {
+
     val outOfStockViewModel: ProductDetailsByIdViewModel = viewModel()
     val homeViewModel: HomeViewModel = viewModel()
 
@@ -41,7 +42,7 @@ fun OutOfStockScreen(navController: NavController) {
     val outOfStockProducts by outOfStockViewModel.products.collectAsState()
 
     // Estado para gestionar si está cargando
-    val isLoading = outOfStockIds.isEmpty() && outOfStockProducts.isNotEmpty()
+    val isLoading = outOfStockIds.isNotEmpty() && outOfStockProducts.isEmpty()
 
     // Cuando se actualice la lista de IDs, cargar los detalles de productos
     LaunchedEffect(outOfStockIds) {
