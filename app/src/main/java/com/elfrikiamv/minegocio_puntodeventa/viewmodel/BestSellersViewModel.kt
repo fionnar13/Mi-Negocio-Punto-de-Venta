@@ -15,7 +15,7 @@ class BestSellersViewModel : ViewModel() {
         private const val TAG = "BestSellersViewModel"
         private const val DEFAULT_BUSINESS = "defaultBusiness"
         private const val DEFAULT_TICKETS = "defaultTickets"
-        private const val BEST_SELLERS_LIMIT = 6
+        private const val BEST_SELLERS_LIMIT = 7
     }
 
     private val auth = FirebaseAuth.getInstance()
@@ -24,6 +24,10 @@ class BestSellersViewModel : ViewModel() {
     // Nuevo campo para los productos más vendidos
     private val _bestSellers = MutableStateFlow<List<Map<String, Any>>>(emptyList())
     val bestSellers: StateFlow<List<Map<String, Any>>> = _bestSellers
+
+    // Nuevo campo para el estado de carga
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading
 
     init {
         val userEmail = auth.currentUser?.email
@@ -37,8 +41,7 @@ class BestSellersViewModel : ViewModel() {
 
     // Función para cargar los productos más vendidos
     private fun loadBestSellers(userEmail: String) {
-        Log.d(TAG, "Cargando productos más vendidos para el usuario: $userEmail")
-
+        _isLoading.value = true // Mostrar indicador de carga
         db.collection("users")
             .document(userEmail)
             .collection("userMyBusinesses")
@@ -49,11 +52,13 @@ class BestSellersViewModel : ViewModel() {
             .addSnapshotListener { snapshot, e ->
                 if (e != null) {
                     Log.e(TAG, "Error al escuchar cambios en la colección de tickets: ${e.message}")
+                    _isLoading.value = false // Ocultar indicador de carga en caso de error
                     return@addSnapshotListener
                 }
 
                 if (snapshot == null) {
                     Log.e(TAG, "Snapshot vacío o nulo al cargar los productos más vendidos.")
+                    _isLoading.value = false
                     return@addSnapshotListener
                 }
 
@@ -61,10 +66,8 @@ class BestSellersViewModel : ViewModel() {
                 val productSales = mutableMapOf<String, MutableMap<String, Any>>()
 
                 snapshot.documents.forEach { ticket ->
-                    val products =
-                        (ticket.get("products") as? List<*>) // Cast inicial a una lista genérica
-                            ?.filterIsInstance<Map<String, Any>>() // Filtra solo los elementos que sean del tipo Map<String, Any>
-                            ?: emptyList()
+                    val products = (ticket.get("products") as? List<*>)
+                        ?.filterIsInstance<Map<String, Any>>() ?: emptyList()
                     products.forEach { product ->
                         val productName = product["name"] as? String ?: "Desconocido"
                         val barcode = product["barcode"] as? String ?: "Sin código"
@@ -89,6 +92,7 @@ class BestSellersViewModel : ViewModel() {
 
                 Log.d(TAG, "Productos más vendidos: $sortedProducts")
                 _bestSellers.value = sortedProducts
+                _isLoading.value = false // Ocultar indicador de carga
             }
     }
 }

@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -31,8 +32,14 @@ import com.elfrikiamv.minegocio_puntodeventa.viewmodel.BestSellersViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BestSellersScreen(navController: NavController) {
+
+    // Inicializar el ViewModel
     val viewModel: BestSellersViewModel = viewModel()
+    // Observar la lista de productos más vendidos
     val bestSellers by viewModel.bestSellers.collectAsState()
+
+    // Observar el estado de isLoading
+    val isLoading by viewModel.isLoading.collectAsState()
 
     // Contenido de la pantalla que muestra los productos más vendidos
     Scaffold(
@@ -59,13 +66,18 @@ fun BestSellersScreen(navController: NavController) {
                 modifier = Modifier
                     .padding(paddingValues)
                     .fillMaxSize()
-                    .padding(16.dp)
             ) {
+                // Mostrar el indicador de carga si isLoading es true
+                if (isLoading) {
+                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                }
+
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                     modifier = Modifier
                         .fillMaxSize()
                         .weight(1f)
+                        .padding(16.dp)
                 ) {
                     items(bestSellers) { product ->
                         BestSellersCard(
