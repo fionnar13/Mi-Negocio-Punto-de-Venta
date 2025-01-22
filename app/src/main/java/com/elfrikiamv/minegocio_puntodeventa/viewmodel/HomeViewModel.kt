@@ -16,8 +16,8 @@ class HomeViewModel : ViewModel() {
         private const val DEFAULT_BUSINESS = "defaultBusiness"
         private const val DEFAULT_INVENTORY = "defaultInventory"
         private const val DEFAULT_TICKETS = "defaultTickets"
-        private const val LOW_STOCK_THRESHOLD = 6 // Umbral de stock bajo
-        private const val OUT_STOCK_THRESHOLD = 0 // Umbral de stock bajo
+        private const val LOW_STOCK_THRESHOLD = 7 // Umbral de stock bajo
+        private const val OUT_STOCK_THRESHOLD = 0 // Umbral de sin stock
     }
 
     private val auth = FirebaseAuth.getInstance()
@@ -47,6 +47,10 @@ class HomeViewModel : ViewModel() {
     private val _totalTransactions = MutableStateFlow(0)
     val totalTransactions: StateFlow<Int> = _totalTransactions
 
+    // Nuevo campo para el estado de carga
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading
+
     init {
         val userEmail = auth.currentUser?.email
         if (userEmail == null) {
@@ -64,6 +68,8 @@ class HomeViewModel : ViewModel() {
 
     // Función para cargar el número total de transacciones (tickets)
     private fun loadTotalTransactions(userEmail: String) {
+
+        _isLoading.value = true // Mostrar indicador de carga
         Log.d(TAG, "Cargando número total de transacciones para el usuario: $userEmail")
 
         db.collection("users")
@@ -76,21 +82,26 @@ class HomeViewModel : ViewModel() {
             .addSnapshotListener { snapshot, e ->
                 if (e != null) {
                     Log.e(TAG, "Error al escuchar cambios en la colección de tickets: ${e.message}")
+                    _isLoading.value = false // Ocultar indicador de carga en caso de error
                     return@addSnapshotListener
                 }
 
                 if (snapshot == null) {
                     Log.e(TAG, "Snapshot vacío o nulo al cargar el número total de transacciones.")
+                    _isLoading.value = false // Ocultar indicador de carga en caso de error
                     return@addSnapshotListener
                 }
 
                 Log.d(TAG, "Número total de tickets procesados: ${snapshot.documents.size}")
                 _totalTransactions.value = snapshot.documents.size // Actualiza el flujo
+                _isLoading.value = false // Ocultar indicador de carga
             }
     }
 
     // Saca el total de tickets vendidos para el usuario
     private fun loadTotalTicketsSold(userEmail: String) {
+
+        _isLoading.value = true // Mostrar indicador de carga
         Log.d(TAG, "Cargando total de ventas de tickets para el usuario: $userEmail")
 
         db.collection("users")
@@ -103,11 +114,13 @@ class HomeViewModel : ViewModel() {
             .addSnapshotListener { snapshot, e ->
                 if (e != null) {
                     Log.e(TAG, "Error al escuchar cambios en la colección de tickets: ${e.message}")
+                    _isLoading.value = false // Ocultar indicador de carga en caso de error
                     return@addSnapshotListener
                 }
 
                 if (snapshot == null) {
                     Log.e(TAG, "Snapshot vacío o nulo al cargar las ventas de tickets.")
+                    _isLoading.value = false // Ocultar indicador de carga en caso de error
                     return@addSnapshotListener
                 }
 
@@ -118,11 +131,14 @@ class HomeViewModel : ViewModel() {
 
                 Log.d(TAG, "Total de ventas calculado: $total")
                 _totalTicketsSold.value = total
+                _isLoading.value = false // Ocultar indicador de carga
             }
     }
 
     // Saca los productos con stock bajo para el usuario
     private fun loadLowStockProducts(userEmail: String) {
+
+        _isLoading.value = true // Mostrar indicador de carga
         Log.d(TAG, "Cargando productos con stock bajo para el usuario: $userEmail")
 
         db.collection("users")
@@ -135,11 +151,13 @@ class HomeViewModel : ViewModel() {
             .addSnapshotListener { snapshot, e ->
                 if (e != null) {
                     Log.e(TAG, "Error al escuchar cambios en Firestore: ${e.message}")
+                    _isLoading.value = false // Ocultar indicador de carga en caso de error
                     return@addSnapshotListener
                 }
 
                 if (snapshot == null) {
                     Log.e(TAG, "Snapshot vacío o nulo al cargar productos con stock bajo.")
+                    _isLoading.value = false // Ocultar indicador de carga en caso de error
                     return@addSnapshotListener
                 }
 
@@ -159,11 +177,14 @@ class HomeViewModel : ViewModel() {
 
                 Log.d(TAG, "Productos con stock bajo encontrados: ${lowStockList.size}")
                 _lowStockProducts.value = lowStockList
+                _isLoading.value = false // Ocultar indicador de carga
             }
     }
 
     // Saca los productos sin stock para el usuario
     private fun loadOutStockProducts(userEmail: String) {
+
+        _isLoading.value = true // Mostrar indicador de carga
         Log.d(TAG, "Cargando productos sin stock para el usuario: $userEmail")
 
         db.collection("users")
@@ -176,11 +197,13 @@ class HomeViewModel : ViewModel() {
             .addSnapshotListener { snapshot, e ->
                 if (e != null) {
                     Log.e(TAG, "Error al escuchar cambios en Firestore: ${e.message}")
+                    _isLoading.value = false // Ocultar indicador de carga en caso de error
                     return@addSnapshotListener
                 }
 
                 if (snapshot == null) {
                     Log.e(TAG, "Snapshot vacío o nulo al cargar productos sin stock.")
+                    _isLoading.value = false // Ocultar indicador de carga en caso de error
                     return@addSnapshotListener
                 }
 
@@ -200,11 +223,14 @@ class HomeViewModel : ViewModel() {
 
                 Log.d(TAG, "Productos sin stock encontrados: ${outStockList.size}")
                 _outStockProducts.value = outStockList
+                _isLoading.value = false // Ocultar indicador de carga
             }
     }
 
     // Calcula el valor total del inventario multiplicando `salePrice` por `quantity` para cada producto.
     private fun loadTotalSalePrice(userEmail: String) {
+
+        _isLoading.value = true // Mostrar indicador de carga
         Log.d(TAG, "Cargando valor total del inventario para el usuario: $userEmail")
 
         db.collection("users")
@@ -217,11 +243,13 @@ class HomeViewModel : ViewModel() {
             .addSnapshotListener { snapshot, e ->
                 if (e != null) {
                     Log.e(TAG, "Error al escuchar cambios en Firestore: ${e.message}")
+                    _isLoading.value = false // Ocultar indicador de carga en caso de error
                     return@addSnapshotListener
                 }
 
                 if (snapshot == null) {
                     Log.e(TAG, "Snapshot vacío o nulo al cargar valor total del inventario.")
+                    _isLoading.value = false // Ocultar indicador de carga en caso de error
                     return@addSnapshotListener
                 }
 
@@ -239,11 +267,14 @@ class HomeViewModel : ViewModel() {
 
                 Log.d(TAG, "Valor total del inventario calculado: $total")
                 _totalSalePrice.value = total
+                _isLoading.value = false // Ocultar indicador de carga
             }
     }
 
     // Calcula la cantidad total de productos en el inventario.
     private fun loadTotalQuantity(userEmail: String) {
+
+        _isLoading.value = true // Mostrar indicador de carga
         Log.d(TAG, "Cargando cantidad total de productos para el usuario: $userEmail")
 
         db.collection("users")
@@ -256,11 +287,13 @@ class HomeViewModel : ViewModel() {
             .addSnapshotListener { snapshot, e ->
                 if (e != null) {
                     Log.e(TAG, "Error al escuchar cambios en Firestore: ${e.message}")
+                    _isLoading.value = false // Ocultar indicador de carga en caso de error
                     return@addSnapshotListener
                 }
 
                 if (snapshot == null) {
                     Log.e(TAG, "Snapshot vacío o nulo al cargar cantidad total de productos.")
+                    _isLoading.value = false // Ocultar indicador de carga en caso de error
                     return@addSnapshotListener
                 }
 
@@ -273,6 +306,7 @@ class HomeViewModel : ViewModel() {
 
                 Log.d(TAG, "Cantidad total calculada: $total")
                 _totalQuantity.value = total
+                _isLoading.value = false // Ocultar indicador de carga
             }
     }
 }

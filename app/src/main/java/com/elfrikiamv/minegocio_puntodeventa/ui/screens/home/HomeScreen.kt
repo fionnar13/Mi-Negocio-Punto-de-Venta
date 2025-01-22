@@ -48,9 +48,7 @@ fun HomeScreen(navController: NavController) {
     val totalTransactions by viewModel.totalTransactions.collectAsState()
 
     // Estado de carga: verificar si algún dato aún no está disponible
-    val isLoading = totalQuantity == 0 && totalSalePrice == 0.0 &&
-            lowStockList.isEmpty() && outStockList.isEmpty() &&
-            totalTicketsSold == 0.0 && totalTransactions == 0
+    val isLoading by viewModel.isLoading.collectAsState()
 
     // Contenido de la pantalla de inicio
     Scaffold(
