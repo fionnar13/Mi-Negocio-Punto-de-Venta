@@ -45,8 +45,8 @@ fun ActivityScreen(navController: NavController) {
     // Observar la lista de tickets desde el ViewModel
     val tickets by viewModel.tickets.collectAsState()
 
-    // Verificar si los datos están cargando (vacío en este caso significa que no hay datos aún)
-    val isLoading = tickets.isEmpty()
+    // Observar el estado de isLoading
+    val isLoading by viewModel.isLoading.collectAsState()
 
     Scaffold(
         topBar = {
@@ -63,6 +63,16 @@ fun ActivityScreen(navController: NavController) {
                 // Mostrar indicador de carga mientras los datos están cargándose
                 if (isLoading) {
                     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                }
+                if (tickets.isEmpty() && !isLoading) {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text("No hay tickets disponibles.")
+                        Text("):")
+                    }
                 } else {
                     // Mostrar los tickets en una lista cuando los datos estén listos
                     LazyColumn(

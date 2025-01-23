@@ -35,6 +35,10 @@ class ActivityViewModel(application: Application) : AndroidViewModel(application
 
     private val userMyTickets = "defaultTickets"
 
+    // Nuevo campo para el estado de carga
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading
+
     init {
         // Cargar los tickets al inicializar el ViewModel
         loadTicketsFromFirebase()
@@ -42,6 +46,8 @@ class ActivityViewModel(application: Application) : AndroidViewModel(application
 
     // Función para cargar los tickets desde Firebase
     private fun loadTicketsFromFirebase() {
+
+        _isLoading.value = true // Mostrar indicador de carga
         val userEmail = auth.currentUser?.email
         if (userEmail.isNullOrEmpty()) {
             Log.e("ActivityViewModel", "Usuario no autenticado")
@@ -61,6 +67,7 @@ class ActivityViewModel(application: Application) : AndroidViewModel(application
             .addSnapshotListener { snapshot, e ->
                 if (e != null) {
                     Log.e("ActivityViewModel", "Error al obtener los tickets: $e")
+                    _isLoading.value = false // Ocultar indicador de carga en caso de error
                     return@addSnapshotListener
                 }
 
@@ -70,14 +77,18 @@ class ActivityViewModel(application: Application) : AndroidViewModel(application
                     }
                     _tickets.value = fetchedTickets // Actualizar el StateFlow
                     Log.d("ActivityViewModel", "Tickets cargados: ${_tickets.value}")
+                    _isLoading.value = false // Ocultar indicador de carga
                 } else {
                     Log.d("ActivityViewModel", "No se encontraron tickets")
+                    _isLoading.value = false // Ocultar indicador de carga
                 }
             }
     }
 
     //verificar si el ticket existe en Firestore
     fun checkTicketExists(ticketId: String, callback: (TicketFirebase?) -> Unit) {
+
+        _isLoading.value = true // Mostrar indicador de carga
         val userEmail = auth.currentUser?.email ?: return
 
         db.collection("users")
@@ -94,19 +105,24 @@ class ActivityViewModel(application: Application) : AndroidViewModel(application
             .addOnSuccessListener { documents ->
                 if (documents.isEmpty) {
                     callback(null) // Producto no encontrado
+                    _isLoading.value = false // Ocultar indicador de carga
                 } else {
                     val fetchedTicket =
                         documents.documents.first().toObject(TicketFirebase::class.java)
                     callback(fetchedTicket)
+                    _isLoading.value = false // Ocultar indicador de carga
                 }
             }
             .addOnFailureListener {
                 callback(null) // En caso de error
+                _isLoading.value = false // Ocultar indicador de carga
             }
     }
 
     // Generar un archivo PDF para el ticket
     fun generatePDF(context: Context, ticket: TicketFirebase): File {
+
+        _isLoading.value = true // Mostrar indicador de carga
         // Enable Android asset loading
         PDFBoxResourceLoader.init(context)
 
@@ -164,16 +180,20 @@ class ActivityViewModel(application: Application) : AndroidViewModel(application
             document.save(file)
             document.close()
 
+            _isLoading.value = false // Ocultar indicador de carga
             return file
 
         } catch (e: Exception) {
             document.close()
+            _isLoading.value = false // Ocultar indicador de carga
             throw e
         }
     }
 
     // Enviar ticket por correo
     fun sendEmail(context: Context, email: String, file: File) {
+
+        _isLoading.value = true // Mostrar indicador de carga
         Log.d("ActivityViewModel", "Preparando para enviar el ticket por correo.")
         Log.d(
             "ActivityViewModel",
@@ -201,9 +221,11 @@ class ActivityViewModel(application: Application) : AndroidViewModel(application
             Log.d("ActivityViewModel", "Intent de correo creado correctamente.")
             context.startActivity(Intent.createChooser(emailIntent, "Compartir archivo"))
             Log.d("ActivityViewModel", "Correo enviado exitosamente.")
+            _isLoading.value = false // Ocultar indicador de carga
 
         } catch (e: Exception) {
             Log.e("ActivityViewModel", "Error al enviar el correo: ${e.message}")
+            _isLoading.value = false // Ocultar indicador de carga
         }
     }
 
