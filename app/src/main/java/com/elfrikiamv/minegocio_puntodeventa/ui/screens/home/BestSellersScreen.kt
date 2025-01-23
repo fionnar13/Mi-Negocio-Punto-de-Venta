@@ -20,6 +20,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -71,20 +72,30 @@ fun BestSellersScreen(navController: NavController) {
                 if (isLoading) {
                     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                 }
-
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .weight(1f)
-                        .padding(16.dp)
-                ) {
-                    items(bestSellers) { product ->
-                        BestSellersCard(
-                            name = product["name"] as String,
-                            barcode = product["barcode"] as String,
-                            quantitySold = product["quantitySold"] as Int
-                        )
+                if (bestSellers.isEmpty() && !isLoading) {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text("No hay productos disponibles.")
+                        Text("):")
+                    }
+                } else {
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .weight(1f)
+                            .padding(16.dp)
+                    ) {
+                        items(bestSellers) { product ->
+                            BestSellersCard(
+                                name = product["name"] as String,
+                                barcode = product["barcode"] as String,
+                                quantitySold = product["quantitySold"] as Int
+                            )
+                        }
                     }
                 }
             }

@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -41,8 +42,8 @@ fun OutOfStockScreen(navController: NavController) {
     val outOfStockIds by homeViewModel.outStockProducts.collectAsState()
     val outOfStockProducts by outOfStockViewModel.products.collectAsState()
 
-    // Estado para gestionar si está cargando
-    val isLoading = outOfStockIds.isNotEmpty() && outOfStockProducts.isEmpty()
+    // Observar el estado de isLoading
+    val isLoading by outOfStockViewModel.isLoading.collectAsState()
 
     // Cuando se actualice la lista de IDs, cargar los detalles de productos
     LaunchedEffect(outOfStockIds) {
@@ -84,7 +85,14 @@ fun OutOfStockScreen(navController: NavController) {
                 }
 
                 if (outOfStockProducts.isEmpty() && !isLoading) {
-                    Text("No hay productos sin stock.")
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text("No hay productos disponibles.")
+                        Text("):")
+                    }
                 } else {
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(16.dp),

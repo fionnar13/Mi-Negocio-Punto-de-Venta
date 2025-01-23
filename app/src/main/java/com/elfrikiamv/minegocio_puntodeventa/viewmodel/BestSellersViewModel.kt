@@ -41,6 +41,7 @@ class BestSellersViewModel : ViewModel() {
 
     // Función para cargar los productos más vendidos
     private fun loadBestSellers(userEmail: String) {
+
         _isLoading.value = true // Mostrar indicador de carga
         db.collection("users")
             .document(userEmail)

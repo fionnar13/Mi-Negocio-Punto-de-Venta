@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -40,8 +41,8 @@ fun LowInventoryScreen(navController: NavController) {
     val lowStockProducts by homeViewModel.lowStockProducts.collectAsState()
     val productDetails by productDetailsViewModel.products.collectAsState()
 
-    // Estado para gestionar si está cargando
-    val isLoading = productDetails.isEmpty() && lowStockProducts.isNotEmpty()
+    // Observar el estado de isLoading
+    val isLoading by productDetailsViewModel.isLoading.collectAsState()
 
     // Cargar detalles de productos cuando cambie la lista de IDs
     LaunchedEffect(lowStockProducts) {
@@ -80,7 +81,14 @@ fun LowInventoryScreen(navController: NavController) {
                 }
 
                 if (productDetails.isEmpty() && !isLoading) {
-                    Text("No hay productos con bajo stock.")
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text("No hay productos disponibles.")
+                        Text("):")
+                    }
                 } else {
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(16.dp),

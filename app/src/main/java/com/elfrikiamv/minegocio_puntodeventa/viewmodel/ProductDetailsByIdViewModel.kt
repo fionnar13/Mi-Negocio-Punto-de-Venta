@@ -23,11 +23,18 @@ class ProductDetailsByIdViewModel : ViewModel() {
     private val _products = MutableStateFlow<List<Map<String, Any>>>(emptyList())
     val products: StateFlow<List<Map<String, Any>>> = _products
 
+    // Nuevo campo para el estado de carga
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading
+
     // Busca los detalles de los productos por su lista de IDs.
     fun loadProductDetailsByIds(productIds: List<String>) {
+
+        _isLoading.value = true
         val userEmail = auth.currentUser?.email ?: return
         if (productIds.isEmpty()) {
             Log.d(TAG, "No hay IDs para buscar productos.")
+            _isLoading.value = false
             return
         }
 
@@ -50,9 +57,11 @@ class ProductDetailsByIdViewModel : ViewModel() {
                     )
                 }
                 _products.value = products
+                _isLoading.value = false
                 Log.d(TAG, "Productos cargados: $products")
             }
             .addOnFailureListener { e ->
+                _isLoading.value = false
                 Log.e(TAG, "Error al cargar detalles de productos: ${e.message}")
             }
     }
