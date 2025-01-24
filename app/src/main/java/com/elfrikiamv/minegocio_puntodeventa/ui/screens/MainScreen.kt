@@ -23,6 +23,7 @@ import com.elfrikiamv.minegocio_puntodeventa.R
 import com.elfrikiamv.minegocio_puntodeventa.navigation.Screen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.activity.ActivityScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.activity.DetailsTicketScreen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.AddExpense
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.BestSellersScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.ExpensesDetailsScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.HomeScreen
@@ -124,6 +125,7 @@ fun MainScreen() {
                 composable(Screen.OutOfStockProducts.route) { OutOfStockScreen(navController) }
                 composable(Screen.MissingListProducts.route) { MissingListScreen(navController) }
                 composable(Screen.ExpensesDetails.route) { ExpensesDetailsScreen(navController) }
+                composable(Screen.AddExpense.route) { AddExpense(navController) }
             }
         }
     )

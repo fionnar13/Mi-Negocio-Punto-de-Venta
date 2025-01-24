@@ -1,7 +1,8 @@
 package com.elfrikiamv.minegocio_puntodeventa.ui.screens.home
 
-// ExpensesDetailsScreen.kt
+// AddExpense.kt
 
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,12 +16,17 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -34,11 +40,11 @@ import com.elfrikiamv.minegocio_puntodeventa.viewmodel.ExpensesDetailsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ExpensesDetailsScreen(navController: NavController) {
+fun AddExpense(navController: NavController) {
 
     val viewModel: ExpensesDetailsViewModel = viewModel()
 
-    val expensesDetails by viewModel.expensesDetailsList.collectAsState()
+
 
     // Observar el estado de isLoading
     val isLoading by viewModel.isLoading.collectAsState()
@@ -47,7 +53,7 @@ fun ExpensesDetailsScreen(navController: NavController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("ExpensesDetailsScreen") },
+                title = { Text("AddExpenseScreen") },
                 navigationIcon = {
                     Icon(
                         painter = painterResource(id = R.drawable.baseline_arrow_back_ios_new_24),
@@ -55,8 +61,8 @@ fun ExpensesDetailsScreen(navController: NavController) {
                         modifier = Modifier
                             .padding(horizontal = 16.dp)
                             .clickable {
-                                navController.navigate(Screen.Main.route) {
-                                    popUpTo(Screen.Main.route) { inclusive = true }
+                                navController.navigate(Screen.ExpensesDetails.route) {
+                                    popUpTo(Screen.ExpensesDetails.route) { inclusive = true }
                                 }
                             }
                     )
@@ -66,16 +72,16 @@ fun ExpensesDetailsScreen(navController: NavController) {
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = {
-                    // Lógica para agregar un gasto
-                    onAddExpense(navController = navController)
+                    // Lógica para guardar un gasto
+                    //saveExpense()
                 },
                 icon = {
                     Icon(
-                        painter = painterResource(id = R.drawable.baseline_add_24),
-                        contentDescription = "Agregar gasto"
+                        painter = painterResource(id = R.drawable.baseline_save_24),
+                        contentDescription = "Guardar gasto"
                     )
                 },
-                text = { Text("Agregar gasto") }
+                text = { Text("Guardar gasto") }
             )
         },
         content = { paddingValues ->
@@ -83,41 +89,19 @@ fun ExpensesDetailsScreen(navController: NavController) {
                 modifier = Modifier
                     .padding(paddingValues)
                     .fillMaxSize()
+                    .padding(16.dp)
             ) {
-                // Mostrar el LinearProgressIndicator mientras se cargan los datos
-                if (isLoading) {
-                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                }
-
-                if (expensesDetails.isEmpty() && !isLoading) {
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text("No hay gastos disponibles.")
-                        Text("):")
-                    }
-                } else {
-                    LazyColumn(
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .weight(1f)
-                            .padding(16.dp)
-                    ) {
-                        items(expensesDetails) { expenses ->
-                            ExpensesDetailsCard(expenses)
-                        }
-                    }
-                }
+                ExpenseDetailsCard()
             }
         }
     )
 }
 
 @Composable
-fun ExpensesDetailsCard(expenses: ExpensesFirebase) {
+fun ExpenseDetailsCard() {
+
+    // Variables para almacenar los valores del formulario
+    var name by remember { mutableStateOf("") }
 
     ElevatedCard(
         modifier = Modifier.fillMaxWidth()
@@ -125,16 +109,22 @@ fun ExpensesDetailsCard(expenses: ExpensesFirebase) {
         Column(
             modifier = Modifier
                 .padding(16.dp)
-                .fillMaxWidth()
+                .fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text(text = "ExpensesDetailsCard")
-            Text(text = "id. ${expenses.expenseId}")
+            Text(
+                text = "Llena todos los campos para agregar un gasto.",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.fillMaxWidth()
+            )
+            // Campo Nombre del gasto
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("Nombre del gasto") },
+                modifier = Modifier.fillMaxWidth(),
+                isError = name.isBlank()
+            )
         }
     }
-}
-
-fun onAddExpense(navController: NavController) {
-
-    // Acción para agregar un gasto
-    navController.navigate(Screen.AddExpense.route)
 }
