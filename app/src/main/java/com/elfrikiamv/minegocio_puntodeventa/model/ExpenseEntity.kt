@@ -1,7 +1,13 @@
 package com.elfrikiamv.minegocio_puntodeventa.model
 
-data class ExpensesFirebase(
-    val expenseId: String = "", // ID único
+// ExpenseEntity.kt
+
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity(tableName = "expenses")
+data class ExpenseEntity(
+    @PrimaryKey val expenseId: String,    // ID basado en fecha y hora actual
     //val name: String = "",
 
     val date: String = "", // Nuevo campo para la fecha
