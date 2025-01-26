@@ -5,14 +5,20 @@ package com.elfrikiamv.minegocio_puntodeventa.ui.screens.home
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Scaffold
@@ -120,17 +126,93 @@ fun ExpensesDetailsScreen(navController: NavController) {
 fun ExpensesDetailsCard(expenses: ExpensesFirebase) {
 
     ElevatedCard(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+        //.clickable { onExpenseDetails() }
     ) {
         Column(
             modifier = Modifier
                 .padding(16.dp)
                 .fillMaxWidth()
         ) {
-            Text(text = "ExpensesDetailsCard")
-            Text(text = "id. ${expenses.expenseId}")
+            Row(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .align(Alignment.CenterVertically)
+                ) {
+                    Text(text = "Gasto realizado")
+                    Spacer(modifier = Modifier.height(3.dp))
+                    Text(text = "id. ${expenses.expenseId}")
+                }
+
+                Column {
+                    Row(
+                        modifier = Modifier.align(Alignment.End)
+                    ) {
+                        Text(
+                            text = expenses.date,
+                            modifier = Modifier.align(Alignment.CenterVertically)
+                        )
+                        Spacer(modifier = Modifier.width(3.dp))
+                        Icon(
+                            painter = painterResource(id = R.drawable.baseline_calendar_today_24),
+                            contentDescription = "calendar icon",
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(3.dp))
+                    Row(
+                        modifier = Modifier.align(Alignment.End)
+                    ) {
+
+                        Text(
+                            text = expenses.time,
+                            modifier = Modifier.align(Alignment.CenterVertically)
+                        )
+                        Spacer(modifier = Modifier.width(3.dp))
+                        Icon(
+                            painter = painterResource(id = R.drawable.baseline_access_time_24),
+                            contentDescription = "clock icon",
+                            modifier = Modifier.size(24.dp),
+                        )
+                    }
+                }
+            }
+
+            HorizontalDivider(
+                modifier = Modifier.padding(bottom = 8.dp, top = 8.dp),
+                thickness = 1.dp
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+
+                Row(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.baseline_payments_24),
+                        contentDescription = "bag icon",
+                        modifier = Modifier.size(24.dp),
+                    )
+                    Spacer(modifier = Modifier.width(3.dp))
+                    Text(
+                        text = expenses.paymentMethod,
+                        modifier = Modifier.align(Alignment.CenterVertically)
+                    )
+                }
+                Text(
+                    text = "Total: $${expenses.amountExpense}",
+                    modifier = Modifier.align(Alignment.CenterVertically)
+                )
+            }
         }
     }
+
 }
 
 fun onAddExpense(navController: NavController) {
