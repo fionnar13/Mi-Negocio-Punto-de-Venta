@@ -88,10 +88,10 @@ class ExpensesDetailsViewModel(application: Application) : AndroidViewModel(appl
         paymentMethod: String,
         description: String,
         amountExpense: Double,
-        amountGiven: Double,
-        /*context: Context,
-        userEmail: String*/
+        amountGiven: Double
     ) {
+
+        _isLoading.value = true
         viewModelScope.launch {
             // Obtener información de fecha y hora
             val currentDateTimeExpenseId = System.currentTimeMillis()
@@ -127,13 +127,13 @@ class ExpensesDetailsViewModel(application: Application) : AndroidViewModel(appl
 
             // Subir a Firebase
             uploadExpenseToFirebase(expense)
+            _isLoading.value = false
         }
     }
 
-    private fun uploadExpenseToFirebase(
-        expenseEntity: ExpenseEntity,
-        /*userEmail: String*/
-    ) {
+    private fun uploadExpenseToFirebase(expenseEntity: ExpenseEntity) {
+
+        _isLoading.value = true
         val userEmail = auth.currentUser?.email ?: return
 
         db.collection("users")
@@ -154,10 +154,12 @@ class ExpensesDetailsViewModel(application: Application) : AndroidViewModel(appl
                     sharePDF(ticketId, context, email)*/
                     // Eliminar ticket de Room
                     expenseDao.deleteExpenseById(expenseEntity.expenseId)
+                    _isLoading.value = false
                 }
             }
             .addOnFailureListener { e ->
                 Log.e("ShoppingViewModel", "Error al subir el gasto a Firebase: $e")
+                _isLoading.value = false
             }
     }
 }
