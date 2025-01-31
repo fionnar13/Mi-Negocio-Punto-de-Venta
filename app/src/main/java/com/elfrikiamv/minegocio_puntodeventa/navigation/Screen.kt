@@ -21,6 +21,7 @@ sealed class Screen(val route: String) {
     object MissingListProducts : Screen("missingListProducts")
     object ExpensesDetails : Screen("expensesDetails")
     object AddExpense : Screen("addExpense")
+    object AddMissing : Screen("addMissing")
 
 
     // Si alguna pantalla necesita parámetros, puedes agregar métodos helper.
