@@ -1,6 +1,6 @@
 package com.elfrikiamv.minegocio_puntodeventa.ui.screens.home
 
-// AddExpense.kt
+// AddExpenseScreen.kt
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -38,7 +38,7 @@ import com.elfrikiamv.minegocio_puntodeventa.viewmodel.ExpensesDetailsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddExpense(navController: NavController) {
+fun AddExpenseScreen(navController: NavController) {
     val viewModel: ExpensesDetailsViewModel = viewModel()
 
     // Variables para capturar los valores del formulario
