@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.elfrikiamv.minegocio_puntodeventa.R
+import com.elfrikiamv.minegocio_puntodeventa.model.MissingProductFirebase
 import com.elfrikiamv.minegocio_puntodeventa.navigation.Screen
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.MissingListViewModel
 
@@ -122,18 +123,32 @@ fun MissingListScreen(navController: NavController) {
 }
 
 @Composable
-fun MissingProductCard(missing: MissingFirebase) {
+fun MissingProductCard(missing: MissingProductFirebase) {
 
     ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
-        //.clickable { onExpenseDetails() }
+        //.clickable { onMissingDetails() }
     ) {
         Column(
             modifier = Modifier
                 .padding(16.dp)
                 .fillMaxWidth()
         ) {
+
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .align(Alignment.CenterHorizontally)
+            ) {
+                Text(text = "Nombre: ${missing.name}")
+            }
+
+            HorizontalDivider(
+                modifier = Modifier.padding(bottom = 8.dp, top = 8.dp),
+                thickness = 1.dp
+            )
+
             Row(
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -142,9 +157,9 @@ fun MissingProductCard(missing: MissingFirebase) {
                         .weight(1f)
                         .align(Alignment.CenterVertically)
                 ) {
-                    Text(text = "Gasto realizado")
+                    Text(text = "Producto faltante")
                     Spacer(modifier = Modifier.height(3.dp))
-                    Text(text = "id. ${missing.expenseId}")
+                    Text(text = "id. ${missing.missingId}")
                 }
 
                 Column {
@@ -194,18 +209,18 @@ fun MissingProductCard(missing: MissingFirebase) {
                     modifier = Modifier.weight(1f)
                 ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.baseline_payments_24),
+                        painter = painterResource(id = R.drawable.baseline_shopping_bag_24),
                         contentDescription = "bag icon",
                         modifier = Modifier.size(24.dp),
                     )
                     Spacer(modifier = Modifier.width(3.dp))
                     Text(
-                        text = missing.paymentMethod,
+                        text = "${missing.quantity} productos",
                         modifier = Modifier.align(Alignment.CenterVertically)
                     )
                 }
                 Text(
-                    text = "Total: $${missing.amountExpense}",
+                    text = "Total: $${missing.totalPrice}",
                     modifier = Modifier.align(Alignment.CenterVertically)
                 )
             }

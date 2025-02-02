@@ -196,7 +196,7 @@ fun ExpensesDetailsCard(expenses: ExpensesFirebase) {
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.baseline_payments_24),
-                        contentDescription = "bag icon",
+                        contentDescription = "payment icon",
                         modifier = Modifier.size(24.dp),
                     )
                     Spacer(modifier = Modifier.width(3.dp))

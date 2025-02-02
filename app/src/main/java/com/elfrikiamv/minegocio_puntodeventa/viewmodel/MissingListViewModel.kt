@@ -2,7 +2,7 @@ package com.elfrikiamv.minegocio_puntodeventa.viewmodel
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
-import com.elfrikiamv.minegocio_puntodeventa.model.ExpensesFirebase
+import com.elfrikiamv.minegocio_puntodeventa.model.MissingProductFirebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,8 +21,8 @@ class MissingListViewModel : ViewModel() {
     private val db = FirebaseFirestore.getInstance()
 
     // MutableStateFlow para almacenar la lista de faltantes
-    private val _missingList = MutableStateFlow<List<ExpensesFirebase>>(emptyList())
-    val missingList: StateFlow<List<ExpensesFirebase>> = _missingList
+    private val _missingList = MutableStateFlow<List<MissingProductFirebase>>(emptyList())
+    val missingList: StateFlow<List<MissingProductFirebase>> = _missingList
 
     // Nuevo campo para el estado de carga
     private val _isLoading = MutableStateFlow(false)
@@ -51,20 +51,20 @@ class MissingListViewModel : ViewModel() {
             .collection("userMissing")
             .addSnapshotListener { snapshot, e ->
                 if (e != null) {
-                    Log.e(TAG, "Error al obtener los gastos: $e")
+                    Log.e(TAG, "Error al obtener los faltantes: $e")
                     _isLoading.value = false
                     return@addSnapshotListener
                 }
 
                 if (snapshot != null && !snapshot.isEmpty) {
                     val fetchedMissing = snapshot.documents.mapNotNull { doc ->
-                        doc.toObject(MissingFirebase::class.java)
+                        doc.toObject(MissingProductFirebase::class.java)
                     }
                     _missingList.value = fetchedMissing
-                    Log.d(TAG, "Gastos cargados: ${_missingList.value}")
+                    Log.d(TAG, "faltantes cargados: ${_missingList.value}")
                     _isLoading.value = false
                 } else {
-                    Log.d(TAG, "No se encontraron gastos")
+                    Log.d(TAG, "No se encontraron faltantes")
                     _isLoading.value = false
                 }
             }
