@@ -15,8 +15,8 @@ import com.elfrikiamv.minegocio_puntodeventa.ui.screens.ScanScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.ShoppingScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.activity.ActivityScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.activity.DetailsTicketScreen
-import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.AddExpense
-import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.AddMissing
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.AddExpenseScreen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.AddMissingScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.BestSellersScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.ExpensesDetailsScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.LowInventoryScreen
@@ -130,12 +130,12 @@ fun NavGraph(navController: NavHostController) {
 
         // Ruta para la pantalla para agregar gastos
         composable(Screen.AddExpense.route) {
-            AddExpense(navController)
+            AddExpenseScreen(navController)
         }
 
         // Ruta para la pantalla para agregar faltante
         composable(Screen.AddMissing.route) {
-            AddMissing(navController)
+            AddMissingScreen(navController)
         }
 
     }
