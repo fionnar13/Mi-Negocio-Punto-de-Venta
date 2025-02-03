@@ -10,7 +10,7 @@ import com.elfrikiamv.minegocio_puntodeventa.model.ExpenseEntity
 @Dao
 interface ExpenseDao {
     @Insert
-    suspend fun insertExpense(ticket: ExpenseEntity)
+    suspend fun insertExpense(expense: ExpenseEntity)
 
     @Query("SELECT * FROM expenses ORDER BY expenseId DESC")
     suspend fun getAllExpenses(): List<ExpenseEntity>

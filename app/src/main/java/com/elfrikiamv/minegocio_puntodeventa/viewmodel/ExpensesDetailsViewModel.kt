@@ -119,7 +119,7 @@ class ExpensesDetailsViewModel(application: Application) : AndroidViewModel(appl
 
             // Guardar en Room
             expenseDao.insertExpense(expense)
-            Log.d("ShoppingViewModel", "Ticket guardado en Room: $expense")
+            Log.d(TAG, "Ticket guardado en Room: $expense")
 
             // Limpiar carrito
             /*productDao.deleteAllProducts()
@@ -158,7 +158,7 @@ class ExpensesDetailsViewModel(application: Application) : AndroidViewModel(appl
                 }
             }
             .addOnFailureListener { e ->
-                Log.e("ShoppingViewModel", "Error al subir el gasto a Firebase: $e")
+                Log.e(TAG, "Error al subir el gasto a Firebase: $e")
                 _isLoading.value = false
             }
     }

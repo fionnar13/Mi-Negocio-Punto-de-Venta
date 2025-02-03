@@ -138,7 +138,6 @@ fun MissingProductCard(missing: MissingProductFirebase) {
 
             Column(
                 modifier = Modifier
-                    .weight(1f)
                     .align(Alignment.CenterHorizontally)
             ) {
                 Text(text = "Nombre: ${missing.name}")

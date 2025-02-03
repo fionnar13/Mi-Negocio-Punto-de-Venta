@@ -9,15 +9,17 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.elfrikiamv.minegocio_puntodeventa.converter.ProductListConverter
 import com.elfrikiamv.minegocio_puntodeventa.dao.ExpenseDao
+import com.elfrikiamv.minegocio_puntodeventa.dao.MissingProductDao
 import com.elfrikiamv.minegocio_puntodeventa.dao.ProductDao
 import com.elfrikiamv.minegocio_puntodeventa.dao.TicketDao
 import com.elfrikiamv.minegocio_puntodeventa.model.ExpenseEntity
+import com.elfrikiamv.minegocio_puntodeventa.model.MissingProductEntity
 import com.elfrikiamv.minegocio_puntodeventa.model.ProductEntity
 import com.elfrikiamv.minegocio_puntodeventa.model.TicketEntity
 
 @Database(
-    entities = [ProductEntity::class, TicketEntity::class, ExpenseEntity::class],
-    version = 2,
+    entities = [ProductEntity::class, TicketEntity::class, ExpenseEntity::class, MissingProductEntity::class],
+    version = 1,
     exportSchema = false
 )
 @TypeConverters(ProductListConverter::class)
@@ -26,6 +28,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun productDao(): ProductDao
     abstract fun ticketDao(): TicketDao
     abstract fun expenseDao(): ExpenseDao
+    abstract fun missingProductDao(): MissingProductDao
 
     companion object {
         @Volatile
