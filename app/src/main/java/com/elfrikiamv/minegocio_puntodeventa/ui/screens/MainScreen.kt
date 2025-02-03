@@ -23,19 +23,21 @@ import com.elfrikiamv.minegocio_puntodeventa.R
 import com.elfrikiamv.minegocio_puntodeventa.navigation.Screen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.activity.ActivityScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.activity.DetailsTicketScreen
-import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.AddExpenseScreen
-import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.AddMissingScreen
-import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.BestSellersScreen
-import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.ExpensesDetailsScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.HomeScreen
-import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.LowInventoryScreen
-import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.MissingListScreen
-import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.OutOfStockScreen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.bestSellersList.BestSellersScreen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.expensesList.AddExpenseScreen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.expensesList.ExpensesDetailsScreen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.lowInventoryList.LowInventoryScreen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.missingList.AddMissingScreen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.missingList.MissingListScreen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.outOfStockList.OutOfStockScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory.AddProductScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory.DetailsInventoryScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory.DetailsProductScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory.InventoryScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory.ScanProductScreen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.scan.ScanScreen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.shopping.ShoppingScreen
 
 @Composable
 fun MainScreen() {

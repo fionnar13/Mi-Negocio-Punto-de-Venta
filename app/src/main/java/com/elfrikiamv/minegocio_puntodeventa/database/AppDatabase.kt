@@ -8,14 +8,14 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.elfrikiamv.minegocio_puntodeventa.converter.ProductListConverter
-import com.elfrikiamv.minegocio_puntodeventa.dao.ExpenseDao
-import com.elfrikiamv.minegocio_puntodeventa.dao.MissingProductDao
-import com.elfrikiamv.minegocio_puntodeventa.dao.ProductDao
-import com.elfrikiamv.minegocio_puntodeventa.dao.TicketDao
-import com.elfrikiamv.minegocio_puntodeventa.model.ExpenseEntity
-import com.elfrikiamv.minegocio_puntodeventa.model.MissingProductEntity
-import com.elfrikiamv.minegocio_puntodeventa.model.ProductEntity
-import com.elfrikiamv.minegocio_puntodeventa.model.TicketEntity
+import com.elfrikiamv.minegocio_puntodeventa.dao.home.expense.ExpenseDao
+import com.elfrikiamv.minegocio_puntodeventa.dao.home.missing.MissingProductDao
+import com.elfrikiamv.minegocio_puntodeventa.dao.inventory.ProductDao
+import com.elfrikiamv.minegocio_puntodeventa.dao.shopping.TicketDao
+import com.elfrikiamv.minegocio_puntodeventa.model.home.expenses.ExpenseEntity
+import com.elfrikiamv.minegocio_puntodeventa.model.home.missing.MissingProductEntity
+import com.elfrikiamv.minegocio_puntodeventa.model.inventory.ProductEntity
+import com.elfrikiamv.minegocio_puntodeventa.model.shopping.TicketEntity
 
 @Database(
     entities = [ProductEntity::class, TicketEntity::class, ExpenseEntity::class, MissingProductEntity::class],

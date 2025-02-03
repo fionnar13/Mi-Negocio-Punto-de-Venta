@@ -1,6 +1,6 @@
-package com.elfrikiamv.minegocio_puntodeventa.ui.screens.activity
+package com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.missingList
 
-// ActivityScreen.kt
+// MissingListScreen.kt
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -33,25 +34,54 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.elfrikiamv.minegocio_puntodeventa.R
-import com.elfrikiamv.minegocio_puntodeventa.model.shopping.TicketFirebase
+import com.elfrikiamv.minegocio_puntodeventa.model.home.missing.MissingProductFirebase
 import com.elfrikiamv.minegocio_puntodeventa.navigation.Screen
-import com.elfrikiamv.minegocio_puntodeventa.viewmodel.activity.ActivityViewModel
+import com.elfrikiamv.minegocio_puntodeventa.viewmodel.home.missing.MissingProductsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ActivityScreen(navController: NavController) {
+fun MissingListScreen(navController: NavController) {
 
-    val viewModel: ActivityViewModel = viewModel()
-    // Observar la lista de tickets desde el ViewModel
-    val tickets by viewModel.tickets.collectAsState()
+    val viewModel: MissingProductsViewModel = viewModel()
+
+    val missingList by viewModel.missingList.collectAsState()
 
     // Observar el estado de isLoading
     val isLoading by viewModel.isLoading.collectAsState()
 
+    // Contenido de la pantalla que muestra los MissingListScreen
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Mi actividad") }
+                title = { Text("MissingListScreen") },
+                navigationIcon = {
+                    Icon(
+                        painter = painterResource(id = R.drawable.baseline_arrow_back_ios_new_24),
+                        contentDescription = "Regresar",
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
+                            .clickable {
+                                navController.navigate(Screen.Main.route) {
+                                    popUpTo(Screen.Main.route) { inclusive = true }
+                                }
+                            }
+                    )
+                }
+            )
+        },
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                onClick = {
+                    // Lógica para agregar un gasto
+                    onAddMissing(navController = navController)
+                },
+                icon = {
+                    Icon(
+                        painter = painterResource(id = R.drawable.baseline_add_24),
+                        contentDescription = "Agregar faltante"
+                    )
+                },
+                text = { Text("Agregar faltante") }
             )
         },
         content = { paddingValues ->
@@ -60,33 +90,30 @@ fun ActivityScreen(navController: NavController) {
                     .padding(paddingValues)
                     .fillMaxSize()
             ) {
-                // Mostrar indicador de carga mientras los datos están cargándose
+                // Mostrar el LinearProgressIndicator mientras se cargan los datos
                 if (isLoading) {
                     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                 }
-                if (tickets.isEmpty() && !isLoading) {
+
+                if (missingList.isEmpty() && !isLoading) {
                     Column(
                         modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text("No hay tickets disponibles.")
+                        Text("No hay faltantes disponibles.")
                         Text("):")
                     }
                 } else {
-                    // Mostrar los tickets en una lista cuando los datos estén listos
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(16.dp),
                         modifier = Modifier
-                            .fillMaxWidth()
+                            .fillMaxSize()
                             .weight(1f)
                             .padding(16.dp)
                     ) {
-                        items(tickets) { ticket ->
-                            TicketCard(ticket = ticket) {
-                                // Navegar a DetailsTicketScreen pasando el ID del ticket
-                                navController.navigate(Screen.DetailsTicket.route + "?ticketId=${ticket.ticketId}")
-                            }
+                        items(missingList) { missing ->
+                            MissingProductCard(missing)
                         }
                     }
                 }
@@ -95,20 +122,32 @@ fun ActivityScreen(navController: NavController) {
     )
 }
 
-// Composable para mostrar los detalles de un ticket
 @Composable
-fun TicketCard(ticket: TicketFirebase, onTicketDetails: () -> Unit) {
+fun MissingProductCard(missing: MissingProductFirebase) {
+
     ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onTicketDetails() }
-        //.padding(vertical = 8.dp)
+        //.clickable { onMissingDetails() }
     ) {
         Column(
             modifier = Modifier
                 .padding(16.dp)
                 .fillMaxWidth()
         ) {
+
+            Column(
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+            ) {
+                Text(text = "Nombre: ${missing.name}")
+            }
+
+            HorizontalDivider(
+                modifier = Modifier.padding(bottom = 8.dp, top = 8.dp),
+                thickness = 1.dp
+            )
+
             Row(
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -117,9 +156,9 @@ fun TicketCard(ticket: TicketFirebase, onTicketDetails: () -> Unit) {
                         .weight(1f)
                         .align(Alignment.CenterVertically)
                 ) {
-                    Text(text = "Venta realizada")
+                    Text(text = "Producto faltante")
                     Spacer(modifier = Modifier.height(3.dp))
-                    Text(text = "id. ${ticket.ticketId}")
+                    Text(text = "id. ${missing.missingId}")
                 }
 
                 Column {
@@ -127,7 +166,7 @@ fun TicketCard(ticket: TicketFirebase, onTicketDetails: () -> Unit) {
                         modifier = Modifier.align(Alignment.End)
                     ) {
                         Text(
-                            text = ticket.date,
+                            text = missing.date,
                             modifier = Modifier.align(Alignment.CenterVertically)
                         )
                         Spacer(modifier = Modifier.width(3.dp))
@@ -143,7 +182,7 @@ fun TicketCard(ticket: TicketFirebase, onTicketDetails: () -> Unit) {
                     ) {
 
                         Text(
-                            text = ticket.time,
+                            text = missing.time,
                             modifier = Modifier.align(Alignment.CenterVertically)
                         )
                         Spacer(modifier = Modifier.width(3.dp))
@@ -175,15 +214,22 @@ fun TicketCard(ticket: TicketFirebase, onTicketDetails: () -> Unit) {
                     )
                     Spacer(modifier = Modifier.width(3.dp))
                     Text(
-                        text = "${ticket.totalProducts} productos",
+                        text = "${missing.quantity} productos",
                         modifier = Modifier.align(Alignment.CenterVertically)
                     )
                 }
                 Text(
-                    text = "Total: $${ticket.totalPrice}",
+                    text = "Total: $${missing.totalPrice}",
                     modifier = Modifier.align(Alignment.CenterVertically)
                 )
             }
         }
     }
+
+}
+
+fun onAddMissing(navController: NavController) {
+
+    // Acción para agregar un faltante
+    navController.navigate(Screen.AddMissing.route)
 }

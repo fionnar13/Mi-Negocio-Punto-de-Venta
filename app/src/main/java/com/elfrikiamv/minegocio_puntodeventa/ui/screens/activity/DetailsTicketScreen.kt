@@ -36,9 +36,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.elfrikiamv.minegocio_puntodeventa.R
-import com.elfrikiamv.minegocio_puntodeventa.model.TicketFirebase
+import com.elfrikiamv.minegocio_puntodeventa.model.shopping.TicketFirebase
 import com.elfrikiamv.minegocio_puntodeventa.navigation.Screen
-import com.elfrikiamv.minegocio_puntodeventa.viewmodel.ActivityViewModel
+import com.elfrikiamv.minegocio_puntodeventa.viewmodel.activity.ActivityViewModel
 import kotlinx.coroutines.launch
 import java.util.Locale
 

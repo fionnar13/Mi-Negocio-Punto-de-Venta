@@ -1,6 +1,6 @@
-package com.elfrikiamv.minegocio_puntodeventa.ui.screens.activity
+package com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.expensesList
 
-// ActivityScreen.kt
+// ExpensesListScreen.kt
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -33,25 +34,54 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.elfrikiamv.minegocio_puntodeventa.R
-import com.elfrikiamv.minegocio_puntodeventa.model.shopping.TicketFirebase
+import com.elfrikiamv.minegocio_puntodeventa.model.home.expenses.ExpenseFirebase
 import com.elfrikiamv.minegocio_puntodeventa.navigation.Screen
-import com.elfrikiamv.minegocio_puntodeventa.viewmodel.activity.ActivityViewModel
+import com.elfrikiamv.minegocio_puntodeventa.viewmodel.home.expenses.ExpensesViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ActivityScreen(navController: NavController) {
+fun ExpensesDetailsScreen(navController: NavController) {
 
-    val viewModel: ActivityViewModel = viewModel()
-    // Observar la lista de tickets desde el ViewModel
-    val tickets by viewModel.tickets.collectAsState()
+    val viewModel: ExpensesViewModel = viewModel()
+
+    val expensesDetails by viewModel.expensesDetailsList.collectAsState()
 
     // Observar el estado de isLoading
     val isLoading by viewModel.isLoading.collectAsState()
 
+    // Contenido de la pantalla que muestra ExpensesDetailsScreen
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Mi actividad") }
+                title = { Text("ExpensesDetailsScreen") },
+                navigationIcon = {
+                    Icon(
+                        painter = painterResource(id = R.drawable.baseline_arrow_back_ios_new_24),
+                        contentDescription = "Regresar",
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
+                            .clickable {
+                                navController.navigate(Screen.Main.route) {
+                                    popUpTo(Screen.Main.route) { inclusive = true }
+                                }
+                            }
+                    )
+                }
+            )
+        },
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                onClick = {
+                    // Lógica para agregar un gasto
+                    onAddExpense(navController = navController)
+                },
+                icon = {
+                    Icon(
+                        painter = painterResource(id = R.drawable.baseline_add_24),
+                        contentDescription = "Agregar gasto"
+                    )
+                },
+                text = { Text("Agregar gasto") }
             )
         },
         content = { paddingValues ->
@@ -60,33 +90,30 @@ fun ActivityScreen(navController: NavController) {
                     .padding(paddingValues)
                     .fillMaxSize()
             ) {
-                // Mostrar indicador de carga mientras los datos están cargándose
+                // Mostrar el LinearProgressIndicator mientras se cargan los datos
                 if (isLoading) {
                     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                 }
-                if (tickets.isEmpty() && !isLoading) {
+
+                if (expensesDetails.isEmpty() && !isLoading) {
                     Column(
                         modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text("No hay tickets disponibles.")
+                        Text("No hay gastos disponibles.")
                         Text("):")
                     }
                 } else {
-                    // Mostrar los tickets en una lista cuando los datos estén listos
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(16.dp),
                         modifier = Modifier
-                            .fillMaxWidth()
+                            .fillMaxSize()
                             .weight(1f)
                             .padding(16.dp)
                     ) {
-                        items(tickets) { ticket ->
-                            TicketCard(ticket = ticket) {
-                                // Navegar a DetailsTicketScreen pasando el ID del ticket
-                                navController.navigate(Screen.DetailsTicket.route + "?ticketId=${ticket.ticketId}")
-                            }
+                        items(expensesDetails) { expenses ->
+                            ExpensesDetailsCard(expenses)
                         }
                     }
                 }
@@ -95,14 +122,13 @@ fun ActivityScreen(navController: NavController) {
     )
 }
 
-// Composable para mostrar los detalles de un ticket
 @Composable
-fun TicketCard(ticket: TicketFirebase, onTicketDetails: () -> Unit) {
+fun ExpensesDetailsCard(expenses: ExpenseFirebase) {
+
     ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onTicketDetails() }
-        //.padding(vertical = 8.dp)
+        //.clickable { onExpenseDetails() }
     ) {
         Column(
             modifier = Modifier
@@ -117,9 +143,9 @@ fun TicketCard(ticket: TicketFirebase, onTicketDetails: () -> Unit) {
                         .weight(1f)
                         .align(Alignment.CenterVertically)
                 ) {
-                    Text(text = "Venta realizada")
+                    Text(text = "Gasto realizado")
                     Spacer(modifier = Modifier.height(3.dp))
-                    Text(text = "id. ${ticket.ticketId}")
+                    Text(text = "id. ${expenses.expenseId}")
                 }
 
                 Column {
@@ -127,7 +153,7 @@ fun TicketCard(ticket: TicketFirebase, onTicketDetails: () -> Unit) {
                         modifier = Modifier.align(Alignment.End)
                     ) {
                         Text(
-                            text = ticket.date,
+                            text = expenses.date,
                             modifier = Modifier.align(Alignment.CenterVertically)
                         )
                         Spacer(modifier = Modifier.width(3.dp))
@@ -143,7 +169,7 @@ fun TicketCard(ticket: TicketFirebase, onTicketDetails: () -> Unit) {
                     ) {
 
                         Text(
-                            text = ticket.time,
+                            text = expenses.time,
                             modifier = Modifier.align(Alignment.CenterVertically)
                         )
                         Spacer(modifier = Modifier.width(3.dp))
@@ -169,21 +195,28 @@ fun TicketCard(ticket: TicketFirebase, onTicketDetails: () -> Unit) {
                     modifier = Modifier.weight(1f)
                 ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.baseline_shopping_bag_24),
-                        contentDescription = "bag icon",
+                        painter = painterResource(id = R.drawable.baseline_payments_24),
+                        contentDescription = "payment icon",
                         modifier = Modifier.size(24.dp),
                     )
                     Spacer(modifier = Modifier.width(3.dp))
                     Text(
-                        text = "${ticket.totalProducts} productos",
+                        text = expenses.paymentMethod,
                         modifier = Modifier.align(Alignment.CenterVertically)
                     )
                 }
                 Text(
-                    text = "Total: $${ticket.totalPrice}",
+                    text = "Total: $${expenses.amountExpense}",
                     modifier = Modifier.align(Alignment.CenterVertically)
                 )
             }
         }
     }
+
+}
+
+fun onAddExpense(navController: NavController) {
+
+    // Acción para agregar un gasto
+    navController.navigate(Screen.AddExpense.route)
 }

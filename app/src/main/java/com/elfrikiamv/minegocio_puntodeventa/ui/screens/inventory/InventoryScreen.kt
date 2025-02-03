@@ -32,9 +32,9 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.elfrikiamv.minegocio_puntodeventa.model.ProductFirebase
+import com.elfrikiamv.minegocio_puntodeventa.model.inventory.ProductFirebase
 import com.elfrikiamv.minegocio_puntodeventa.navigation.Screen
-import com.elfrikiamv.minegocio_puntodeventa.viewmodel.InventoryViewModel
+import com.elfrikiamv.minegocio_puntodeventa.viewmodel.inventory.InventoryViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
