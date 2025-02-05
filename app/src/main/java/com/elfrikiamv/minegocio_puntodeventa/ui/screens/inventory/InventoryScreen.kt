@@ -6,7 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,26 +14,36 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.elfrikiamv.minegocio_puntodeventa.R
 import com.elfrikiamv.minegocio_puntodeventa.model.inventory.ProductFirebase
 import com.elfrikiamv.minegocio_puntodeventa.navigation.Screen
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.inventory.InventoryViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,11 +51,14 @@ fun InventoryScreen(navController: NavController, modifier: Modifier = Modifier)
     val viewModel: InventoryViewModel = viewModel()
     val products by viewModel.products.collectAsState()
 
+    // Estado del Bottom Sheet
+    val sheetState = rememberModalBottomSheetState()
+    val coroutineScope = rememberCoroutineScope()
+    var showBottomSheet by remember { mutableStateOf(false) }
+
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Inventario") }
-            )
+            TopAppBar(title = { Text("Inventario") })
         },
         content = { paddingValues ->
             Column(
@@ -55,77 +67,12 @@ fun InventoryScreen(navController: NavController, modifier: Modifier = Modifier)
                     .fillMaxSize()
                     .padding(16.dp)
             ) {
-                // Tarjeta de resumen del inventario
-                ElevatedCard(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp)
-                        .clickable { onInventoryDetails(navController = navController) }
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(
-                            text = "Resumen del Inventario",
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "Productos totales: ${products.size}",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-                }
-
-                // Botones para añadir productos y escanear
-                Text(
-                    text = "¿Cómo quieres añadir el producto?",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp)
-                )
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    Button(
-                        onClick = {
-                            val barcodeRoute = ""
-                            navController.navigate(Screen.AddProduct.route + "?barcode=${barcodeRoute}")
-                        },
-                        modifier = Modifier.weight(1f),
-                        //contentPadding = PaddingValues(12.dp)
-                    ) {
-                        //Icon(Icons.Filled.Add, contentDescription = "Añadir")
-                        //Spacer(modifier = Modifier.width(8.dp))
-                        Text("Manual")
-                    }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Button(
-                        onClick = { navController.navigate(Screen.ScanAddProduct.route) },
-                        modifier = Modifier.weight(1f),
-                        //contentPadding = PaddingValues(12.dp)
-                    ) {
-                        //Icon(Icons.Filled.Add, contentDescription = "Escanear")
-                        //Spacer(modifier = Modifier.width(8.dp))
-                        Text("Escanear")
-                    }
-                }
-
-                // Divider entre los botones y la lista de productos
-                HorizontalDivider(
-                    modifier = Modifier.padding(bottom = 16.dp),
-                    thickness = 1.dp
-                )
-
                 // Lista de productos
                 if (products.isEmpty()) {
                     Box(
-                        //modifier = Modifier.fillMaxSize(),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .weight(1f), // Ocupa espacio para mantener el diseño consistente
+                            .weight(1f),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
@@ -136,28 +83,88 @@ fun InventoryScreen(navController: NavController, modifier: Modifier = Modifier)
                 } else {
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(16.dp),
-                        //contentPadding = PaddingValues(vertical = 8.dp),
                         modifier = Modifier
-                            //.padding(bottom = 72.dp)
                             .fillMaxWidth()
-                            .weight(1f), // Permite que la lista ocupe el espacio restante
+                            .weight(1f)
                     ) {
                         items(products) { product ->
                             ProductCard(product = product) {
-                                // Navegar a DetailsProductScreen pasando el código de barras
                                 navController.navigate(Screen.DetailsProduct.route + "?barcode=${product.barcode}")
                             }
                         }
                     }
                 }
             }
+        },
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                onClick = { showBottomSheet = true },
+                icon = {
+                    Icon(
+                        painter = painterResource(id = R.drawable.baseline_add_24),
+                        contentDescription = "Añadir Producto"
+                    )
+                },
+                text = { Text("Añadir Producto") }
+            )
         }
     )
-}
 
-fun onInventoryDetails(navController: NavController) {
-    // Acción para ver detalles del inventario
-    navController.navigate(Screen.DetailsInventory.route)
+    // Bottom Sheet con opciones
+    if (showBottomSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showBottomSheet = false },
+            sheetState = sheetState
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(end = 16.dp, bottom = 16.dp, start = 16.dp),
+                //verticalArrangement = Arrangement.spacedBy(0.dp)
+            ) {
+                Text(
+                    text = "¿Cómo quieres escanear el código de barras?",
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                TextButton(
+                    onClick = {
+                        val barcodeRoute = ""
+                        navController.navigate(Screen.AddProduct.route + "?barcode=${barcodeRoute}")
+                        coroutineScope.launch { sheetState.hide() }.invokeOnCompletion {
+                            showBottomSheet = false
+                        }
+                    }
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.baseline_edit_24),
+                        contentDescription = "Añadir manualmente"
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Text("Manual")
+                }
+
+                TextButton(
+                    onClick = {
+                        navController.navigate(Screen.ScanAddProduct.route)
+                        coroutineScope.launch { sheetState.hide() }.invokeOnCompletion {
+                            showBottomSheet = false
+                        }
+                    }
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.baseline_camera_alt_24),
+                        contentDescription = "Añadir por escaner"
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Text("Escanear")
+                }
+            }
+        }
+    }
 }
 
 @Composable
