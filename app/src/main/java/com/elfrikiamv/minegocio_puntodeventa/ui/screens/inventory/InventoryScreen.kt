@@ -123,7 +123,7 @@ fun InventoryScreen(navController: NavController, modifier: Modifier = Modifier)
                 //verticalArrangement = Arrangement.spacedBy(0.dp)
             ) {
                 Text(
-                    text = "¿Cómo quieres escanear el código de barras?",
+                    text = "¿Cómo quieres agregar el código de barras?",
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
                 )
@@ -137,7 +137,8 @@ fun InventoryScreen(navController: NavController, modifier: Modifier = Modifier)
                         coroutineScope.launch { sheetState.hide() }.invokeOnCompletion {
                             showBottomSheet = false
                         }
-                    }
+                    },
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.baseline_edit_24),
@@ -145,6 +146,7 @@ fun InventoryScreen(navController: NavController, modifier: Modifier = Modifier)
                     )
                     Spacer(modifier = Modifier.width(16.dp))
                     Text("Manual")
+                    Spacer(modifier = Modifier.weight(1f))
                 }
 
                 TextButton(
@@ -153,7 +155,8 @@ fun InventoryScreen(navController: NavController, modifier: Modifier = Modifier)
                         coroutineScope.launch { sheetState.hide() }.invokeOnCompletion {
                             showBottomSheet = false
                         }
-                    }
+                    },
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.baseline_camera_alt_24),
@@ -161,6 +164,7 @@ fun InventoryScreen(navController: NavController, modifier: Modifier = Modifier)
                     )
                     Spacer(modifier = Modifier.width(16.dp))
                     Text("Escanear")
+                    Spacer(modifier = Modifier.weight(1f))
                 }
             }
         }
