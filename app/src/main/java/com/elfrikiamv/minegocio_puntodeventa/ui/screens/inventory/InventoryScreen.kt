@@ -69,7 +69,7 @@ fun InventoryScreen(navController: NavController, modifier: Modifier = Modifier)
                 modifier = Modifier
                     .padding(paddingValues)
                     .fillMaxSize()
-                    .padding(16.dp)
+                    //.padding(16.dp)
             ) {
                 // Lista de productos
                 if (products.isEmpty()) {
@@ -85,16 +85,21 @@ fun InventoryScreen(navController: NavController, modifier: Modifier = Modifier)
                         )
                     }
                 } else {
+                    //HorizontalDivider(modifier = Modifier.padding(0.dp), thickness = 1.dp)
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(16.dp),
                         modifier = Modifier
                             .fillMaxWidth()
                             .weight(1f)
+                            .padding(end = 16.dp, start = 16.dp)
                     ) {
                         items(products) { product ->
                             ProductCard(product = product) {
                                 navController.navigate(Screen.DetailsProduct.route + "?barcode=${product.barcode}")
                             }
+                        }
+                        item {
+                            Spacer(modifier = Modifier.height(72.dp))
                         }
                     }
                 }
