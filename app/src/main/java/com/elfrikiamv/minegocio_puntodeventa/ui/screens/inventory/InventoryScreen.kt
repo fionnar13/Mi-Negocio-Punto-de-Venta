@@ -21,6 +21,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
@@ -60,6 +61,9 @@ fun InventoryScreen(navController: NavController, modifier: Modifier = Modifier)
     val coroutineScope = rememberCoroutineScope()
     var showBottomSheet by remember { mutableStateOf(false) }
 
+    // Observar el estado de isLoading
+    val isLoading by viewModel.isLoading.collectAsState()
+
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("Inventario") })
@@ -71,16 +75,22 @@ fun InventoryScreen(navController: NavController, modifier: Modifier = Modifier)
                     .fillMaxSize()
                     //.padding(16.dp)
             ) {
+                // Mostrar indicador de carga mientras los datos están cargándose
+                if (isLoading) {
+                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                }
                 // Lista de productos
-                if (products.isEmpty()) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f),
-                        contentAlignment = Alignment.Center
+                if (products.isEmpty() && !isLoading) {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            "No hay productos en el inventario ):",
+                            "No hay productos en el inventario",
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                        )
+                        Text("):",
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                         )
                     }

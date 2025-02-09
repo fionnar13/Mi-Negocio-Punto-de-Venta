@@ -23,6 +23,10 @@ class InventoryViewModel : ViewModel() {
     private val userMyBusinesses = "defaultBusiness"
     private val userMyInventories = "defaultInventory"
 
+    // Nuevo campo para el estado de carga
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading
+
     init {
         // Cargar los productos al iniciar el ViewModel
         loadProducts()
@@ -30,6 +34,8 @@ class InventoryViewModel : ViewModel() {
 
     // Función para cargar los productos desde Firestore
     private fun loadProducts() {
+
+        _isLoading.value = true
         val userEmail = auth.currentUser?.email ?: return
 
         db.collection("users")
@@ -42,6 +48,7 @@ class InventoryViewModel : ViewModel() {
             .addSnapshotListener { snapshot, e ->
                 if (e != null || snapshot == null) {
                     // Manejar error
+                    _isLoading.value = false
                     return@addSnapshotListener
                 }
 
@@ -50,6 +57,7 @@ class InventoryViewModel : ViewModel() {
                     doc.toObject(ProductFirebase::class.java)?.copy(id = doc.id)
                 }
                 _products.value = productsList
+                _isLoading.value = false
             }
     }
 
