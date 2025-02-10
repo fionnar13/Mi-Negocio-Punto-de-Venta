@@ -2,6 +2,7 @@ package com.elfrikiamv.minegocio_puntodeventa.viewmodel.inventory
 
 //InventoryViewModel.kt
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.elfrikiamv.minegocio_puntodeventa.model.inventory.ProductFirebase
 import com.google.firebase.auth.FirebaseAuth
@@ -10,6 +11,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 class InventoryViewModel : ViewModel() {
+
+    // Constantes para las colecciones y documentos por defecto
+    companion object {
+        private const val TAG = "InventoryViewModel"
+        private const val DEFAULT_BUSINESS = "defaultBusiness"
+        private const val DEFAULT_INVENTORIES = "defaultInventory"
+    }
+
     // Firebase Authentication para obtener el usuario actual
     private val auth = FirebaseAuth.getInstance()
 
@@ -20,30 +29,31 @@ class InventoryViewModel : ViewModel() {
     private val _products = MutableStateFlow<List<ProductFirebase>>(emptyList())
     val products: StateFlow<List<ProductFirebase>> = _products
 
-    private val userMyBusinesses = "defaultBusiness"
-    private val userMyInventories = "defaultInventory"
-
     // Nuevo campo para el estado de carga
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
+    // Cargar los productos al iniciar el ViewModel
     init {
-        // Cargar los productos al iniciar el ViewModel
-        loadProducts()
+        val userEmail = auth.currentUser?.email
+        if (userEmail == null) {
+            Log.e(TAG, "Usuario no autenticado. No se pueden cargar los datos.")
+        } else {
+            Log.d(TAG, "Usuario autenticado: $userEmail")
+            loadProducts(userEmail)
+        }
     }
 
     // Función para cargar los productos desde Firestore
-    private fun loadProducts() {
+    private fun loadProducts(userEmail: String) {
 
         _isLoading.value = true
-        val userEmail = auth.currentUser?.email ?: return
-
         db.collection("users")
             .document(userEmail)
             .collection("userMyBusinesses")
-            .document(userMyBusinesses)
+            .document(DEFAULT_BUSINESS)
             .collection("userMyInventories")
-            .document(userMyInventories)
+            .document(DEFAULT_INVENTORIES)
             .collection("userInventory")
             .addSnapshotListener { snapshot, e ->
                 if (e != null || snapshot == null) {
@@ -90,9 +100,9 @@ class InventoryViewModel : ViewModel() {
         db.collection("users")
             .document(userEmail)
             .collection("userMyBusinesses")
-            .document(userMyBusinesses)
+            .document(DEFAULT_BUSINESS)
             .collection("userMyInventories")
-            .document(userMyInventories)
+            .document(DEFAULT_INVENTORIES)
             .collection("userInventory")
             .document(productId)
             .set(product)
@@ -105,9 +115,9 @@ class InventoryViewModel : ViewModel() {
         db.collection("users")
             .document(userEmail)
             .collection("userMyBusinesses")
-            .document(userMyBusinesses)
+            .document(DEFAULT_BUSINESS)
             .collection("userMyInventories")
-            .document(userMyInventories)
+            .document(DEFAULT_INVENTORIES)
             .collection("userInventory")
             .whereEqualTo("barcode", barcode)
             .get()
