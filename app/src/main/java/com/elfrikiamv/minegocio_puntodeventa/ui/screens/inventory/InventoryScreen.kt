@@ -4,7 +4,6 @@ package com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -21,6 +20,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -73,7 +73,7 @@ fun InventoryScreen(navController: NavController, modifier: Modifier = Modifier)
                 modifier = Modifier
                     .padding(paddingValues)
                     .fillMaxSize()
-                    //.padding(16.dp)
+                //.padding(16.dp)
             ) {
                 // Mostrar indicador de carga mientras los datos están cargándose
                 if (isLoading) {
@@ -90,7 +90,8 @@ fun InventoryScreen(navController: NavController, modifier: Modifier = Modifier)
                             "No hay productos en el inventario",
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                         )
-                        Text("):",
+                        Text(
+                            "):",
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                         )
                     }
@@ -204,88 +205,110 @@ fun ProductCard(product: ProductFirebase, onProductDetails: () -> Unit) {
                 .fillMaxWidth()
         ) {
 
-            Column(
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
             ) {
-                Row {
-                    Text(
-                        text = "Nombre: ",
-                        fontStyle = FontStyle.Italic,
-                        modifier = Modifier
-                            .alignByBaseline()
-                            .alpha(0.8f) // Aplica opacidad del 80%
-                    )
-                    Text(
-                        text = product.name,
-                        modifier = Modifier.alignByBaseline()
-                    )
-                }
-                Row {
-                    Text(
-                        text = "Código de barras: ",
-                        fontStyle = FontStyle.Italic,
-                        modifier = Modifier
-                            .alignByBaseline()
-                            .alpha(0.8f) // Aplica opacidad del 80%
-                    )
-                    Text(
-                        text = product.barcode,
-                        modifier = Modifier.alignByBaseline()
-                    )
-                }
-            }
-
-
-            HorizontalDivider(
-                modifier = Modifier.padding(bottom = 8.dp, top = 8.dp),
-                thickness = 1.dp
-            )
-
-            Row(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-
-                Row(
+                Column(
                     modifier = Modifier.weight(1f)
                 ) {
-                    Row {
-                        Icon(
-                            painter = painterResource(id = R.drawable.baseline_shopping_bag_24),
-                            contentDescription = "bag icon",
-                            modifier = Modifier.size(24.dp),
-                        )
-                        Spacer(modifier = Modifier.width(3.dp))
-                        Text(
-                            text = "${product.quantity} ",
-                            modifier = Modifier.alignByBaseline()
-                        )
-                        Text(
-                            text = "piezas",
-                            fontStyle = FontStyle.Italic,
-                            modifier = Modifier
-                                .alignByBaseline()
-                                .alpha(0.8f) // Aplica opacidad del 80%
-                        )
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    ) {
+                        Row {
+                            Text(
+                                text = "Nombre: ",
+                                fontStyle = FontStyle.Italic,
+                                modifier = Modifier
+                                    .alignByBaseline()
+                                    .alpha(0.8f) // Aplica opacidad del 80%
+                            )
+                            Text(
+                                text = product.name,
+                                modifier = Modifier.alignByBaseline()
+                            )
+                        }
+                        Row {
+                            Text(
+                                text = "Código de barras: ",
+                                fontStyle = FontStyle.Italic,
+                                modifier = Modifier
+                                    .alignByBaseline()
+                                    .alpha(0.8f) // Aplica opacidad del 80%
+                            )
+                            Text(
+                                text = product.barcode,
+                                modifier = Modifier.alignByBaseline()
+                            )
+                        }
+                    }
+
+
+                    HorizontalDivider(
+                        modifier = Modifier.padding(bottom = 8.dp, top = 8.dp),
+                        thickness = 1.dp
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+
+                        Row(
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Row {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.baseline_shopping_bag_24),
+                                    contentDescription = "bag icon",
+                                    modifier = Modifier.size(24.dp),
+                                )
+                                Spacer(modifier = Modifier.width(3.dp))
+                                Text(
+                                    text = "${product.quantity} ",
+                                    modifier = Modifier.alignByBaseline()
+                                )
+                                Text(
+                                    text = "piezas",
+                                    fontStyle = FontStyle.Italic,
+                                    modifier = Modifier
+                                        .alignByBaseline()
+                                        .alpha(0.8f) // Aplica opacidad del 80%
+                                )
+                            }
+                        }
+                        Row {
+                            Text(
+                                text = "Precio: ",
+                                fontStyle = FontStyle.Italic,
+                                modifier = Modifier
+                                    .alignByBaseline()
+                                    .alpha(0.8f) // Aplica opacidad del 80%
+                            )
+                            Icon(
+                                painter = painterResource(id = R.drawable.baseline_attach_money_24),
+                                contentDescription = "money icon",
+                                modifier = Modifier.size(24.dp),
+                            )
+                            Text(
+                                text = "${product.salePrice}",
+                                modifier = Modifier.alignByBaseline()
+                            )
+                        }
                     }
                 }
-                Row {
-                    Text(
-                        text = "Precio: ",
-                        fontStyle = FontStyle.Italic,
-                        modifier = Modifier
-                            .alignByBaseline()
-                            .alpha(0.8f) // Aplica opacidad del 80%
-                    )
-                    Icon(
-                        painter = painterResource(id = R.drawable.baseline_attach_money_24),
-                        contentDescription = "money icon",
-                        modifier = Modifier.size(24.dp),
-                    )
-                    Text(
-                        text = "${product.salePrice}",
-                        modifier = Modifier.alignByBaseline()
-                    )
+                Column(
+                    modifier = Modifier.align(Alignment.CenterVertically)
+                ) {
+                    IconButton(
+                        onClick = onProductDetails
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.baseline_delete_24),
+                            contentDescription = "Eliminar",
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
                 }
             }
         }
