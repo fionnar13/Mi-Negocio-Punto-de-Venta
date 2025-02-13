@@ -3,7 +3,7 @@ package com.elfrikiamv.minegocio_puntodeventa.converter
 // ProductListConverter.kt
 
 import androidx.room.TypeConverter
-import com.elfrikiamv.minegocio_puntodeventa.model.inventory.ProductEntity
+import com.elfrikiamv.minegocio_puntodeventa.model.shopping.ProductEntity
 import com.google.gson.Gson
 
 class ProductListConverter {

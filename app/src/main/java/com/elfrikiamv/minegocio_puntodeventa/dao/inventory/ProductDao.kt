@@ -8,7 +8,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
-import com.elfrikiamv.minegocio_puntodeventa.model.inventory.ProductEntity
+import com.elfrikiamv.minegocio_puntodeventa.model.shopping.ProductEntity
 
 @Dao
 interface ProductDao {

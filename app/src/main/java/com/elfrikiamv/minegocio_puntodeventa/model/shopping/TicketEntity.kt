@@ -4,7 +4,6 @@ package com.elfrikiamv.minegocio_puntodeventa.model.shopping
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.elfrikiamv.minegocio_puntodeventa.model.inventory.ProductEntity
 
 @Entity(tableName = "tickets")
 data class TicketEntity(

@@ -134,4 +134,24 @@ class InventoryViewModel : ViewModel() {
             }
     }
 
+    fun deleteProduct(productId: String) {
+        val userEmail = auth.currentUser?.email ?: return
+
+        db.collection("users")
+            .document(userEmail)
+            .collection("userMyBusinesses")
+            .document(DEFAULT_BUSINESS)
+            .collection("userMyInventories")
+            .document(DEFAULT_INVENTORIES)
+            .collection("userInventory")
+            .document(productId)
+            .delete()
+            .addOnSuccessListener {
+                Log.d(TAG, "Producto eliminado con éxito: $productId")
+            }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "Error al eliminar el producto: $productId", e)
+            }
+    }
+
 }

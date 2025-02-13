@@ -301,7 +301,7 @@ fun ProductCard(product: ProductFirebase, onProductDetails: () -> Unit) {
                     modifier = Modifier.align(Alignment.CenterVertically)
                 ) {
                     IconButton(
-                        onClick = onProductDetails
+                        onClick = deleteProduct(product.id)
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.baseline_delete_24),
@@ -312,5 +312,14 @@ fun ProductCard(product: ProductFirebase, onProductDetails: () -> Unit) {
                 }
             }
         }
+    }
+}
+
+@Composable
+fun deleteProduct(productId: String): () -> Unit {
+
+    val viewModel: InventoryViewModel = viewModel()
+    return {
+        viewModel.deleteProduct(productId)
     }
 }

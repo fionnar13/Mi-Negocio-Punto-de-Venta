@@ -14,7 +14,7 @@ import com.elfrikiamv.minegocio_puntodeventa.dao.inventory.ProductDao
 import com.elfrikiamv.minegocio_puntodeventa.dao.shopping.TicketDao
 import com.elfrikiamv.minegocio_puntodeventa.model.home.expenses.ExpenseEntity
 import com.elfrikiamv.minegocio_puntodeventa.model.home.missing.MissingProductEntity
-import com.elfrikiamv.minegocio_puntodeventa.model.inventory.ProductEntity
+import com.elfrikiamv.minegocio_puntodeventa.model.shopping.ProductEntity
 import com.elfrikiamv.minegocio_puntodeventa.model.shopping.TicketEntity
 
 @Database(
