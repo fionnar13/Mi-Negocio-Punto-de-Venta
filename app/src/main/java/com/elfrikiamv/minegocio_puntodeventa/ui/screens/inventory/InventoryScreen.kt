@@ -15,6 +15,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -25,6 +28,8 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -64,6 +69,12 @@ fun InventoryScreen(navController: NavController, modifier: Modifier = Modifier)
     // Observar el estado de isLoading
     val isLoading by viewModel.isLoading.collectAsState()
 
+    val searchQuery by viewModel.searchQuery.collectAsState()
+    val filteredProducts by viewModel.filteredProducts.collectAsState()
+
+    var localSearchQuery by remember { mutableStateOf("") }
+    var isSearchActive by remember { mutableStateOf(false) }
+
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("Inventario") })
@@ -79,6 +90,84 @@ fun InventoryScreen(navController: NavController, modifier: Modifier = Modifier)
                 if (isLoading) {
                     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                 }
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                    //.padding(bottom = 16.dp)
+                ) {
+
+                    val onActiveChange: (Boolean) -> Unit = { isSearchActive = it }
+                    val colors1 = SearchBarDefaults.colors()
+                    SearchBar(
+                        inputField = {
+                            SearchBarDefaults.InputField(
+                                query = localSearchQuery,
+                                onQueryChange = {
+                                    localSearchQuery = it
+                                    viewModel.updateSearchQuery(it)
+                                },
+                                onSearch = { isSearchActive = false },
+                                expanded = isSearchActive,
+                                onExpandedChange = onActiveChange,
+                                enabled = true,
+                                placeholder = { Text("Buscar producto") },
+                                leadingIcon = {
+                                    if (isSearchActive) {
+                                        IconButton(
+                                            onClick = { isSearchActive = false }
+                                        ) {
+                                            Icon(
+                                                Icons.AutoMirrored.Filled.ArrowBack,
+                                                contentDescription = "Volver"
+                                            )
+                                        }
+                                    } else {
+                                        Icon(Icons.Default.Search, contentDescription = "Buscar")
+                                    }
+                                },
+                                trailingIcon = null,
+                                colors = colors1.inputFieldColors,
+                                interactionSource = null,
+                            )
+                        },
+                        expanded = isSearchActive,
+                        onExpandedChange = onActiveChange,
+                        modifier = Modifier.align(Alignment.CenterHorizontally),
+                        shape = SearchBarDefaults.inputFieldShape,
+                        colors = colors1,
+                        tonalElevation = SearchBarDefaults.TonalElevation,
+                        shadowElevation = SearchBarDefaults.ShadowElevation,
+                        windowInsets = SearchBarDefaults.windowInsets,
+                        content = {
+
+                            if (filteredProducts.isEmpty() && !isLoading && localSearchQuery.isNotEmpty()) {
+                                Column(
+                                    modifier = Modifier.fillMaxSize(),
+                                    verticalArrangement = Arrangement.Center,
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text(
+                                        "No se encontraron coincidencias",
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                                    )
+                                    Text(
+                                        "):",
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                                    )
+                                }
+                            } else {
+
+                                SearchResults(filteredProducts) { selectedProduct ->
+                                    localSearchQuery = ""
+                                    isSearchActive = false
+                                    navController.navigate(Screen.DetailsProduct.route + "?barcode=${selectedProduct.barcode}")
+                                }
+                            }
+                        },
+                    )
+                }
+
                 // Lista de productos
                 if (products.isEmpty() && !isLoading) {
                     Column(
@@ -88,11 +177,11 @@ fun InventoryScreen(navController: NavController, modifier: Modifier = Modifier)
                     ) {
                         Text(
                             "No hay productos en el inventario",
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
                         )
                         Text(
                             "):",
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
                         )
                     }
                 } else {
@@ -102,7 +191,7 @@ fun InventoryScreen(navController: NavController, modifier: Modifier = Modifier)
                         modifier = Modifier
                             .fillMaxWidth()
                             .weight(1f)
-                            .padding(end = 16.dp, start = 16.dp)
+                            .padding(end = 16.dp, start = 16.dp, top = 16.dp)
                     ) {
                         items(products) { product ->
                             ProductCard(product = product) {
@@ -187,6 +276,23 @@ fun InventoryScreen(navController: NavController, modifier: Modifier = Modifier)
                     Spacer(modifier = Modifier.weight(1f))
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun SearchResults(products: List<ProductFirebase>, onResultClick: (ProductFirebase) -> Unit) {
+    LazyColumn(
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        items(products) { product ->
+            ProductCard(product = product) { onResultClick(product) }
+        }
+        item {
+            Spacer(modifier = Modifier.height(56.dp))
         }
     }
 }

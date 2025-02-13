@@ -8,8 +8,8 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.elfrikiamv.minegocio_puntodeventa.database.AppDatabase
-import com.elfrikiamv.minegocio_puntodeventa.model.shopping.ProductEntity
 import com.elfrikiamv.minegocio_puntodeventa.model.inventory.ProductFirebase
+import com.elfrikiamv.minegocio_puntodeventa.model.shopping.ProductEntity
 import com.elfrikiamv.minegocio_puntodeventa.model.shopping.TicketEntity
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.activity.ActivityViewModel
 import com.google.firebase.auth.FirebaseAuth

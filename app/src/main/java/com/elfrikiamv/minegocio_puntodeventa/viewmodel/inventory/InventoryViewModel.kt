@@ -4,11 +4,15 @@ package com.elfrikiamv.minegocio_puntodeventa.viewmodel.inventory
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.elfrikiamv.minegocio_puntodeventa.model.inventory.ProductFirebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 
 class InventoryViewModel : ViewModel() {
 
@@ -28,6 +32,18 @@ class InventoryViewModel : ViewModel() {
     // StateFlow que almacenará los productos del inventario
     private val _products = MutableStateFlow<List<ProductFirebase>>(emptyList())
     val products: StateFlow<List<ProductFirebase>> = _products
+
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery
+
+    val filteredProducts: StateFlow<List<ProductFirebase>> = _searchQuery
+        .combine(_products) { query, products ->
+            if (query.isBlank()) products
+            else products.filter {
+                it.name.contains(query, ignoreCase = true) ||
+                        it.barcode.contains(query, ignoreCase = true)
+            }
+        }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     // Nuevo campo para el estado de carga
     private val _isLoading = MutableStateFlow(false)
@@ -69,6 +85,10 @@ class InventoryViewModel : ViewModel() {
                 _products.value = productsList
                 _isLoading.value = false
             }
+    }
+
+    fun updateSearchQuery(query: String) {
+        _searchQuery.value = query
     }
 
     // Función para agregar un producto a Firestore
