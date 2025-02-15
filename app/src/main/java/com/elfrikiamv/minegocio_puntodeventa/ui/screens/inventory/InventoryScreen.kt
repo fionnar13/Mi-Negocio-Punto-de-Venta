@@ -57,7 +57,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun InventoryScreen(navController: NavController, modifier: Modifier = Modifier) {
+fun InventoryScreen(navController: NavController) {
     val viewModel: InventoryViewModel = viewModel()
     val products by viewModel.products.collectAsState()
 
@@ -72,7 +72,7 @@ fun InventoryScreen(navController: NavController, modifier: Modifier = Modifier)
     val searchQuery by viewModel.searchQuery.collectAsState()
     val filteredProducts by viewModel.filteredProducts.collectAsState()
 
-    var localSearchQuery by remember { mutableStateOf("") }
+    //var localSearchQuery by remember { mutableStateOf("") }
     var isSearchActive by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -84,7 +84,6 @@ fun InventoryScreen(navController: NavController, modifier: Modifier = Modifier)
                 modifier = Modifier
                     .padding(paddingValues)
                     .fillMaxSize()
-                //.padding(16.dp)
             ) {
                 // Mostrar indicador de carga mientras los datos están cargándose
                 if (isLoading) {
@@ -94,19 +93,14 @@ fun InventoryScreen(navController: NavController, modifier: Modifier = Modifier)
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                    //.padding(bottom = 16.dp)
                 ) {
 
                     val onActiveChange: (Boolean) -> Unit = { isSearchActive = it }
-                    val colors1 = SearchBarDefaults.colors()
                     SearchBar(
                         inputField = {
                             SearchBarDefaults.InputField(
-                                query = localSearchQuery,
-                                onQueryChange = {
-                                    localSearchQuery = it
-                                    viewModel.updateSearchQuery(it)
-                                },
+                                query = searchQuery,
+                                onQueryChange = { viewModel.updateSearchQuery(it) },
                                 onSearch = { isSearchActive = false },
                                 expanded = isSearchActive,
                                 onExpandedChange = onActiveChange,
@@ -127,7 +121,7 @@ fun InventoryScreen(navController: NavController, modifier: Modifier = Modifier)
                                     }
                                 },
                                 trailingIcon = null,
-                                colors = colors1.inputFieldColors,
+                                colors = SearchBarDefaults.inputFieldColors(),
                                 interactionSource = null,
                             )
                         },
@@ -135,13 +129,13 @@ fun InventoryScreen(navController: NavController, modifier: Modifier = Modifier)
                         onExpandedChange = onActiveChange,
                         modifier = Modifier.align(Alignment.CenterHorizontally),
                         shape = SearchBarDefaults.inputFieldShape,
-                        colors = colors1,
+                        colors = SearchBarDefaults.colors(),
                         tonalElevation = SearchBarDefaults.TonalElevation,
                         shadowElevation = SearchBarDefaults.ShadowElevation,
                         windowInsets = SearchBarDefaults.windowInsets,
                         content = {
 
-                            if (filteredProducts.isEmpty() && !isLoading && localSearchQuery.isNotEmpty()) {
+                            if (filteredProducts.isEmpty() && !isLoading && searchQuery.isNotEmpty()) {
                                 Column(
                                     modifier = Modifier.fillMaxSize(),
                                     verticalArrangement = Arrangement.Center,
@@ -159,7 +153,7 @@ fun InventoryScreen(navController: NavController, modifier: Modifier = Modifier)
                             } else {
 
                                 SearchResults(filteredProducts) { selectedProduct ->
-                                    localSearchQuery = ""
+                                    //localSearchQuery = ""
                                     isSearchActive = false
                                     navController.navigate(Screen.DetailsProduct.route + "?barcode=${selectedProduct.barcode}")
                                 }
@@ -185,7 +179,6 @@ fun InventoryScreen(navController: NavController, modifier: Modifier = Modifier)
                         )
                     }
                 } else {
-                    //HorizontalDivider(modifier = Modifier.padding(0.dp), thickness = 1.dp)
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(16.dp),
                         modifier = Modifier

@@ -1,6 +1,6 @@
 package com.elfrikiamv.minegocio_puntodeventa.viewmodel.inventory
 
-//InventoryViewModel.kt
+// InventoryViewModel.kt
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
