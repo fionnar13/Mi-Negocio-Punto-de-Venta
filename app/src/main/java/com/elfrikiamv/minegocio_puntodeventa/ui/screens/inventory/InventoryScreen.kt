@@ -15,9 +15,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -112,15 +109,27 @@ fun InventoryScreen(navController: NavController) {
                                             onClick = { isSearchActive = false }
                                         ) {
                                             Icon(
-                                                Icons.AutoMirrored.Filled.ArrowBack,
+                                                painter = painterResource(id = R.drawable.baseline_arrow_back_ios_new_24),
                                                 contentDescription = "Volver"
                                             )
                                         }
                                     } else {
-                                        Icon(Icons.Default.Search, contentDescription = "Buscar")
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.baseline_search_24),
+                                            contentDescription = "Buscar"
+                                        )
                                     }
                                 },
-                                trailingIcon = null,
+                                trailingIcon = {
+                                    if (searchQuery.isNotEmpty()) {
+                                        IconButton(onClick = { viewModel.updateSearchQuery("") }) {
+                                            Icon(
+                                                painter = painterResource(id = R.drawable.baseline_close_24),
+                                                contentDescription = "Borrar búsqueda"
+                                            )
+                                        }
+                                    }
+                                },
                                 colors = SearchBarDefaults.inputFieldColors(),
                                 interactionSource = null,
                             )
