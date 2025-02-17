@@ -51,11 +51,14 @@ class InventoryViewModel : ViewModel() {
 
     // Cargar los productos al iniciar el ViewModel
     init {
+        _isLoading.value = true
         val userEmail = auth.currentUser?.email
         if (userEmail == null) {
             Log.e(TAG, "Usuario no autenticado. No se pueden cargar los datos.")
+            _isLoading.value = false
         } else {
             Log.d(TAG, "Usuario autenticado: $userEmail")
+            _isLoading.value = false
             loadProducts(userEmail)
         }
     }
@@ -88,7 +91,9 @@ class InventoryViewModel : ViewModel() {
     }
 
     fun updateSearchQuery(query: String) {
+        _isLoading.value = true
         _searchQuery.value = query
+        _isLoading.value = false
     }
 
     // Función para agregar un producto a Firestore
@@ -101,6 +106,8 @@ class InventoryViewModel : ViewModel() {
         salePrice: Double,
         description: String
     ) {
+
+        _isLoading.value = true
         val userEmail = auth.currentUser?.email ?: return
 
         // Si no se proporciona un ID, generar uno nuevo
@@ -126,10 +133,13 @@ class InventoryViewModel : ViewModel() {
             .collection("userInventory")
             .document(productId)
             .set(product)
+        _isLoading.value = false
     }
 
     //verificar si el producto existe en Firestore
     fun checkProductExists(barcode: String, callback: (ProductFirebase?) -> Unit) {
+
+        _isLoading.value = true
         val userEmail = auth.currentUser?.email ?: return
 
         db.collection("users")
@@ -144,17 +154,22 @@ class InventoryViewModel : ViewModel() {
             .addOnSuccessListener { documents ->
                 if (documents.isEmpty) {
                     callback(null) // Producto no encontrado
+                    _isLoading.value = false
                 } else {
                     val product = documents.documents.first().toObject(ProductFirebase::class.java)
                     callback(product)
+                    _isLoading.value = false
                 }
             }
             .addOnFailureListener {
                 callback(null) // En caso de error
+                _isLoading.value = false
             }
     }
 
     fun deleteProduct(productId: String) {
+
+        _isLoading.value = true
         val userEmail = auth.currentUser?.email ?: return
 
         db.collection("users")
@@ -168,9 +183,11 @@ class InventoryViewModel : ViewModel() {
             .delete()
             .addOnSuccessListener {
                 Log.d(TAG, "Producto eliminado con éxito: $productId")
+                _isLoading.value = false
             }
             .addOnFailureListener { e ->
                 Log.e(TAG, "Error al eliminar el producto: $productId", e)
+                _isLoading.value = false
             }
     }
 
