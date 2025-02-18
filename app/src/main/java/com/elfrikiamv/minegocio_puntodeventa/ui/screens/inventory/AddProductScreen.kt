@@ -8,10 +8,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -180,8 +183,7 @@ fun AddProductScreen(navController: NavController, barcodeDetails: String?) {
                 modifier = Modifier
                     .padding(paddingValues)
                     .fillMaxSize()
-                    .padding(16.dp)
-
+                //.padding(16.dp)
             ) {
 
                 // Mostrar el indicador de carga si isLoading es true
@@ -189,109 +191,121 @@ fun AddProductScreen(navController: NavController, barcodeDetails: String?) {
                     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                 } else {
 
-                    ElevatedCard(
-                        modifier = Modifier.fillMaxWidth()
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .weight(1f)
+                            .padding(16.dp)
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .padding(16.dp)
-                                .fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Text(
-                                text = "Llena todos los campos para agregar el producto al inventario.",
-                                style = MaterialTheme.typography.titleMedium,
+                        item {
+                            ElevatedCard(
                                 modifier = Modifier.fillMaxWidth()
-                            )
-                            // Campo Código de Barras con botón de cámara
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                OutlinedTextField(
-                                    value = barcode,
-                                    onValueChange = { newValue ->
-                                        barcode =
-                                            newValue // Esto disparará LaunchedEffect automáticamente
-                                    },
-                                    label = { Text("Código de barras") },
+                                Column(
                                     modifier = Modifier
-                                        .weight(1f) // Ajusta el ancho para que ocupe el espacio restante
+                                        .padding(16.dp)
                                         .fillMaxWidth(),
-                                    isError = barcode.isBlank() // Muestra error si está vacío
-                                )
-                                IconButton(
-                                    onClick = {
-                                        // Lógica para abrir la cámara o navegar a una pantalla de escaneo
-                                        navController.navigate(Screen.ScanAddProduct.route)
-                                    },
-                                    //modifier = Modifier.size(48.dp) // Tamaño del ícono
-                                    modifier = Modifier.align(Alignment.CenterVertically)
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.baseline_camera_alt_24), // Usa un ícono de cámara
-                                        contentDescription = "Abrir cámara",
-                                        modifier = Modifier.size(24.dp) // Tamaño del ícono
+                                    Text(
+                                        text = "Llena todos los campos para agregar el producto al inventario.",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        modifier = Modifier.fillMaxWidth()
                                     )
+                                    // Campo Código de Barras con botón de cámara
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        OutlinedTextField(
+                                            value = barcode,
+                                            onValueChange = { newValue ->
+                                                barcode =
+                                                    newValue // Esto disparará LaunchedEffect automáticamente
+                                            },
+                                            label = { Text("Código de barras") },
+                                            modifier = Modifier
+                                                .weight(1f) // Ajusta el ancho para que ocupe el espacio restante
+                                                .fillMaxWidth(),
+                                            isError = barcode.isBlank() // Muestra error si está vacío
+                                        )
+                                        IconButton(
+                                            onClick = {
+                                                // Lógica para abrir la cámara o navegar a una pantalla de escaneo
+                                                navController.navigate(Screen.ScanAddProduct.route)
+                                            },
+                                            //modifier = Modifier.size(48.dp) // Tamaño del ícono
+                                            modifier = Modifier.align(Alignment.CenterVertically)
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(id = R.drawable.baseline_camera_alt_24), // Usa un ícono de cámara
+                                                contentDescription = "Abrir cámara",
+                                                modifier = Modifier.size(24.dp) // Tamaño del ícono
+                                            )
+                                        }
+                                    }
+
+                                    // Campo Nombre del Producto
+                                    OutlinedTextField(
+                                        value = name,
+                                        onValueChange = { name = it },
+                                        label = { Text("Nombre del producto") },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        isError = name.isBlank()
+                                    )
+
+                                    // Campo Cantidad
+                                    OutlinedTextField(
+                                        value = quantity,
+                                        onValueChange = { quantity = it },
+                                        label = { Text("Cantidad") },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                        isError = quantity.isBlank()
+                                    )
+
+                                    // Campo Precio Proveedor
+                                    OutlinedTextField(
+                                        value = providerPrice,
+                                        onValueChange = { providerPrice = it },
+                                        label = { Text("Precio proveedor") },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                        isError = providerPrice.isBlank()
+                                    )
+
+                                    // Campo Precio de Venta
+                                    OutlinedTextField(
+                                        value = salePrice,
+                                        onValueChange = { salePrice = it },
+                                        label = { Text("Precio de venta") },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                        isError = salePrice.isBlank()
+                                    )
+
+                                    // Campo Descripción
+                                    OutlinedTextField(
+                                        value = description,
+                                        onValueChange = { description = it },
+                                        label = { Text("Descripción del producto") },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        isError = description.isBlank()
+                                    )
+
+                                    if (errorMessage.isNotBlank()) {
+                                        Text(
+                                            text = errorMessage,
+                                            color = MaterialTheme.colorScheme.error,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            modifier = Modifier.align(Alignment.CenterHorizontally)
+                                        )
+                                    }
                                 }
                             }
-
-                            // Campo Nombre del Producto
-                            OutlinedTextField(
-                                value = name,
-                                onValueChange = { name = it },
-                                label = { Text("Nombre del producto") },
-                                modifier = Modifier.fillMaxWidth(),
-                                isError = name.isBlank()
-                            )
-
-                            // Campo Cantidad
-                            OutlinedTextField(
-                                value = quantity,
-                                onValueChange = { quantity = it },
-                                label = { Text("Cantidad") },
-                                modifier = Modifier.fillMaxWidth(),
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                isError = quantity.isBlank()
-                            )
-
-                            // Campo Precio Proveedor
-                            OutlinedTextField(
-                                value = providerPrice,
-                                onValueChange = { providerPrice = it },
-                                label = { Text("Precio proveedor") },
-                                modifier = Modifier.fillMaxWidth(),
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                isError = providerPrice.isBlank()
-                            )
-
-                            // Campo Precio de Venta
-                            OutlinedTextField(
-                                value = salePrice,
-                                onValueChange = { salePrice = it },
-                                label = { Text("Precio de venta") },
-                                modifier = Modifier.fillMaxWidth(),
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                isError = salePrice.isBlank()
-                            )
-
-                            // Campo Descripción
-                            OutlinedTextField(
-                                value = description,
-                                onValueChange = { description = it },
-                                label = { Text("Descripción del producto") },
-                                modifier = Modifier.fillMaxWidth(),
-                                isError = description.isBlank()
-                            )
-
-                            if (errorMessage.isNotBlank()) {
-                                Text(
-                                    text = errorMessage,
-                                    color = MaterialTheme.colorScheme.error,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                                )
-                            }
+                        }
+                        item {
+                            Spacer(modifier = Modifier.height(72.dp))
                         }
                     }
                 }

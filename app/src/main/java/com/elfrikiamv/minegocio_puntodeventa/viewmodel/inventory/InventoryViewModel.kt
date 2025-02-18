@@ -139,7 +139,7 @@ class InventoryViewModel : ViewModel() {
     //verificar si el producto existe en Firestore
     fun checkProductExists(barcode: String, callback: (ProductFirebase?) -> Unit) {
 
-        _isLoading.value = true
+        //_isLoading.value = true
         val userEmail = auth.currentUser?.email ?: return
 
         db.collection("users")
@@ -156,6 +156,7 @@ class InventoryViewModel : ViewModel() {
                     callback(null) // Producto no encontrado
                     _isLoading.value = false
                 } else {
+                    _isLoading.value = true
                     val product = documents.documents.first().toObject(ProductFirebase::class.java)
                     callback(product)
                     _isLoading.value = false
