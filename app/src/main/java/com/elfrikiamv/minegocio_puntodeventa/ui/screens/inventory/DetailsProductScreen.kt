@@ -11,12 +11,14 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,6 +38,9 @@ import com.elfrikiamv.minegocio_puntodeventa.viewmodel.inventory.InventoryViewMo
 fun DetailsProductScreen(navController: NavHostController, barcode: String?) {
     val viewModel: InventoryViewModel = viewModel()
     var productDetails by remember { mutableStateOf<ProductFirebase?>(null) }
+
+    // Observar el estado de isLoading
+    val isLoading by viewModel.isLoading.collectAsState()
 
     // Cargar los detalles del producto
     LaunchedEffect(barcode) {
@@ -72,11 +77,15 @@ fun DetailsProductScreen(navController: NavHostController, barcode: String?) {
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            if (productDetails == null) {
+            /*if (productDetails == null) {
                 Text(
                     "Cargando detalles del producto...",
                     style = MaterialTheme.typography.bodyMedium
                 )
+            } else {*/
+            // Mostrar el indicador de carga si isLoading es true
+            if (isLoading) {
+                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             } else {
                 // Mostrar detalles del producto
                 ElevatedCard(
