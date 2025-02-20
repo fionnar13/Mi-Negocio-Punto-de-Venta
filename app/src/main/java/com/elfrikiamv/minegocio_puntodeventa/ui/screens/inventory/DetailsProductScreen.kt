@@ -2,11 +2,16 @@ package com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory
 
 // DetailsProductScreen.kt
 
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Button
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -18,11 +23,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -39,15 +44,28 @@ fun DetailsProductScreen(navController: NavHostController, barcode: String?) {
     val viewModel: InventoryViewModel = viewModel()
     var productDetails by remember { mutableStateOf<ProductFirebase?>(null) }
 
+    var errorMessage by remember { mutableStateOf("") }
+    val TAG = "DetailsProductScreen"
+
     // Observar el estado de isLoading
-    val isLoading by viewModel.isLoading.collectAsState()
+    //val isLoading by viewModel.isLoading.collectAsState()
 
     // Cargar los detalles del producto
     LaunchedEffect(barcode) {
-        barcode?.let {
-            viewModel.checkProductExists(it) { product ->
-                productDetails = product
+
+        if (!barcode.isNullOrEmpty()) {
+            try {
+                viewModel.checkProductExists(barcode) { product ->
+                    productDetails = product
+                }
+                Log.d(TAG, "Código de barras recibido: $barcode")
+            } catch (e: Exception) {
+                errorMessage = "Hubo un error al cargar los datos del producto."
+                Log.e(TAG, "Error al cargar los datos del producto: $e")
             }
+
+        } else {
+            errorMessage = "El código de barras no es válido."
         }
     }
 
@@ -69,74 +87,88 @@ fun DetailsProductScreen(navController: NavHostController, barcode: String?) {
                     )
                 }
             )
-        }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .padding(paddingValues)
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            /*if (productDetails == null) {
-                Text(
-                    "Cargando detalles del producto...",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            } else {*/
-            // Mostrar el indicador de carga si isLoading es true
-            if (isLoading) {
-                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-            } else {
-                // Mostrar detalles del producto
-                ElevatedCard(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
+        },
+        content = { paddingValues ->
+            Column(
+                modifier = Modifier
+                    .padding(paddingValues)
+                    .fillMaxWidth()
+            ) {
+                if (productDetails == null) {
+                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                } else {
+                    LazyColumn(
                         modifier = Modifier
+                            .fillMaxSize()
+                            .weight(1f)
                             .padding(16.dp)
-                            .fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text(
-                            text = "Nombre: ${productDetails!!.name}",
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Text(
-                            text = "Cantidad: ${productDetails!!.quantity}",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                        Text(
-                            text = "Código de barras: ${productDetails!!.barcode}",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                        Text(
-                            text = "Precio proveedor: ${productDetails!!.providerPrice}",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                        Text(
-                            text = "Precio venta: ${productDetails!!.salePrice}",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                        Text(
-                            text = "Descripción: ${productDetails!!.description}",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
+                        item {
+                            // Mostrar detalles del producto
+                            ElevatedCard(
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
 
-                        // Botón editar Producto
-                        Button(
-                            onClick = {
-                                // Navegar a DetailsProductScreen pasando el código de barras
-                                navController.navigate(Screen.AddProduct.route + "?barcode=${productDetails!!.barcode}")
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 4.dp)
-                        ) {
-                            Text("Editar Producto")
+                                Column(
+                                    modifier = Modifier
+                                        .padding(16.dp)
+                                        .fillMaxWidth(),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Text(
+                                        text = "Nombre: ${productDetails!!.name}",
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+                                    Text(
+                                        text = "Cantidad: ${productDetails!!.quantity}",
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                    Text(
+                                        text = "Código de barras: ${productDetails!!.barcode}",
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                    Text(
+                                        text = "Precio proveedor: ${productDetails!!.providerPrice}",
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                    Text(
+                                        text = "Precio venta: ${productDetails!!.salePrice}",
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                    Text(
+                                        text = "Descripción: ${productDetails!!.description}",
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+
+                                    // Botón editar Producto
+                                    Button(
+                                        onClick = {
+                                            // Navegar a DetailsProductScreen pasando el código de barras
+                                            navController.navigate(Screen.AddProduct.route + "?barcode=${productDetails!!.barcode}")
+                                        },
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(top = 4.dp)
+                                    ) {
+                                        Text("Editar Producto")
+                                    }
+                                    if (errorMessage.isNotBlank()) {
+                                        Text(
+                                            text = errorMessage,
+                                            color = MaterialTheme.colorScheme.error,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            modifier = Modifier.align(Alignment.CenterHorizontally)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        item {
+                            Spacer(modifier = Modifier.height(72.dp))
                         }
                     }
                 }
             }
         }
-    }
+    )
 }
