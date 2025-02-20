@@ -53,6 +53,7 @@ fun AddProductScreen(navController: NavController, barcodeDetails: String?) {
 
     val viewModel: InventoryViewModel = viewModel()
     val context = LocalContext.current
+    val TAG = "AddProductScreen"
 
     // Variables para almacenar los valores del formulario
     var id by remember { mutableStateOf<String?>(null) }
@@ -70,7 +71,27 @@ fun AddProductScreen(navController: NavController, barcodeDetails: String?) {
     var salePrice by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
-    val TAG = "AddProductScreen"
+
+    // Funciones de validación
+    fun isValidName(input: String): Boolean {
+        return input.matches(Regex("^[A-Za-z0-9 ]{0,22}\$"))
+    }
+
+    fun isValidQuantity(input: String): Boolean {
+        return input.matches(Regex("^[1-9][0-9]{0,8}\$"))
+    }
+
+    fun isValidBarcode(input: String): Boolean {
+        return input.matches(Regex("^[A-Za-z0-9]{0,27}$"))
+    }
+
+    fun isValidPrice(input: String): Boolean {
+        return input.matches(Regex("^[0-9]+(\\.[0-9]{1,2})?$"))
+    }
+
+    fun isValidDescription(input: String): Boolean {
+        return input.matches(Regex("^[A-Za-z0-9 ]{0,42}\$"))
+    }
 
     // Observar el estado de isLoading
     val isLoading by viewModel.isLoading.collectAsState()
@@ -220,14 +241,28 @@ fun AddProductScreen(navController: NavController, barcodeDetails: String?) {
                                         OutlinedTextField(
                                             value = barcode,
                                             onValueChange = { newValue ->
-                                                barcode =
-                                                    newValue // Esto disparará LaunchedEffect automáticamente
+                                                if (isValidBarcode(newValue)) {
+                                                    // Esto disparará LaunchedEffect automáticamente
+                                                    barcode = newValue
+                                                }
                                             },
+                                            /*onValueChange = { newValue ->
+                                                // Esto disparará LaunchedEffect automáticamente
+                                                barcode = newValue
+                                            },*/
                                             label = { Text("Código de barras") },
                                             modifier = Modifier
                                                 .weight(1f) // Ajusta el ancho para que ocupe el espacio restante
                                                 .fillMaxWidth(),
-                                            isError = barcode.isBlank() // Muestra error si está vacío
+                                            isError = barcode.isBlank(), // Muestra error si está vacío
+                                            supportingText = {
+                                                Row(
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    horizontalArrangement = Arrangement.End
+                                                ) {
+                                                    Text("${barcode.length}/27")
+                                                }
+                                            }
                                         )
                                         IconButton(
                                             onClick = {
@@ -248,49 +283,117 @@ fun AddProductScreen(navController: NavController, barcodeDetails: String?) {
                                     // Campo Nombre del Producto
                                     OutlinedTextField(
                                         value = name,
+                                        onValueChange = {
+                                            if (isValidName(it)) {
+                                                name = it
+                                            }
+                                        },
+                                        label = { Text("Nombre del producto") },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        isError = name.isBlank(),
+                                        supportingText = {
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.End
+                                            ) {
+                                                Text("${name.length}/22")
+                                            }
+                                        }
+                                    )
+                                    /*OutlinedTextField(
+                                        value = name,
                                         onValueChange = { name = it },
                                         label = { Text("Nombre del producto") },
                                         modifier = Modifier.fillMaxWidth(),
                                         isError = name.isBlank()
-                                    )
+                                    )*/
 
                                     // Campo Cantidad
                                     OutlinedTextField(
                                         value = quantity,
-                                        onValueChange = { quantity = it },
+                                        onValueChange = {
+                                            if (isValidQuantity(it)) {
+                                                quantity = it
+                                            }
+                                        },
+                                        //onValueChange = { quantity = it },
                                         label = { Text("Cantidad") },
                                         modifier = Modifier.fillMaxWidth(),
                                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                        isError = quantity.isBlank()
+                                        isError = quantity.isBlank(),
+                                        supportingText = {
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.End
+                                            ) {
+                                                Text("${quantity.length}/9")
+                                            }
+                                        }
                                     )
 
                                     // Campo Precio Proveedor
                                     OutlinedTextField(
                                         value = providerPrice,
-                                        onValueChange = { providerPrice = it },
+                                        onValueChange = {
+                                            if (isValidPrice(it)) {
+                                                providerPrice = it
+                                            }
+                                        },
                                         label = { Text("Precio proveedor") },
                                         modifier = Modifier.fillMaxWidth(),
                                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                        isError = providerPrice.isBlank()
+                                        isError = providerPrice.isBlank(),
+                                        supportingText = {
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.End
+                                            ) {
+                                                Text("${providerPrice.length}/xd")
+                                            }
+                                        }
                                     )
 
                                     // Campo Precio de Venta
                                     OutlinedTextField(
                                         value = salePrice,
-                                        onValueChange = { salePrice = it },
+                                        onValueChange = {
+                                            if (isValidPrice(it)) {
+                                                salePrice = it
+                                            }
+                                        },
                                         label = { Text("Precio de venta") },
                                         modifier = Modifier.fillMaxWidth(),
                                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                        isError = salePrice.isBlank()
+                                        isError = salePrice.isBlank(),
+                                        supportingText = {
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.End
+                                            ) {
+                                                Text("${salePrice.length}/xd")
+                                            }
+                                        }
                                     )
 
                                     // Campo Descripción
                                     OutlinedTextField(
                                         value = description,
-                                        onValueChange = { description = it },
+                                        onValueChange = {
+                                            if (isValidDescription(it)) {
+                                                description = it
+                                            }
+                                        },
                                         label = { Text("Descripción del producto") },
                                         modifier = Modifier.fillMaxWidth(),
-                                        isError = description.isBlank()
+                                        isError = description.isBlank(),
+                                        supportingText = {
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.End
+                                            ) {
+                                                Text("${description.length}/42")
+                                            }
+                                        }
                                     )
 
                                     if (errorMessage.isNotBlank()) {
