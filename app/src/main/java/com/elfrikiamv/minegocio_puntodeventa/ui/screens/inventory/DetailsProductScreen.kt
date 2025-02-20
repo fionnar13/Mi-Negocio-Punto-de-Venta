@@ -12,9 +12,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Button
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -23,6 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,7 +49,7 @@ fun DetailsProductScreen(navController: NavHostController, barcode: String?) {
     val TAG = "DetailsProductScreen"
 
     // Observar el estado de isLoading
-    //val isLoading by viewModel.isLoading.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
 
     // Cargar los detalles del producto
     LaunchedEffect(barcode) {
@@ -86,6 +87,24 @@ fun DetailsProductScreen(navController: NavHostController, barcode: String?) {
                             }
                     )
                 }
+            )
+        },
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                onClick = {
+                    if (productDetails == null) {
+                        errorMessage = "Hubo un error al cargar los datos del producto."
+                    } else if (!isLoading) {
+                        navController.navigate(Screen.AddProduct.route + "?barcode=${productDetails!!.barcode}")
+                    }
+                },
+                icon = {
+                    Icon(
+                        painter = painterResource(id = R.drawable.baseline_edit_24),
+                        contentDescription = "Editar Producto"
+                    )
+                },
+                text = { Text("Editar Producto") }
             )
         },
         content = { paddingValues ->
@@ -139,19 +158,6 @@ fun DetailsProductScreen(navController: NavHostController, barcode: String?) {
                                         text = "Descripción: ${productDetails!!.description}",
                                         style = MaterialTheme.typography.bodyMedium
                                     )
-
-                                    // Botón editar Producto
-                                    Button(
-                                        onClick = {
-                                            // Navegar a DetailsProductScreen pasando el código de barras
-                                            navController.navigate(Screen.AddProduct.route + "?barcode=${productDetails!!.barcode}")
-                                        },
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(top = 4.dp)
-                                    ) {
-                                        Text("Editar Producto")
-                                    }
                                     if (errorMessage.isNotBlank()) {
                                         Text(
                                             text = errorMessage,
