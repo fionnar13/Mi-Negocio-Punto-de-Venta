@@ -31,6 +31,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -46,6 +47,7 @@ import androidx.navigation.NavController
 import com.elfrikiamv.minegocio_puntodeventa.R
 import com.elfrikiamv.minegocio_puntodeventa.navigation.Screen
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.inventory.InventoryViewModel
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -78,7 +80,7 @@ fun AddProductScreen(navController: NavController, barcodeDetails: String?) {
     }
 
     fun isValidQuantity(input: String): Boolean {
-        return input.matches(Regex("^[1-9][0-9]{0,8}\$"))
+        return input.matches(Regex("^[0-9]{0,9}\$"))
     }
 
     fun isValidBarcode(input: String): Boolean {
@@ -87,6 +89,14 @@ fun AddProductScreen(navController: NavController, barcodeDetails: String?) {
 
     fun isValidPrice(input: String): Boolean {
         return input.matches(Regex("^[0-9]+(\\.[0-9]{1,2})?$"))
+    }
+
+    // Inicializamos priceInCents a partir de salePrice si ya tiene un valor válido
+    var priceInCents by remember { mutableLongStateOf(0L) }
+
+    // Función para formatear el precio en centavos a un string con formato 0.00
+    fun formatPrice(cents: Long): String {
+        return String.format(Locale.US, "%.2f", cents / 100.00)
     }
 
     fun isValidDescription(input: String): Boolean {
@@ -116,14 +126,17 @@ fun AddProductScreen(navController: NavController, barcodeDetails: String?) {
                         name = product.name
                         quantity = product.quantity.toString()
                         providerPrice = product.providerPrice.toString()
-                        salePrice = product.salePrice.toString()
+                        //salePrice = product.salePrice.toString()
+                        //priceInCents = product.salePrice.toLong()
+                        priceInCents = (product.salePrice * 100.00).toLong()
                         description = product.description
                     } else {
                         id = null
                         name = ""
                         quantity = ""
                         providerPrice = ""
-                        salePrice = ""
+                        //salePrice = ""
+                        priceInCents = 0L
                         description = ""
                     }
                 }
@@ -158,7 +171,7 @@ fun AddProductScreen(navController: NavController, barcodeDetails: String?) {
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = {
-                    if (barcode.isBlank() || name.isBlank() || quantity.isBlank() || providerPrice.isBlank() || salePrice.isBlank() || description.isBlank()) {
+                    if (barcode.isBlank() || name.isBlank() || quantity.isBlank() || providerPrice.isBlank() || priceInCents <= 0 || description.isBlank()) {
                         errorMessage = "Todos los campos son obligatorios."
                     } else if (!isLoading) {
                         // Lógica para guardar el producto
@@ -172,7 +185,8 @@ fun AddProductScreen(navController: NavController, barcodeDetails: String?) {
                             quantity = quantityValue,
                             barcode = barcode,
                             providerPrice = providerPriceValue,
-                            salePrice = salePriceValue,
+                            //salePrice = salePriceValue,
+                            salePrice = priceInCents / 100.0,
                             description = description
                         )
                         // Limpiar campos después de guardar
@@ -181,7 +195,8 @@ fun AddProductScreen(navController: NavController, barcodeDetails: String?) {
                         name = ""
                         quantity = ""
                         providerPrice = ""
-                        salePrice = ""
+                        //salePrice = ""
+                        priceInCents = 0L
                         description = ""
 
                         // Mostrar mensaje de éxito
@@ -354,7 +369,47 @@ fun AddProductScreen(navController: NavController, barcodeDetails: String?) {
                                     )
 
                                     // Campo Precio de Venta
+
                                     OutlinedTextField(
+                                        value = formatPrice(priceInCents),
+                                        /*onValueChange = { newValue ->
+                                            // Filtrar solo números
+                                            val cleanInput = newValue.filter { it.isDigit() }
+                                            val newCents = cleanInput.toLongOrNull() ?: 0L
+
+                                            // Evitar que el número sea demasiado grande
+                                            priceInCents =
+                                                newCents.coerceAtMost(999999999L) // Máximo: 9,999,999.99
+
+                                            // Actualizar salePrice con el valor en formato decimal
+                                            salePrice = formatPrice(priceInCents)
+                                        },*/
+                                        onValueChange = { newValue ->
+                                            // Filtrar solo números
+                                            val cleanInput = newValue.filter { it.isDigit() }
+                                            val newCents = cleanInput.toLongOrNull() ?: 0L
+
+                                            // Evitar que el número sea demasiado grande
+                                            priceInCents =
+                                                newCents.coerceAtMost(999999999L) // Máximo: 9,999,999.99
+                                            /*val digitsOnly = newValue.replace(Regex("[^0-9]"), "")
+                                            priceInCents = digitsOnly.toLongOrNull() ?: 0L*/
+                                        },
+                                        label = { Text("Precio de venta") },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                        isError = priceInCents == 0L,
+                                        supportingText = {
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.End
+                                            ) {
+                                                Text("Máximo: $9,999,999.99")
+                                            }
+                                        }
+                                    )
+
+                                    /*OutlinedTextField(
                                         value = salePrice,
                                         onValueChange = {
                                             if (isValidPrice(it)) {
@@ -373,7 +428,7 @@ fun AddProductScreen(navController: NavController, barcodeDetails: String?) {
                                                 Text("${salePrice.length}/xd")
                                             }
                                         }
-                                    )
+                                    )*/
 
                                     // Campo Descripción
                                     OutlinedTextField(
