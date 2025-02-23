@@ -70,7 +70,7 @@ fun AddProductScreen(navController: NavController, barcodeDetails: String?) {
         )
     }
     var providerPrice by remember { mutableStateOf("") }
-    var salePrice by remember { mutableStateOf("") }
+    //var salePrice by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
 
@@ -176,7 +176,7 @@ fun AddProductScreen(navController: NavController, barcodeDetails: String?) {
                     } else if (!isLoading) {
                         // Lógica para guardar el producto
                         val providerPriceValue = providerPrice.toDoubleOrNull() ?: 0.0
-                        val salePriceValue = salePrice.toDoubleOrNull() ?: 0.0
+                        //val salePriceValue = salePrice.toDoubleOrNull() ?: 0.0
                         val quantityValue = quantity.toIntOrNull() ?: 0
 
                         viewModel.addOrUpdateProduct(
