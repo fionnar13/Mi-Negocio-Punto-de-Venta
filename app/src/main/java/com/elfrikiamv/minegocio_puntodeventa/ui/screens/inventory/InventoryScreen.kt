@@ -314,8 +314,7 @@ fun ProductCard(product: ProductFirebase, onProductDetails: () -> Unit) {
         ) {
 
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
                     modifier = Modifier.weight(1f)
@@ -362,10 +361,12 @@ fun ProductCard(product: ProductFirebase, onProductDetails: () -> Unit) {
                         modifier = Modifier.fillMaxWidth()
                     ) {
 
-                        Row(
+                        Column(
                             modifier = Modifier.weight(1f)
                         ) {
-                            Row {
+                            Row(
+                                modifier = Modifier.align(Alignment.CenterHorizontally)
+                            ) {
                                 Icon(
                                     painter = painterResource(id = R.drawable.baseline_shopping_bag_24),
                                     contentDescription = "bag icon",
@@ -376,33 +377,47 @@ fun ProductCard(product: ProductFirebase, onProductDetails: () -> Unit) {
                                     text = "${product.quantity} ",
                                     modifier = Modifier.alignByBaseline()
                                 )
+
+                            }
+                            Text(
+                                text = "piezas.",
+                                fontStyle = FontStyle.Italic,
+                                modifier = Modifier
+                                    //.alignByBaseline()
+                                    .align(Alignment.CenterHorizontally)
+                                    .alpha(0.8f) // Aplica opacidad del 80%
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(3.dp))
+
+                        Column(
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                text = "Precio:",
+                                fontStyle = FontStyle.Italic,
+                                modifier = Modifier
+                                    //.alignByBaseline()
+                                    .align(Alignment.CenterHorizontally)
+                                    .alpha(0.8f) // Aplica opacidad del 80%
+                            )
+                            Row(
+                                modifier = Modifier.align(Alignment.CenterHorizontally)
+                            ) {
+
+                                Icon(
+                                    painter = painterResource(id = R.drawable.baseline_attach_money_24),
+                                    contentDescription = "money icon",
+                                    modifier = Modifier.size(24.dp),
+                                )
                                 Text(
-                                    text = "piezas",
-                                    fontStyle = FontStyle.Italic,
-                                    modifier = Modifier
-                                        .alignByBaseline()
-                                        .alpha(0.8f) // Aplica opacidad del 80%
+                                    text = "${product.salePrice}",
+                                    modifier = Modifier.alignByBaseline()
                                 )
                             }
                         }
-                        Row {
-                            Text(
-                                text = "Precio: ",
-                                fontStyle = FontStyle.Italic,
-                                modifier = Modifier
-                                    .alignByBaseline()
-                                    .alpha(0.8f) // Aplica opacidad del 80%
-                            )
-                            Icon(
-                                painter = painterResource(id = R.drawable.baseline_attach_money_24),
-                                contentDescription = "money icon",
-                                modifier = Modifier.size(24.dp),
-                            )
-                            Text(
-                                text = "${product.salePrice}",
-                                modifier = Modifier.alignByBaseline()
-                            )
-                        }
+
                     }
                 }
                 Column(
