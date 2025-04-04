@@ -40,7 +40,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -108,6 +110,19 @@ fun AddProductScreen(navController: NavController, barcodeDetails: String?) {
 
     // Verificación automática cuando el código de barras cambia
     val currentBarcode by rememberUpdatedState(barcode) // Evitar problemas de estado obsoleto
+
+    // Manejo del TextField para mantener el cursor al final
+    var salePriceTextFieldValue by remember {
+        mutableStateOf(
+            TextFieldValue(formatPrice(priceInCents), TextRange(formatPrice(priceInCents).length))
+        )
+    }
+
+    // Sincronizar cuando priceInCents cambia externamente (ej. al escanear código)
+    LaunchedEffect(priceInCents) {
+        val formatted = formatPrice(priceInCents)
+        salePriceTextFieldValue = TextFieldValue(formatted, TextRange(formatted.length))
+    }
 
     LaunchedEffect(currentBarcode) {
 
@@ -371,29 +386,18 @@ fun AddProductScreen(navController: NavController, barcodeDetails: String?) {
                                     // Campo Precio de Venta
 
                                     OutlinedTextField(
-                                        value = formatPrice(priceInCents),
-                                        /*onValueChange = { newValue ->
-                                            // Filtrar solo números
-                                            val cleanInput = newValue.filter { it.isDigit() }
-                                            val newCents = cleanInput.toLongOrNull() ?: 0L
-
-                                            // Evitar que el número sea demasiado grande
-                                            priceInCents =
-                                                newCents.coerceAtMost(999999999L) // Máximo: 9,999,999.99
-
-                                            // Actualizar salePrice con el valor en formato decimal
-                                            salePrice = formatPrice(priceInCents)
-                                        },*/
+                                        value = salePriceTextFieldValue,
                                         onValueChange = { newValue ->
-                                            // Filtrar solo números
-                                            val cleanInput = newValue.filter { it.isDigit() }
+                                            val cleanInput = newValue.text.filter { it.isDigit() }
                                             val newCents = cleanInput.toLongOrNull() ?: 0L
-
-                                            // Evitar que el número sea demasiado grande
                                             priceInCents =
-                                                newCents.coerceAtMost(999999999L) // Máximo: 9,999,999.99
-                                            /*val digitsOnly = newValue.replace(Regex("[^0-9]"), "")
-                                            priceInCents = digitsOnly.toLongOrNull() ?: 0L*/
+                                                newCents.coerceAtMost(999999999L) // Límite: 9,999,999.99
+
+                                            val formatted = formatPrice(priceInCents)
+                                            salePriceTextFieldValue = TextFieldValue(
+                                                text = formatted,
+                                                selection = TextRange(formatted.length) // cursor al final
+                                            )
                                         },
                                         label = { Text("Precio de venta") },
                                         modifier = Modifier.fillMaxWidth(),
@@ -408,27 +412,6 @@ fun AddProductScreen(navController: NavController, barcodeDetails: String?) {
                                             }
                                         }
                                     )
-
-                                    /*OutlinedTextField(
-                                        value = salePrice,
-                                        onValueChange = {
-                                            if (isValidPrice(it)) {
-                                                salePrice = it
-                                            }
-                                        },
-                                        label = { Text("Precio de venta") },
-                                        modifier = Modifier.fillMaxWidth(),
-                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                        isError = salePrice.isBlank(),
-                                        supportingText = {
-                                            Row(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                horizontalArrangement = Arrangement.End
-                                            ) {
-                                                Text("${salePrice.length}/xd")
-                                            }
-                                        }
-                                    )*/
 
                                     // Campo Descripción
                                     OutlinedTextField(
