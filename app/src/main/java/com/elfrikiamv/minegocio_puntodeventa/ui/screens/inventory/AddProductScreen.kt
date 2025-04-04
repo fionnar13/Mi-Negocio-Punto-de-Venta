@@ -78,23 +78,26 @@ fun AddProductScreen(navController: NavController, barcodeDetails: String?) {
 
     // Funciones de validación
     fun isValidName(input: String): Boolean {
-        return input.matches(Regex("^[A-Za-z0-9 ]{0,22}\$"))
+        return input.matches(Regex("^[A-Za-z0-9 ]{0,17}\$"))
     }
 
     fun isValidQuantity(input: String): Boolean {
-        return input.matches(Regex("^[0-9]{0,9}\$"))
+        return input.matches(Regex("^[0-9]{0,3}\$"))
     }
 
     fun isValidBarcode(input: String): Boolean {
-        return input.matches(Regex("^[A-Za-z0-9]{0,27}$"))
+        return input.matches(Regex("^[A-Za-z0-9]{0,14}$"))
     }
 
-    fun isValidPrice(input: String): Boolean {
+    /*fun isValidPrice(input: String): Boolean {
         return input.matches(Regex("^[0-9]+(\\.[0-9]{1,2})?$"))
-    }
+    }*/
 
     // Inicializamos priceInCents a partir de salePrice si ya tiene un valor válido
-    var priceInCents by remember { mutableLongStateOf(0L) }
+    var salePriceInCents by remember { mutableLongStateOf(0L) }
+
+    // Inicializamos priceInCents a partir de salePrice si ya tiene un valor válido
+    var providerPriceInCents by remember { mutableLongStateOf(0L) }
 
     // Función para formatear el precio en centavos a un string con formato 0.00
     fun formatPrice(cents: Long): String {
@@ -111,17 +114,30 @@ fun AddProductScreen(navController: NavController, barcodeDetails: String?) {
     // Verificación automática cuando el código de barras cambia
     val currentBarcode by rememberUpdatedState(barcode) // Evitar problemas de estado obsoleto
 
-    // Manejo del TextField para mantener el cursor al final
+    // Manejo del TextField para mantener el cursor al final  Precio
     var salePriceTextFieldValue by remember {
         mutableStateOf(
-            TextFieldValue(formatPrice(priceInCents), TextRange(formatPrice(priceInCents).length))
+            TextFieldValue(formatPrice(salePriceInCents), TextRange(formatPrice(salePriceInCents).length))
         )
     }
 
     // Sincronizar cuando priceInCents cambia externamente (ej. al escanear código)
-    LaunchedEffect(priceInCents) {
-        val formatted = formatPrice(priceInCents)
+    LaunchedEffect(salePriceInCents) {
+        val formatted = formatPrice(salePriceInCents)
         salePriceTextFieldValue = TextFieldValue(formatted, TextRange(formatted.length))
+    }
+
+    // Manejo del TextField para mantener el cursor al final  Precio proveedor
+    var providerPriceTextFieldValue by remember {
+        mutableStateOf(
+            TextFieldValue(formatPrice(providerPriceInCents), TextRange(formatPrice(providerPriceInCents).length))
+        )
+    }
+
+    // Sincronizar cuando priceInCents cambia externamente (ej. al escanear código) Precio proveedor
+    LaunchedEffect(providerPriceInCents) {
+        val formatted = formatPrice(providerPriceInCents)
+        providerPriceTextFieldValue = TextFieldValue(formatted, TextRange(formatted.length))
     }
 
     LaunchedEffect(currentBarcode) {
@@ -140,18 +156,20 @@ fun AddProductScreen(navController: NavController, barcodeDetails: String?) {
                         id = product.id
                         name = product.name
                         quantity = product.quantity.toString()
-                        providerPrice = product.providerPrice.toString()
+                        //providerPrice = product.providerPrice.toString()
                         //salePrice = product.salePrice.toString()
                         //priceInCents = product.salePrice.toLong()
-                        priceInCents = (product.salePrice * 100.00).toLong()
+                        providerPriceInCents = (product.providerPrice * 100.00).toLong()
+                        salePriceInCents = (product.salePrice * 100.00).toLong()
                         description = product.description
                     } else {
                         id = null
                         name = ""
                         quantity = ""
-                        providerPrice = ""
+                        //providerPrice = ""
                         //salePrice = ""
-                        priceInCents = 0L
+                        providerPriceInCents = 0L
+                        salePriceInCents = 0L
                         description = ""
                     }
                 }
@@ -186,11 +204,11 @@ fun AddProductScreen(navController: NavController, barcodeDetails: String?) {
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = {
-                    if (barcode.isBlank() || name.isBlank() || quantity.isBlank() || providerPrice.isBlank() || priceInCents <= 0 || description.isBlank()) {
+                    if (barcode.isBlank() || name.isBlank() || quantity.isBlank() || providerPriceInCents <= 0 || salePriceInCents <= 0 || description.isBlank()) {
                         errorMessage = "Todos los campos son obligatorios."
                     } else if (!isLoading) {
                         // Lógica para guardar el producto
-                        val providerPriceValue = providerPrice.toDoubleOrNull() ?: 0.0
+                        //val providerPriceValue = providerPrice.toDoubleOrNull() ?: 0.0
                         //val salePriceValue = salePrice.toDoubleOrNull() ?: 0.0
                         val quantityValue = quantity.toIntOrNull() ?: 0
 
@@ -199,9 +217,10 @@ fun AddProductScreen(navController: NavController, barcodeDetails: String?) {
                             name = name,
                             quantity = quantityValue,
                             barcode = barcode,
-                            providerPrice = providerPriceValue,
+                            //providerPrice = providerPriceValue,
                             //salePrice = salePriceValue,
-                            salePrice = priceInCents / 100.0,
+                            providerPrice = providerPriceInCents / 100.0,
+                            salePrice = salePriceInCents / 100.0,
                             description = description
                         )
                         // Limpiar campos después de guardar
@@ -209,9 +228,10 @@ fun AddProductScreen(navController: NavController, barcodeDetails: String?) {
                         barcode = ""
                         name = ""
                         quantity = ""
-                        providerPrice = ""
+                        //providerPrice = ""
                         //salePrice = ""
-                        priceInCents = 0L
+                        providerPriceInCents = 0L
+                        salePriceInCents = 0L
                         description = ""
 
                         // Mostrar mensaje de éxito
@@ -290,7 +310,7 @@ fun AddProductScreen(navController: NavController, barcodeDetails: String?) {
                                                     modifier = Modifier.fillMaxWidth(),
                                                     horizontalArrangement = Arrangement.End
                                                 ) {
-                                                    Text("${barcode.length}/27")
+                                                    Text("${barcode.length}/14")
                                                 }
                                             }
                                         )
@@ -326,7 +346,7 @@ fun AddProductScreen(navController: NavController, barcodeDetails: String?) {
                                                 modifier = Modifier.fillMaxWidth(),
                                                 horizontalArrangement = Arrangement.End
                                             ) {
-                                                Text("${name.length}/22")
+                                                Text("${name.length}/17")
                                             }
                                         }
                                     )
@@ -356,13 +376,42 @@ fun AddProductScreen(navController: NavController, barcodeDetails: String?) {
                                                 modifier = Modifier.fillMaxWidth(),
                                                 horizontalArrangement = Arrangement.End
                                             ) {
-                                                Text("${quantity.length}/9")
+                                                Text("${quantity.length}/3")
                                             }
                                         }
                                     )
 
                                     // Campo Precio Proveedor
+
                                     OutlinedTextField(
+                                        value = providerPriceTextFieldValue,
+                                        onValueChange = { newValue ->
+                                            val cleanInput = newValue.text.filter { it.isDigit() }
+                                            val newCents = cleanInput.toLongOrNull() ?: 0L
+                                            providerPriceInCents =
+                                                newCents.coerceAtMost(9999999L) // Límite: 99,999.99
+
+                                            val formatted = formatPrice(providerPriceInCents)
+                                            providerPriceTextFieldValue = TextFieldValue(
+                                                text = formatted,
+                                                selection = TextRange(formatted.length) // cursor al final
+                                            )
+                                        },
+                                        label = { Text("Precio proveedor") },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                        isError = providerPriceInCents == 0L,
+                                        supportingText = {
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.End
+                                            ) {
+                                                Text("Máximo: $99,999.99")
+                                            }
+                                        }
+                                    )
+
+                                    /*OutlinedTextField(
                                         value = providerPrice,
                                         onValueChange = {
                                             if (isValidPrice(it)) {
@@ -381,7 +430,7 @@ fun AddProductScreen(navController: NavController, barcodeDetails: String?) {
                                                 Text("${providerPrice.length}/xd")
                                             }
                                         }
-                                    )
+                                    )*/
 
                                     // Campo Precio de Venta
 
@@ -390,10 +439,10 @@ fun AddProductScreen(navController: NavController, barcodeDetails: String?) {
                                         onValueChange = { newValue ->
                                             val cleanInput = newValue.text.filter { it.isDigit() }
                                             val newCents = cleanInput.toLongOrNull() ?: 0L
-                                            priceInCents =
-                                                newCents.coerceAtMost(999999999L) // Límite: 9,999,999.99
+                                            salePriceInCents =
+                                                newCents.coerceAtMost(9999999L) // Límite: 99,999.99
 
-                                            val formatted = formatPrice(priceInCents)
+                                            val formatted = formatPrice(salePriceInCents)
                                             salePriceTextFieldValue = TextFieldValue(
                                                 text = formatted,
                                                 selection = TextRange(formatted.length) // cursor al final
@@ -402,13 +451,13 @@ fun AddProductScreen(navController: NavController, barcodeDetails: String?) {
                                         label = { Text("Precio de venta") },
                                         modifier = Modifier.fillMaxWidth(),
                                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                        isError = priceInCents == 0L,
+                                        isError = salePriceInCents == 0L,
                                         supportingText = {
                                             Row(
                                                 modifier = Modifier.fillMaxWidth(),
                                                 horizontalArrangement = Arrangement.End
                                             ) {
-                                                Text("Máximo: $9,999,999.99")
+                                                Text("Máximo: $99,999.99")
                                             }
                                         }
                                     )
