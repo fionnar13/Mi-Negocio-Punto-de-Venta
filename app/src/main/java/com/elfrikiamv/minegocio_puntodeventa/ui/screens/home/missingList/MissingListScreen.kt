@@ -110,10 +110,13 @@ fun MissingListScreen(navController: NavController) {
                         modifier = Modifier
                             .fillMaxSize()
                             .weight(1f)
-                            .padding(16.dp)
+                            .padding(end = 16.dp, start = 16.dp, top = 16.dp)
                     ) {
                         items(missingList) { missing ->
                             MissingProductCard(missing)
+                        }
+                        item {
+                            Spacer(modifier = Modifier.height(72.dp))
                         }
                     }
                 }

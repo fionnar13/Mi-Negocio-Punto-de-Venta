@@ -71,7 +71,7 @@ fun AddProductScreen(navController: NavController, barcodeDetails: String?) {
                 ) ?: ""
         )
     }
-    var providerPrice by remember { mutableStateOf("") }
+    //var providerPrice by remember { mutableStateOf("") }
     //var salePrice by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
@@ -376,7 +376,7 @@ fun AddProductScreen(navController: NavController, barcodeDetails: String?) {
                                                 modifier = Modifier.fillMaxWidth(),
                                                 horizontalArrangement = Arrangement.End
                                             ) {
-                                                Text("${quantity.length}/3")
+                                                Text("Máximo: 999 piezas")
                                             }
                                         }
                                     )
