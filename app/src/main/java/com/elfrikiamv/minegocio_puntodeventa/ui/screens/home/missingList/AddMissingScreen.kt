@@ -51,7 +51,6 @@ fun AddMissingScreen(navController: NavController) {
     // Variables para capturar los valores del formulario
     var name by remember { mutableStateOf("") }
     var quantity by remember { mutableStateOf("") }
-    //var providerPrice by remember { mutableStateOf("") }
     var totalPrice by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
@@ -74,20 +73,39 @@ fun AddMissingScreen(navController: NavController) {
         return input.matches(Regex("^[A-Za-z0-9 ]{0,42}\$"))
     }
 
-    // Inicializamos priceInCents a partir de salePrice si ya tiene un valor válido
+    // Inicializamos productPriceInCents a partir de salePrice si ya tiene un valor válido
     var productPriceInCents by remember { mutableLongStateOf(0L) }
 
-    // Manejo del TextField para mantener el cursor al final  Precio proveedor
+    // Manejo del TextField del precio del producto para mantener el cursor al final
     var productPriceTextFieldValue by remember {
         mutableStateOf(
-            TextFieldValue(formatPrice(productPriceInCents), TextRange(formatPrice(productPriceInCents).length))
+            TextFieldValue(
+                formatPrice(productPriceInCents),
+                TextRange(formatPrice(productPriceInCents).length)
+            )
         )
     }
-
-    // Sincronizar cuando priceInCents cambia externamente (ej. al escanear código) Precio proveedor
+    // Sincronizar cuando productPriceInCents cambia externamente
     LaunchedEffect(productPriceInCents) {
         val formatted = formatPrice(productPriceInCents)
         productPriceTextFieldValue = TextFieldValue(formatted, TextRange(formatted.length))
+    }
+
+    // variable reactiva que calcule el precio total
+    val totalCalculated by remember(quantity, productPriceInCents) {
+        mutableStateOf(
+            if (quantity.isNotBlank() && quantity.toIntOrNull() != null) {
+                val qty = quantity.toInt()
+                val totalCents = qty * productPriceInCents
+                String.format(Locale.US, "%.2f", totalCents / 100.0)
+            } else {
+                "0.00"
+            }
+        )
+    }
+
+    LaunchedEffect(totalCalculated) {
+        totalPrice = totalCalculated
     }
 
     // Observar el estado de isLoading
@@ -115,14 +133,13 @@ fun AddMissingScreen(navController: NavController) {
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = {
-                    if (name.isBlank() || quantity.isBlank() || description.isBlank() || productPriceInCents <= 0 || totalPrice.isBlank()) {
+                    if (name.isBlank() || (quantity <= 0.toString() || quantity.isBlank()) || description.isBlank() || productPriceInCents <= 0 || totalPrice <= 0.toString()) {
                         errorMessage = "Todos los campos son obligatorios."
                     } else if (!isLoading) {
                         // Guardar gasto en Room y subir a Firebase
                         viewModel.confirmMissing(
                             name = name,
                             quantity = quantity.toInt(),
-                            //providerPrice = providerPrice.toDouble(),
                             providerPrice = productPriceInCents / 100.0,
                             totalPrice = totalPrice.toDouble(),
                             description = description
@@ -130,9 +147,8 @@ fun AddMissingScreen(navController: NavController) {
                         // Limpiar campos después de guardar
                         name = ""
                         quantity = ""
-                        //providerPrice = ""
                         productPriceInCents = 0L
-                        totalPrice = ""
+                        totalPrice = "0.00"
                         description = ""
                     }
                 },
@@ -192,14 +208,6 @@ fun AddMissingScreen(navController: NavController) {
                                     }
                                 }
                             )
-                            /*OutlinedTextField(
-                                value = name,
-                                onValueChange = { name = it },
-                                label = { Text("Nombre del faltante") },
-                                modifier = Modifier.fillMaxWidth(),
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                                isError = name.isBlank()
-                            )*/
 
                             // Campo Cantidad de Piezas faltante
                             OutlinedTextField(
@@ -223,14 +231,6 @@ fun AddMissingScreen(navController: NavController) {
                                     }
                                 }
                             )
-                            /*OutlinedTextField(
-                                value = quantity,
-                                onValueChange = { quantity = it },
-                                label = { Text("Cantidad de piezas") },
-                                modifier = Modifier.fillMaxWidth(),
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                                isError = quantity.isBlank()
-                            )*/
 
                             // Campo Precio por pieza faltante
 
@@ -261,30 +261,16 @@ fun AddMissingScreen(navController: NavController) {
                                     }
                                 }
                             )
-                            /*OutlinedTextField(
-                                value = providerPrice,
-                                onValueChange = { providerPrice = it },
-                                label = { Text("Costo por pieza") },
-                                modifier = Modifier.fillMaxWidth(),
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                isError = providerPrice.isBlank()
-                            )*/
 
                             // Campo Precio total faltante
 
-
-                            OutlinedTextField(
-                                value = totalPrice,
-                                onValueChange = { totalPrice = it },
-                                label = { Text("Precio total") },
-                                modifier = Modifier.fillMaxWidth(),
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                isError = totalPrice.isBlank()
+                            Text(
+                                text = "Total: $$totalCalculated",
+                                //style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 5.dp)
                             )
-                            /*Text(
-                                text = "Total: $totalPrice",
-                                modifier = Modifier.fillMaxWidth()
-                            )*/
 
                             // Campo Descripción del Producto faltante
 
@@ -307,14 +293,7 @@ fun AddMissingScreen(navController: NavController) {
                                     }
                                 }
                             )
-                            /*OutlinedTextField(
-                                value = description,
-                                onValueChange = { description = it },
-                                label = { Text("Descripción") },
-                                modifier = Modifier.fillMaxWidth(),
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                                isError = description.isBlank()
-                            )*/
+
                             if (errorMessage.isNotBlank()) {
                                 Text(
                                     text = errorMessage,

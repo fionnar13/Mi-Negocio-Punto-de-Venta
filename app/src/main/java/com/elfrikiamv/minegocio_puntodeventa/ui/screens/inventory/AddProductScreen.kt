@@ -204,7 +204,7 @@ fun AddProductScreen(navController: NavController, barcodeDetails: String?) {
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = {
-                    if (barcode.isBlank() || name.isBlank() || quantity.isBlank() || providerPriceInCents <= 0 || salePriceInCents <= 0 || description.isBlank()) {
+                    if (barcode.isBlank() || name.isBlank() || (quantity <= 0.toString() || quantity.isBlank()) || providerPriceInCents <= 0 || salePriceInCents <= 0 || description.isBlank()) {
                         errorMessage = "Todos los campos son obligatorios."
                     } else if (!isLoading) {
                         // Lógica para guardar el producto
