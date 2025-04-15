@@ -110,10 +110,13 @@ fun ExpensesDetailsScreen(navController: NavController) {
                         modifier = Modifier
                             .fillMaxSize()
                             .weight(1f)
-                            .padding(16.dp)
+                            .padding(end = 16.dp, start = 16.dp, top = 16.dp)
                     ) {
                         items(expensesDetails) { expenses ->
                             ExpensesDetailsCard(expenses)
+                        }
+                        item {
+                            Spacer(modifier = Modifier.height(72.dp))
                         }
                     }
                 }
