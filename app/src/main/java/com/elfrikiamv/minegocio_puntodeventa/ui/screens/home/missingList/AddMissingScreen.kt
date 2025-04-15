@@ -6,9 +6,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -168,140 +171,153 @@ fun AddMissingScreen(navController: NavController) {
                 modifier = Modifier
                     .padding(paddingValues)
                     .fillMaxSize()
-                    .padding(16.dp)
+                //.padding(16.dp)
             ) {
                 // Mostrar el indicador de carga si isLoading es true
                 if (isLoading) {
                     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                 } else {
-                    ElevatedCard(
-                        modifier = Modifier.fillMaxWidth()
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .weight(1f)
+                            .padding(end = 16.dp, start = 16.dp, top = 16.dp)
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .padding(16.dp)
-                                .fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Text(
-                                text = "Llena todos los campos para agregar el producto faltante.",
-                                style = MaterialTheme.typography.titleMedium,
+                        item {
+                            ElevatedCard(
                                 modifier = Modifier.fillMaxWidth()
-                            )
-                            // Campo Nombre del Producto faltante
-                            OutlinedTextField(
-                                value = name,
-                                onValueChange = {
-                                    if (isValidName(it)) {
-                                        name = it
-                                    }
-                                },
-                                label = { Text("Nombre del producto") },
-                                modifier = Modifier.fillMaxWidth(),
-                                isError = name.isBlank(),
-                                supportingText = {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.End
-                                    ) {
-                                        Text("${name.length}/17")
-                                    }
-                                }
-                            )
-
-                            // Campo Cantidad de Piezas faltante
-                            OutlinedTextField(
-                                value = quantity,
-                                onValueChange = {
-                                    if (isValidQuantity(it)) {
-                                        quantity = it
-                                    }
-                                },
-                                //onValueChange = { quantity = it },
-                                label = { Text("Cantidad de piezas") },
-                                modifier = Modifier.fillMaxWidth(),
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                isError = quantity.isBlank(),
-                                supportingText = {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.End
-                                    ) {
-                                        Text("Máximo: 999 piezas")
-                                    }
-                                }
-                            )
-
-                            // Campo Precio por pieza faltante
-
-                            OutlinedTextField(
-                                value = productPriceTextFieldValue,
-                                onValueChange = { newValue ->
-                                    val cleanInput = newValue.text.filter { it.isDigit() }
-                                    val newCents = cleanInput.toLongOrNull() ?: 0L
-                                    productPriceInCents =
-                                        newCents.coerceAtMost(9999999L) // Límite: 99,999.99
-
-                                    val formatted = formatPrice(productPriceInCents)
-                                    productPriceTextFieldValue = TextFieldValue(
-                                        text = formatted,
-                                        selection = TextRange(formatted.length) // cursor al final
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .padding(16.dp)
+                                        .fillMaxWidth(),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Text(
+                                        text = "Llena todos los campos para agregar el producto faltante.",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        modifier = Modifier.fillMaxWidth()
                                     )
-                                },
-                                label = { Text("Precio por pieza") },
-                                modifier = Modifier.fillMaxWidth(),
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                isError = productPriceInCents == 0L,
-                                supportingText = {
-                                    Row(
+                                    // Campo Nombre del Producto faltante
+                                    OutlinedTextField(
+                                        value = name,
+                                        onValueChange = {
+                                            if (isValidName(it)) {
+                                                name = it
+                                            }
+                                        },
+                                        label = { Text("Nombre del producto") },
                                         modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.End
-                                    ) {
-                                        Text("Máximo: $99,999.99")
+                                        isError = name.isBlank(),
+                                        supportingText = {
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.End
+                                            ) {
+                                                Text("${name.length}/17")
+                                            }
+                                        }
+                                    )
+
+                                    // Campo Cantidad de Piezas faltante
+                                    OutlinedTextField(
+                                        value = quantity,
+                                        onValueChange = {
+                                            if (isValidQuantity(it)) {
+                                                quantity = it
+                                            }
+                                        },
+                                        //onValueChange = { quantity = it },
+                                        label = { Text("Cantidad de piezas") },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                        isError = quantity.isBlank(),
+                                        supportingText = {
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.End
+                                            ) {
+                                                Text("Máximo: 999 piezas")
+                                            }
+                                        }
+                                    )
+
+                                    // Campo Precio por pieza faltante
+
+                                    OutlinedTextField(
+                                        value = productPriceTextFieldValue,
+                                        onValueChange = { newValue ->
+                                            val cleanInput = newValue.text.filter { it.isDigit() }
+                                            val newCents = cleanInput.toLongOrNull() ?: 0L
+                                            productPriceInCents =
+                                                newCents.coerceAtMost(9999999L) // Límite: 99,999.99
+
+                                            val formatted = formatPrice(productPriceInCents)
+                                            productPriceTextFieldValue = TextFieldValue(
+                                                text = formatted,
+                                                selection = TextRange(formatted.length) // cursor al final
+                                            )
+                                        },
+                                        label = { Text("Precio por pieza") },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                        isError = productPriceInCents == 0L,
+                                        supportingText = {
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.End
+                                            ) {
+                                                Text("Máximo: $99,999.99")
+                                            }
+                                        }
+                                    )
+
+                                    // Campo Precio total faltante
+
+                                    Text(
+                                        text = "Total: $$totalCalculated",
+                                        //style = MaterialTheme.typography.titleMedium,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(bottom = 5.dp)
+                                    )
+
+                                    // Campo Descripción del Producto faltante
+
+                                    OutlinedTextField(
+                                        value = description,
+                                        onValueChange = {
+                                            if (isValidDescription(it)) {
+                                                description = it
+                                            }
+                                        },
+                                        label = { Text("Descripción") },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        isError = description.isBlank(),
+                                        supportingText = {
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.End
+                                            ) {
+                                                Text("${description.length}/42")
+                                            }
+                                        }
+                                    )
+
+                                    if (errorMessage.isNotBlank()) {
+                                        Text(
+                                            text = errorMessage,
+                                            color = MaterialTheme.colorScheme.error,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            modifier = Modifier.align(Alignment.CenterHorizontally)
+                                        )
                                     }
                                 }
-                            )
-
-                            // Campo Precio total faltante
-
-                            Text(
-                                text = "Total: $$totalCalculated",
-                                //style = MaterialTheme.typography.titleMedium,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(bottom = 5.dp)
-                            )
-
-                            // Campo Descripción del Producto faltante
-
-                            OutlinedTextField(
-                                value = description,
-                                onValueChange = {
-                                    if (isValidDescription(it)) {
-                                        description = it
-                                    }
-                                },
-                                label = { Text("Descripción") },
-                                modifier = Modifier.fillMaxWidth(),
-                                isError = description.isBlank(),
-                                supportingText = {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.End
-                                    ) {
-                                        Text("${description.length}/42")
-                                    }
-                                }
-                            )
-
-                            if (errorMessage.isNotBlank()) {
-                                Text(
-                                    text = errorMessage,
-                                    color = MaterialTheme.colorScheme.error,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                                )
                             }
+                        }
+                        item {
+                            Spacer(modifier = Modifier.height(72.dp))
                         }
                     }
                 }
