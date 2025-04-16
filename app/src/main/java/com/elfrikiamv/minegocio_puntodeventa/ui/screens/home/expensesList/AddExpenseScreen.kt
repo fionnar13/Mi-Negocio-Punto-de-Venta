@@ -5,9 +5,12 @@ package com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.expensesList
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -109,74 +112,87 @@ fun AddExpenseScreen(navController: NavController) {
                 modifier = Modifier
                     .padding(paddingValues)
                     .fillMaxSize()
-                    .padding(16.dp)
+                //.padding(16.dp)
             ) {
                 // Mostrar el indicador de carga si isLoading es true
                 if (isLoading) {
                     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                 } else {
-                    ElevatedCard(
-                        modifier = Modifier.fillMaxWidth()
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .weight(1f)
+                            .padding(end = 16.dp, start = 16.dp, top = 16.dp)
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .padding(16.dp)
-                                .fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Text(
-                                text = "Llena todos los campos para agregar un gasto.",
-                                style = MaterialTheme.typography.titleMedium,
+                        item {
+                            ElevatedCard(
                                 modifier = Modifier.fillMaxWidth()
-                            )
-                            OutlinedTextField(
-                                value = concept,
-                                onValueChange = { concept = it },
-                                label = { Text("Concepto del gasto") },
-                                modifier = Modifier.fillMaxWidth(),
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                                isError = concept.isBlank()
-                            )
-                            OutlinedTextField(
-                                value = paymentMethod,
-                                onValueChange = { paymentMethod = it },
-                                label = { Text("Método de pago") },
-                                modifier = Modifier.fillMaxWidth(),
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                                isError = paymentMethod.isBlank()
-                            )
-                            OutlinedTextField(
-                                value = description,
-                                onValueChange = { description = it },
-                                label = { Text("Descripción") },
-                                modifier = Modifier.fillMaxWidth(),
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                                isError = description.isBlank()
-                            )
-                            OutlinedTextField(
-                                value = amountExpense,
-                                onValueChange = { amountExpense = it },
-                                label = { Text("Monto del gasto") },
-                                modifier = Modifier.fillMaxWidth(),
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                isError = amountExpense.isBlank()
-                            )
-                            OutlinedTextField(
-                                value = amountGiven,
-                                onValueChange = { amountGiven = it },
-                                label = { Text("Monto entregado") },
-                                modifier = Modifier.fillMaxWidth(),
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                isError = amountGiven.isBlank()
-                            )
-                            if (errorMessage.isNotBlank()) {
-                                Text(
-                                    text = errorMessage,
-                                    color = MaterialTheme.colorScheme.error,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                                )
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .padding(16.dp)
+                                        .fillMaxWidth(),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Text(
+                                        text = "Llena todos los campos para agregar un gasto.",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                    OutlinedTextField(
+                                        value = concept,
+                                        onValueChange = { concept = it },
+                                        label = { Text("Concepto del gasto") },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                                        isError = concept.isBlank()
+                                    )
+                                    OutlinedTextField(
+                                        value = paymentMethod,
+                                        onValueChange = { paymentMethod = it },
+                                        label = { Text("Método de pago") },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                                        isError = paymentMethod.isBlank()
+                                    )
+                                    OutlinedTextField(
+                                        value = description,
+                                        onValueChange = { description = it },
+                                        label = { Text("Descripción") },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                                        isError = description.isBlank()
+                                    )
+                                    OutlinedTextField(
+                                        value = amountExpense,
+                                        onValueChange = { amountExpense = it },
+                                        label = { Text("Monto del gasto") },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                        isError = amountExpense.isBlank()
+                                    )
+                                    OutlinedTextField(
+                                        value = amountGiven,
+                                        onValueChange = { amountGiven = it },
+                                        label = { Text("Monto entregado") },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                        isError = amountGiven.isBlank()
+                                    )
+                                    if (errorMessage.isNotBlank()) {
+                                        Text(
+                                            text = errorMessage,
+                                            color = MaterialTheme.colorScheme.error,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            modifier = Modifier.align(Alignment.CenterHorizontally)
+                                        )
+                                    }
+                                }
                             }
+                        }
+                        item {
+                            Spacer(modifier = Modifier.height(72.dp))
                         }
                     }
                 }

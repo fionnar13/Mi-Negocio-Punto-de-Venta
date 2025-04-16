@@ -117,7 +117,10 @@ fun AddProductScreen(navController: NavController, barcodeDetails: String?) {
     // Manejo del TextField para mantener el cursor al final  Precio
     var salePriceTextFieldValue by remember {
         mutableStateOf(
-            TextFieldValue(formatPrice(salePriceInCents), TextRange(formatPrice(salePriceInCents).length))
+            TextFieldValue(
+                formatPrice(salePriceInCents),
+                TextRange(formatPrice(salePriceInCents).length)
+            )
         )
     }
 
@@ -130,7 +133,10 @@ fun AddProductScreen(navController: NavController, barcodeDetails: String?) {
     // Manejo del TextField para mantener el cursor al final  Precio proveedor
     var providerPriceTextFieldValue by remember {
         mutableStateOf(
-            TextFieldValue(formatPrice(providerPriceInCents), TextRange(formatPrice(providerPriceInCents).length))
+            TextFieldValue(
+                formatPrice(providerPriceInCents),
+                TextRange(formatPrice(providerPriceInCents).length)
+            )
         )
     }
 
