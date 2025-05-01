@@ -54,9 +54,12 @@ fun AddExpenseScreen(navController: NavController) {
     var concept by remember { mutableStateOf("") }
     var paymentMethod by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
-    //var amountExpense by remember { mutableStateOf("") }
-    //var amountGiven by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
+
+    //funcion de validacion de descripcion
+    fun isValidDescription(input: String): Boolean {
+        return input.matches(Regex("^[A-Za-z0-9 ]{0,42}\$"))
+    }
 
     // Función para formatear el precio en centavos a un string con formato 0.00
     fun formatPrice(cents: Long): String {
@@ -133,18 +136,14 @@ fun AddExpenseScreen(navController: NavController) {
                             paymentMethod = paymentMethod,
                             description = description,
                             amountExpense = expensePriceInCents / 100.0,
-                            //amountExpense = amountExpense.toDouble(),
                             amountGiven = expenseAmountGivenInCents / 100.0
-                            //amountGiven = amountGiven.toDouble()
                         )
                         // Limpiar campos después de guardar
                         concept = ""
                         paymentMethod = ""
                         description = ""
                         expensePriceInCents = 0L
-                        //amountExpense = ""
                         expenseAmountGivenInCents = 0L
-                        //amountGiven = ""
                     }
                 },
                 icon = {
@@ -207,14 +206,6 @@ fun AddExpenseScreen(navController: NavController) {
                                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                                         isError = paymentMethod.isBlank()
                                     )
-                                    OutlinedTextField(
-                                        value = description,
-                                        onValueChange = { description = it },
-                                        label = { Text("Descripción") },
-                                        modifier = Modifier.fillMaxWidth(),
-                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                                        isError = description.isBlank()
-                                    )
 
                                     // Campo para el monto del gasto
 
@@ -245,18 +236,8 @@ fun AddExpenseScreen(navController: NavController) {
                                             }
                                         }
                                     )
-                                    /*OutlinedTextField(
-                                        value = amountExpense,
-                                        onValueChange = { amountExpense = it },
-                                        label = { Text("Monto del gasto") },
-                                        modifier = Modifier.fillMaxWidth(),
-                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                        isError = amountExpense.isBlank()
-                                    )*/
 
                                     // Campo para el monto pagado por el gasto
-
-                                    // Campo para el monto del gasto
 
                                     OutlinedTextField(
                                         value = expenseAmountGivenTextFieldValue,
@@ -285,14 +266,31 @@ fun AddExpenseScreen(navController: NavController) {
                                             }
                                         }
                                     )
-                                    /*OutlinedTextField(
-                                        value = amountGiven,
-                                        onValueChange = { amountGiven = it },
-                                        label = { Text("¿Cuánto pagaste por el gasto?") },
+
+                                    // Campo descripción del gasto
+
+                                    OutlinedTextField(
+                                        value = description,
+                                        onValueChange = {
+                                            if (isValidDescription(it)) {
+                                                description = it
+                                            }
+                                        },
+                                        label = { Text("Descripción") },
                                         modifier = Modifier.fillMaxWidth(),
-                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                        isError = amountGiven.isBlank()
-                                    )*/
+                                        isError = description.isBlank(),
+                                        supportingText = {
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.End
+                                            ) {
+                                                Text("${description.length}/42")
+                                            }
+                                        }
+                                    )
+
+                                    // mensaje de error
+
                                     if (errorMessage.isNotBlank()) {
                                         Text(
                                             text = errorMessage,
