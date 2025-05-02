@@ -12,14 +12,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -34,6 +40,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
@@ -190,22 +197,65 @@ fun AddExpenseScreen(navController: NavController) {
                                         style = MaterialTheme.typography.titleMedium,
                                         modifier = Modifier.fillMaxWidth()
                                     )
-                                    OutlinedTextField(
+
+                                    // Campo para el concepto del gasto
+
+                                    ConceptoGastoField(
+                                        concepto = concept,
+                                        onConceptoChange = { concept = it }
+                                    )
+
+                                    /*OutlinedTextField(
                                         value = concept,
                                         onValueChange = { concept = it },
                                         label = { Text("Concepto del gasto") },
                                         modifier = Modifier.fillMaxWidth(),
                                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                                         isError = concept.isBlank()
-                                    )
-                                    OutlinedTextField(
+                                    )*/
+
+                                    // Campo para el método de pago
+
+                                    val paymentOptions =
+                                        listOf("Tarjeta", "Efectivo", "Transferencia")
+                                    Column(modifier = Modifier.selectableGroup()) {
+                                        Text(
+                                            text = "Método de pago:",
+                                            //style = MaterialTheme.typography.titleSmall
+                                        )
+                                        paymentOptions.forEach { option ->
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .height(56.dp)
+                                                    .selectable(
+                                                        selected = (option == paymentMethod),
+                                                        onClick = { paymentMethod = option },
+                                                        role = Role.RadioButton
+                                                    )
+                                                    .padding(horizontal = 8.dp),
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                RadioButton(
+                                                    selected = (option == paymentMethod),
+                                                    onClick = null // recomendado para accesibilidad
+                                                )
+                                                Text(
+                                                    text = option,
+                                                    //style = MaterialTheme.typography.bodyLarge,
+                                                    modifier = Modifier.padding(start = 16.dp)
+                                                )
+                                            }
+                                        }
+                                    }
+                                    /*OutlinedTextField(
                                         value = paymentMethod,
                                         onValueChange = { paymentMethod = it },
                                         label = { Text("Método de pago") },
                                         modifier = Modifier.fillMaxWidth(),
                                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                                         isError = paymentMethod.isBlank()
-                                    )
+                                    )*/
 
                                     // Campo para el monto del gasto
 
@@ -310,4 +360,79 @@ fun AddExpenseScreen(navController: NavController) {
             }
         }
     )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ConceptoGastoField(
+    concepto: String,
+    onConceptoChange: (String) -> Unit
+) {
+    val conceptosSugeridos = listOf(
+        "Compra de mercancía",
+        "Pago de servicios",
+        "Pago de nómina",
+        "Mantenimiento",
+        "Renta",
+        "Publicidad",
+        "Papelería y suministros",
+        "Transporte",
+        "Pago de impuestos",
+        "Devolución a cliente",
+        "Otros"
+    )
+
+    var expanded by remember { mutableStateOf(false) }
+
+    // Filtrar sugerencias según lo que escribe el usuario
+    val filteredOptions = conceptosSugeridos.filter {
+        it.contains(concepto, ignoreCase = true)
+    }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded && filteredOptions.isNotEmpty(),
+        onExpandedChange = { expanded = it }
+    ) {
+        OutlinedTextField(
+            value = concepto,
+            onValueChange = {
+                if (it.length <= 27) {
+                    onConceptoChange(it)
+                    expanded = it.isNotBlank()
+                }
+            },
+            label = { Text("Concepto del gasto") },
+            modifier = Modifier
+                .menuAnchor()
+                .fillMaxWidth(),
+            isError = concepto.isBlank(),
+            trailingIcon = {
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+            },
+            supportingText = {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    Text("${concepto.length}/27")
+                }
+            },
+            singleLine = true
+        )
+
+        ExposedDropdownMenu(
+            expanded = expanded && filteredOptions.isNotEmpty(),
+            onDismissRequest = { expanded = false }
+        ) {
+            filteredOptions.forEach { selectionOption ->
+                DropdownMenuItem(
+                    text = { Text(selectionOption) },
+                    onClick = {
+                        onConceptoChange(selectionOption)
+                        expanded = false
+                    }
+                )
+            }
+        }
+    }
 }
