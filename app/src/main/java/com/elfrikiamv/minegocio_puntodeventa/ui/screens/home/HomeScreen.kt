@@ -25,6 +25,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -132,7 +133,19 @@ fun MyReport(
                 ) {
                     /*Text(text = "Has\nvendido:")
                     Text(text = String.format(Locale.getDefault(), "%.2f", totalTicketsSold))*/
-                    Text(text = "Has\nvendido:")
+
+                    Row {
+                        Text(text = "Has\nvendido:")
+                        Spacer(modifier = Modifier.weight(1f))
+                        Icon(
+                            painter = painterResource(id = R.drawable.baseline_help_outline_24),
+                            contentDescription = "help icon",
+                            modifier = Modifier
+                                .size(24.dp)
+                                .alpha(0.8f) // Aplica opacidad del 80%
+                        )
+                    }
+
                     Row {
                         Icon(
                             painter = painterResource(id = R.drawable.baseline_attach_money_24),
@@ -210,7 +223,17 @@ fun MyReport(
                     /*Text(text = "Has\nganado:")
                     //Text(text = "#")
                     Text(text = String.format(Locale.getDefault(), "%.2f", totalProfitEarned))*/
-                    Text(text = "Has\nganado:")
+                    Row {
+                        Text(text = "Has\nganado:")
+                        Spacer(modifier = Modifier.weight(1f))
+                        Icon(
+                            painter = painterResource(id = R.drawable.baseline_help_outline_24),
+                            contentDescription = "help icon",
+                            modifier = Modifier
+                                .size(24.dp)
+                                .alpha(0.8f)
+                        )
+                    }
                     Row {
                         Icon(
                             painter = painterResource(id = R.drawable.baseline_attach_money_24),
@@ -239,7 +262,17 @@ fun MyReport(
                 ) {
                     /*Text(text = "Transacciones\ntotales:")
                     Text(text = "$totalTransactions")*/
-                    Text(text = "Transacciones\ntotales:")
+                    Row {
+                        Text(text = "Transacciones\ntotales:")
+                        Spacer(modifier = Modifier.weight(1f))
+                        Icon(
+                            painter = painterResource(id = R.drawable.baseline_help_outline_24),
+                            contentDescription = "help icon",
+                            modifier = Modifier
+                                .size(24.dp)
+                                .alpha(0.8f)
+                        )
+                    }
                     Row {
                         Icon(
                             painter = painterResource(id = R.drawable.baseline_point_of_sale_24),
@@ -320,6 +353,20 @@ fun MyReport(
                             Text(
                                 text = String.format(Locale.getDefault(), "%.2f", totalSalePrice),
                                 modifier = Modifier.align(Alignment.CenterVertically)
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.width(3.dp))
+                    Column {
+                        Row {
+                            /*Text(text = "Transacciones\ntotales:")
+                            Spacer(modifier = Modifier.weight(1f))*/
+                            Icon(
+                                painter = painterResource(id = R.drawable.baseline_help_outline_24),
+                                contentDescription = "help icon",
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .alpha(0.8f)
                             )
                         }
                     }
