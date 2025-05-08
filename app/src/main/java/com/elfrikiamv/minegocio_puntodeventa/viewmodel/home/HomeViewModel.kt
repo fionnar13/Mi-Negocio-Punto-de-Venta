@@ -16,6 +16,7 @@ class HomeViewModel : ViewModel() {
         private const val DEFAULT_BUSINESS = "defaultBusiness"
         private const val DEFAULT_INVENTORY = "defaultInventory"
         private const val DEFAULT_TICKETS = "defaultTickets"
+        private const val DEFAULT_EXPENSES = "defaultExpenses"
         private const val LOW_STOCK_THRESHOLD = 7 // Umbral de stock bajo
         private const val OUT_STOCK_THRESHOLD = 0 // Umbral de sin stock
     }
@@ -47,6 +48,10 @@ class HomeViewModel : ViewModel() {
     private val _totalTransactions = MutableStateFlow(0)
     val totalTransactions: StateFlow<Int> = _totalTransactions
 
+    // Nuevo campo para el total de gastos
+    private val _totalExpenses = MutableStateFlow(0.0)
+    val totalExpenses: StateFlow<Double> = _totalExpenses
+
     // Nuevo campo para el estado de carga
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
@@ -63,6 +68,7 @@ class HomeViewModel : ViewModel() {
             loadOutStockProducts(userEmail)
             loadTotalTicketsSold(userEmail)
             loadTotalTransactions(userEmail)
+            loadTotalExpenses(userEmail)
         }
     }
 
@@ -309,4 +315,41 @@ class HomeViewModel : ViewModel() {
                 _isLoading.value = false // Ocultar indicador de carga
             }
     }
+
+    // Calcula el total de gastos
+    private fun loadTotalExpenses(userEmail: String) {
+        _isLoading.value = true
+        Log.d(TAG, "Cargando total de gastos para el usuario: $userEmail")
+
+        db.collection("users")
+            .document(userEmail)
+            .collection("userMyBusinesses")
+            .document(DEFAULT_BUSINESS)
+            .collection("userMyExpenses")
+            .document(DEFAULT_EXPENSES)
+            .collection("userExpenses")
+            .addSnapshotListener { snapshot, e ->
+                if (e != null) {
+                    Log.e(TAG, "Error al escuchar cambios en la colección de gastos: ${e.message}")
+                    _isLoading.value = false
+                    return@addSnapshotListener
+                }
+
+                if (snapshot == null) {
+                    Log.e(TAG, "Snapshot vacío o nulo al cargar los gastos.")
+                    _isLoading.value = false
+                    return@addSnapshotListener
+                }
+
+                Log.d(TAG, "Procesando ${snapshot.documents.size} documentos de gastos.")
+                val total = snapshot.documents.sumOf { doc ->
+                    doc.getDouble("amountExpense") ?: 0.0
+                }
+
+                Log.d(TAG, "Total de gastos calculado: $total")
+                _totalExpenses.value = total
+                _isLoading.value = false
+            }
+    }
+
 }

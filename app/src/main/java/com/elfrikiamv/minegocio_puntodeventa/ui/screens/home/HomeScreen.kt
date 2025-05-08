@@ -46,6 +46,7 @@ fun HomeScreen(navController: NavController) {
     val outStockList by viewModel.outStockProducts.collectAsState()
     val totalTicketsSold by viewModel.totalTicketsSold.collectAsState()
     val totalTransactions by viewModel.totalTransactions.collectAsState()
+    val totalExpenses by viewModel.totalExpenses.collectAsState()
 
     // Estado de carga: verificar si algún dato aún no está disponible
     val isLoading by viewModel.isLoading.collectAsState()
@@ -82,7 +83,8 @@ fun HomeScreen(navController: NavController) {
                                 lowStockList,
                                 outStockList,
                                 totalTicketsSold,
-                                totalTransactions
+                                totalTransactions,
+                                totalExpenses
                             )
                         }
                     }
@@ -100,7 +102,8 @@ fun MyReport(
     lowStockList: List<Map<String, Any>>,
     outStockList: List<Map<String, Any>>,
     totalTicketsSold: Double,
-    totalTransactions: Int
+    totalTransactions: Int,
+    totalExpenses: Double
 ) {
 
     Column(
@@ -146,7 +149,8 @@ fun MyReport(
                         modifier = Modifier.weight(1f)
                     ) {
                         Text(text = "Has\ngastado:")
-                        Text(text = "#")
+                        //Text(text = "#")
+                        Text(text = String.format(Locale.getDefault(), "%.2f", totalExpenses))
                     }
                     Icon(
                         painter = painterResource(id = R.drawable.baseline_arrow_forward_ios_24),
