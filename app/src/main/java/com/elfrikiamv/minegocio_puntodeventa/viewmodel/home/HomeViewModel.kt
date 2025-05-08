@@ -52,6 +52,10 @@ class HomeViewModel : ViewModel() {
     private val _totalExpenses = MutableStateFlow(0.0)
     val totalExpenses: StateFlow<Double> = _totalExpenses
 
+    // Nuevo campo para el total de ganancias
+    private val _totalProfitEarned = MutableStateFlow(0.0)
+    val totalProfitEarned: StateFlow<Double> = _totalProfitEarned
+
     // Nuevo campo para el estado de carga
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
@@ -69,6 +73,7 @@ class HomeViewModel : ViewModel() {
             loadTotalTicketsSold(userEmail)
             loadTotalTransactions(userEmail)
             loadTotalExpenses(userEmail)
+            loadTotalProfitEarned(userEmail)
         }
     }
 
@@ -348,6 +353,58 @@ class HomeViewModel : ViewModel() {
 
                 Log.d(TAG, "Total de gastos calculado: $total")
                 _totalExpenses.value = total
+                _isLoading.value = false
+            }
+    }
+
+    // Calcula el total de ganancias
+    private fun loadTotalProfitEarned(userEmail: String) {
+        _isLoading.value = true
+        Log.d(TAG, "Cargando ganancias totales para el usuario: $userEmail")
+
+        db.collection("users")
+            .document(userEmail)
+            .collection("userMyBusinesses")
+            .document(DEFAULT_BUSINESS)
+            .collection("userMyTickets")
+            .document(DEFAULT_TICKETS)
+            .collection("userTickets")
+            .addSnapshotListener { snapshot, e ->
+                if (e != null) {
+                    Log.e(TAG, "Error al escuchar cambios en la colección de tickets: ${e.message}")
+                    _isLoading.value = false
+                    return@addSnapshotListener
+                }
+
+                if (snapshot == null) {
+                    Log.e(TAG, "Snapshot vacío o nulo al cargar las ganancias.")
+                    _isLoading.value = false
+                    return@addSnapshotListener
+                }
+
+                Log.d(TAG, "Procesando ${snapshot.documents.size} tickets para ganancias.")
+
+                var totalProfit = 0.0
+
+                snapshot.documents.forEach { ticketDoc ->
+                    val productsList = ticketDoc.get("products")
+                    if (productsList is List<*>) {
+                        val products = productsList.filterIsInstance<Map<String, Any>>()
+                        products.forEach { product ->
+                            val salePrice = product["salePrice"] as? Double ?: 0.0
+                            val providerPrice = product["providerPrice"] as? Double ?: 0.0
+                            val quantity = (product["quantity"] as? Long)?.toInt() ?: 0
+                            val productProfit = (salePrice - providerPrice) * quantity
+                            totalProfit += productProfit
+                            Log.d(TAG, "Ganancia producto: $productProfit")
+                        }
+                    } else {
+                        Log.e(TAG, "El campo 'products' no es una lista o está mal formado.")
+                    }
+                }
+
+                Log.d(TAG, "Ganancia total calculada: $totalProfit")
+                _totalProfitEarned.value = totalProfit
                 _isLoading.value = false
             }
     }
