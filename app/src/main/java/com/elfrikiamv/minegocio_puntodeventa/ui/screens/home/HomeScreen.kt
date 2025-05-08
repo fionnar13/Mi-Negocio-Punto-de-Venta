@@ -130,8 +130,22 @@ fun MyReport(
                     modifier = Modifier
                         .padding(16.dp)
                 ) {
+                    /*Text(text = "Has\nvendido:")
+                    Text(text = String.format(Locale.getDefault(), "%.2f", totalTicketsSold))*/
                     Text(text = "Has\nvendido:")
-                    Text(text = String.format(Locale.getDefault(), "%.2f", totalTicketsSold))
+                    Row {
+                        Icon(
+                            painter = painterResource(id = R.drawable.baseline_attach_money_24),
+                            contentDescription = "money icon",
+                            modifier = Modifier
+                                .size(24.dp)
+                                .align(Alignment.CenterVertically)
+                        )
+                        Text(
+                            text = String.format(Locale.getDefault(), "%.2f", totalTicketsSold),
+                            modifier = Modifier.align(Alignment.CenterVertically)
+                        )
+                    }
                 }
             }
             Spacer(modifier = Modifier.width(16.dp))
@@ -151,9 +165,23 @@ fun MyReport(
                     Column(
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text(text = "Has\ngastado:")
+                        /*Text(text = "Has\ngastado:")
                         //Text(text = "#")
-                        Text(text = String.format(Locale.getDefault(), "%.2f", totalExpenses))
+                        Text(text = String.format(Locale.getDefault(), "%.2f", totalExpenses))*/
+                        Text(text = "Has\ngastado:")
+                        Row {
+                            Icon(
+                                painter = painterResource(id = R.drawable.baseline_attach_money_24),
+                                contentDescription = "money icon",
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .align(Alignment.CenterVertically)
+                            )
+                            Text(
+                                text = String.format(Locale.getDefault(), "%.2f", totalExpenses),
+                                modifier = Modifier.align(Alignment.CenterVertically)
+                            )
+                        }
                     }
                     Icon(
                         painter = painterResource(id = R.drawable.baseline_arrow_forward_ios_24),
@@ -179,9 +207,23 @@ fun MyReport(
                     modifier = Modifier
                         .padding(16.dp)
                 ) {
-                    Text(text = "Has\nganado:")
+                    /*Text(text = "Has\nganado:")
                     //Text(text = "#")
-                    Text(text = String.format(Locale.getDefault(), "%.2f", totalProfitEarned))
+                    Text(text = String.format(Locale.getDefault(), "%.2f", totalProfitEarned))*/
+                    Text(text = "Has\nganado:")
+                    Row {
+                        Icon(
+                            painter = painterResource(id = R.drawable.baseline_attach_money_24),
+                            contentDescription = "money icon",
+                            modifier = Modifier
+                                .size(24.dp)
+                                .align(Alignment.CenterVertically)
+                        )
+                        Text(
+                            text = String.format(Locale.getDefault(), "%.2f", totalProfitEarned),
+                            modifier = Modifier.align(Alignment.CenterVertically)
+                        )
+                    }
                 }
             }
             Spacer(modifier = Modifier.width(16.dp))
@@ -195,8 +237,23 @@ fun MyReport(
                     modifier = Modifier
                         .padding(16.dp)
                 ) {
+                    /*Text(text = "Transacciones\ntotales:")
+                    Text(text = "$totalTransactions")*/
                     Text(text = "Transacciones\ntotales:")
-                    Text(text = "$totalTransactions")
+                    Row {
+                        Icon(
+                            painter = painterResource(id = R.drawable.baseline_point_of_sale_24),
+                            contentDescription = "point of sale icon",
+                            modifier = Modifier
+                                .size(24.dp)
+                                .align(Alignment.CenterVertically)
+                        )
+                        Spacer(modifier = Modifier.width(3.dp))
+                        Text(
+                            text = "$totalTransactions",
+                            modifier = Modifier.align(Alignment.CenterVertically)
+                        )
+                    }
                 }
             }
         }
