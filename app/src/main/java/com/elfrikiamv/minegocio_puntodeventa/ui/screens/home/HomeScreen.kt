@@ -25,13 +25,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.elfrikiamv.minegocio_puntodeventa.R
 import com.elfrikiamv.minegocio_puntodeventa.navigation.Screen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.helpTexts.HelpIconWithDialog
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.helpTexts.HelpTexts
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.home.HomeViewModel
 import java.util.Locale
 
@@ -131,18 +132,14 @@ fun MyReport(
                     modifier = Modifier
                         .padding(16.dp)
                 ) {
-                    /*Text(text = "Has\nvendido:")
-                    Text(text = String.format(Locale.getDefault(), "%.2f", totalTicketsSold))*/
-
                     Row {
                         Text(text = "Has\nvendido:")
                         Spacer(modifier = Modifier.weight(1f))
-                        Icon(
-                            painter = painterResource(id = R.drawable.baseline_help_outline_24),
-                            contentDescription = "help icon",
-                            modifier = Modifier
-                                .size(24.dp)
-                                .alpha(0.8f) // Aplica opacidad del 80%
+                        //HelpIconWithDialog(helpText = "Aquí se muestra la suma total de dinero generado por las ventas registradas.")
+                        //helpText = HelpTexts.hasVendido
+                        HelpIconWithDialog(
+                            title = "Has vendido",
+                            helpText = HelpTexts.salesHelp
                         )
                     }
 
@@ -178,9 +175,6 @@ fun MyReport(
                     Column(
                         modifier = Modifier.weight(1f)
                     ) {
-                        /*Text(text = "Has\ngastado:")
-                        //Text(text = "#")
-                        Text(text = String.format(Locale.getDefault(), "%.2f", totalExpenses))*/
                         Text(text = "Has\ngastado:")
                         Row {
                             Icon(
@@ -220,18 +214,12 @@ fun MyReport(
                     modifier = Modifier
                         .padding(16.dp)
                 ) {
-                    /*Text(text = "Has\nganado:")
-                    //Text(text = "#")
-                    Text(text = String.format(Locale.getDefault(), "%.2f", totalProfitEarned))*/
                     Row {
                         Text(text = "Has\nganado:")
                         Spacer(modifier = Modifier.weight(1f))
-                        Icon(
-                            painter = painterResource(id = R.drawable.baseline_help_outline_24),
-                            contentDescription = "help icon",
-                            modifier = Modifier
-                                .size(24.dp)
-                                .alpha(0.8f)
+                        HelpIconWithDialog(
+                            title = "Has ganado",
+                            helpText = HelpTexts.earningsHelp
                         )
                     }
                     Row {
@@ -260,17 +248,12 @@ fun MyReport(
                     modifier = Modifier
                         .padding(16.dp)
                 ) {
-                    /*Text(text = "Transacciones\ntotales:")
-                    Text(text = "$totalTransactions")*/
                     Row {
                         Text(text = "Transacciones\ntotales:")
                         Spacer(modifier = Modifier.weight(1f))
-                        Icon(
-                            painter = painterResource(id = R.drawable.baseline_help_outline_24),
-                            contentDescription = "help icon",
-                            modifier = Modifier
-                                .size(24.dp)
-                                .alpha(0.8f)
+                        HelpIconWithDialog(
+                            title = "Transacciones totales",
+                            helpText = HelpTexts.totalTransactionsHelp
                         )
                     }
                     Row {
@@ -359,14 +342,9 @@ fun MyReport(
                     Spacer(modifier = Modifier.width(3.dp))
                     Column {
                         Row {
-                            /*Text(text = "Transacciones\ntotales:")
-                            Spacer(modifier = Modifier.weight(1f))*/
-                            Icon(
-                                painter = painterResource(id = R.drawable.baseline_help_outline_24),
-                                contentDescription = "help icon",
-                                modifier = Modifier
-                                    .size(24.dp)
-                                    .alpha(0.8f)
+                            HelpIconWithDialog(
+                                title = "Resumen de mi inventario",
+                                helpText = HelpTexts.summaryInventoryHelp
                             )
                         }
                     }
@@ -535,3 +513,86 @@ fun onBestSellers(navController: NavController) {
     // Acción para ver productos mas vendidos
     navController.navigate(Screen.BestSellersProducts.route)
 }
+
+/*
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun HelpIconWithDialog(helpText: String) {
+    val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true
+    )
+    var showSheet by remember { mutableStateOf(false) }
+
+    Icon(
+        painter = painterResource(id = R.drawable.baseline_help_outline_24),
+        contentDescription = "help icon",
+        modifier = Modifier
+            .size(24.dp)
+            .alpha(0.8f)
+            .clickable { showSheet = true }
+    )
+
+    if (showSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showSheet = false },
+            sheetState = sheetState
+            //containerColor = MaterialTheme.colorScheme.surface,
+            //tonalElevation = 8.dp
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    //.padding(24.dp),
+                    .padding(end = 16.dp, bottom = 16.dp, start = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.baseline_info_outline_24),
+                        contentDescription = "info",
+                        //tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(24.dp)
+                    )
+
+                    Text(
+                        text = "¿Qué significa esto?",
+                        //style = MaterialTheme.typography.titleLarge,
+                        //color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                HorizontalDivider(
+                    thickness = 1.dp,
+                    //color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = helpText,
+                    //style = MaterialTheme.typography.bodyMedium,
+                    //color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(
+                    onClick = { showSheet = false },
+                    */
+/*colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    )*//*
+
+                ) {
+                    Text("Entendido")
+                }
+            }
+        }
+    }
+}
+*/
