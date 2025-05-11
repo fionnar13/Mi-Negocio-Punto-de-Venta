@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
@@ -39,9 +40,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -62,6 +67,14 @@ fun AddExpenseScreen(navController: NavController) {
     var paymentMethod by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
+
+    // Manejo de enfoque
+    val focusManager = LocalFocusManager.current
+    val conceptFocusRequester = remember { FocusRequester() }
+    //val paymentFocusRequester = remember { FocusRequester() }
+    val priceFocusRequester = remember { FocusRequester() }
+    val amountFocusRequester = remember { FocusRequester() }
+    val descriptionFocusRequester = remember { FocusRequester() }
 
     //funcion de validacion de descripcion
     fun isValidDescription(input: String): Boolean {
@@ -202,7 +215,9 @@ fun AddExpenseScreen(navController: NavController) {
 
                                     ConceptoGastoField(
                                         concepto = concept,
-                                        onConceptoChange = { concept = it }
+                                        onConceptoChange = { concept = it },
+                                        conceptoFocusRequester = conceptFocusRequester,
+                                        onNext = { priceFocusRequester.requestFocus() }
                                     )
 
                                     /*OutlinedTextField(
@@ -274,8 +289,18 @@ fun AddExpenseScreen(navController: NavController) {
                                             )
                                         },
                                         label = { Text("¿Cuál fue el costo del gasto?") },
-                                        modifier = Modifier.fillMaxWidth(),
-                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .focusRequester(priceFocusRequester),
+                                        //keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                        keyboardOptions = KeyboardOptions(
+                                            keyboardType = KeyboardType.Number,
+                                            imeAction = ImeAction.Next
+                                        ),
+                                        keyboardActions = KeyboardActions(
+                                            onNext = { amountFocusRequester.requestFocus() }
+                                        ),
+                                        singleLine = true,
                                         isError = expensePriceInCents == 0L,
                                         supportingText = {
                                             Row(
@@ -304,8 +329,18 @@ fun AddExpenseScreen(navController: NavController) {
                                             )
                                         },
                                         label = { Text("¿Cuál fue el monto que pagaste?") },
-                                        modifier = Modifier.fillMaxWidth(),
-                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .focusRequester(amountFocusRequester),
+                                        //keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                        keyboardOptions = KeyboardOptions(
+                                            keyboardType = KeyboardType.Number,
+                                            imeAction = ImeAction.Next
+                                        ),
+                                        keyboardActions = KeyboardActions(
+                                            onNext = { descriptionFocusRequester.requestFocus() }
+                                        ),
+                                        singleLine = true,
                                         isError = expenseAmountGivenInCents == 0L,
                                         supportingText = {
                                             Row(
@@ -327,8 +362,18 @@ fun AddExpenseScreen(navController: NavController) {
                                             }
                                         },
                                         label = { Text("Descripción") },
-                                        modifier = Modifier.fillMaxWidth(),
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .focusRequester(descriptionFocusRequester),
+                                        keyboardOptions = KeyboardOptions(
+                                            keyboardType = KeyboardType.Text,
+                                            imeAction = ImeAction.Done
+                                        ),
+                                        keyboardActions = KeyboardActions(
+                                            onDone = { focusManager.clearFocus() }
+                                        ),
                                         isError = description.isBlank(),
+                                        //singleLine = true,
                                         supportingText = {
                                             Row(
                                                 modifier = Modifier.fillMaxWidth(),
@@ -366,7 +411,9 @@ fun AddExpenseScreen(navController: NavController) {
 @Composable
 fun ConceptoGastoField(
     concepto: String,
-    onConceptoChange: (String) -> Unit
+    onConceptoChange: (String) -> Unit,
+    conceptoFocusRequester: FocusRequester,
+    onNext: () -> Unit
 ) {
     val conceptosSugeridos = listOf(
         "Compra de mercancía",
@@ -404,7 +451,8 @@ fun ConceptoGastoField(
             label = { Text("Concepto del gasto") },
             modifier = Modifier
                 .menuAnchor()
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .focusRequester(conceptoFocusRequester),
             isError = concepto.isBlank(),
             trailingIcon = {
                 ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
@@ -417,7 +465,14 @@ fun ConceptoGastoField(
                     Text("${concepto.length}/27")
                 }
             },
-            singleLine = true
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Text,
+                imeAction = ImeAction.Next
+            ),
+            keyboardActions = KeyboardActions(
+                onNext = { onNext() }
+            )
         )
 
         ExposedDropdownMenu(
