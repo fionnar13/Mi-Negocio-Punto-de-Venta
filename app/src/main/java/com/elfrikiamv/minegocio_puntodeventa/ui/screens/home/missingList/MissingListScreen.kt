@@ -2,6 +2,8 @@ package com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.missingList
 
 // MissingListScreen.kt
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -21,10 +23,12 @@ import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -38,7 +42,7 @@ import com.elfrikiamv.minegocio_puntodeventa.model.home.missing.MissingProductFi
 import com.elfrikiamv.minegocio_puntodeventa.navigation.Screen
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.home.missing.MissingProductsViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun MissingListScreen(navController: NavController) {
 
@@ -48,6 +52,9 @@ fun MissingListScreen(navController: NavController) {
 
     // Observar el estado de isLoading
     val isLoading by viewModel.isLoading.collectAsState()
+
+    // Cargar los faltantes desde Firebase
+    val grouped = viewModel.groupMissingByYearAndMonth(missingList)
 
     // Contenido de la pantalla que muestra los MissingListScreen
     Scaffold(
@@ -112,11 +119,33 @@ fun MissingListScreen(navController: NavController) {
                             .weight(1f)
                             .padding(end = 16.dp, start = 16.dp, top = 16.dp)
                     ) {
-                        items(missingList) { missing ->
-                            MissingProductCard(missing)
+                        grouped.forEach { gr ->
+                            stickyHeader {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .background(MaterialTheme.colorScheme.background)
+                                        .padding(start = 16.dp)
+                                ) {
+                                    Text(
+                                        text = "${gr.month} - ${gr.year}",
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+                                }
+                            }
+                            items(gr.missing) { missing ->
+                                MissingProductCard(missing)
+                            }
                         }
                         item {
-                            Spacer(modifier = Modifier.height(72.dp))
+                            //Spacer(modifier = Modifier.height(16.dp))
+                            // Cargar siguiente página cuando llegues al final
+                            LaunchedEffect(Unit) {
+                                viewModel.loadNextPage()
+                            }
+                        }
+                        item {
+                            Spacer(modifier = Modifier.height(56.dp))
                         }
                     }
                 }

@@ -136,7 +136,7 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
             // Obtener información de fecha y hora
             val currentDateTimeTicketId = System.currentTimeMillis()
             val currentDateTime = Calendar.getInstance()
-            val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
             val timeFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
 
             val dateFormatted = dateFormat.format(currentDateTime.time)

@@ -10,6 +10,7 @@ import com.elfrikiamv.minegocio_puntodeventa.database.AppDatabase
 import com.elfrikiamv.minegocio_puntodeventa.model.home.missing.MissingProductEntity
 import com.elfrikiamv.minegocio_puntodeventa.model.home.missing.MissingProductFirebase
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -24,6 +25,7 @@ class MissingProductsViewModel(application: Application) : AndroidViewModel(appl
         private const val TAG = "MissingListViewModel"
         private const val DEFAULT_BUSINESS = "defaultBusiness"
         private const val DEFAULT_MISSING = "defaultMissing"
+        private const val PAGE_SIZE = 22
     }
 
     private val missingDao = AppDatabase.getDatabase(application).missingProductDao()
@@ -40,47 +42,82 @@ class MissingProductsViewModel(application: Application) : AndroidViewModel(appl
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
+    // Estados de Firebase
+    private var lastSnapshot: DocumentSnapshot? = null
+    private var endReached = false
+
     init {
         val userEmail = auth.currentUser?.email
         if (userEmail == null) {
             Log.e(TAG, "Usuario no autenticado. No se pueden cargar los datos.")
         } else {
             Log.d(TAG, "Usuario autenticado: $userEmail")
-            loadMissingFromFirebase(userEmail)
+            //loadMissingFromFirebase(userEmail)
+            loadNextPage()
         }
     }
 
     // Función para cargar la lista de faltantes desde Firebase
-    private fun loadMissingFromFirebase(userEmail: String) {
+    fun loadNextPage() {
+        val userEmail = auth.currentUser?.email ?: return
+        if (_isLoading.value || endReached) return
 
         _isLoading.value = true
-        db.collection("users")
+
+        var query = db.collection("users")
             .document(userEmail)
             .collection("userMyBusinesses")
             .document(DEFAULT_BUSINESS)
             .collection("userMyMissing")
             .document(DEFAULT_MISSING)
             .collection("userMissing")
-            .addSnapshotListener { snapshot, e ->
-                if (e != null) {
-                    Log.e(TAG, "Error al obtener los faltantes: $e")
-                    _isLoading.value = false
-                    return@addSnapshotListener
-                }
+            .orderBy("date", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .orderBy("time", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .limit(PAGE_SIZE.toLong())
 
-                if (snapshot != null && !snapshot.isEmpty) {
-                    val fetchedMissing = snapshot.documents.mapNotNull { doc ->
-                        doc.toObject(MissingProductFirebase::class.java)
-                    }
-                    _missingList.value = fetchedMissing
-                    Log.d(TAG, "faltantes cargados: ${_missingList.value}")
-                    _isLoading.value = false
-                } else {
-                    Log.d(TAG, "No se encontraron faltantes")
-                    _isLoading.value = false
-                }
-            }
+        lastSnapshot?.let { query = query.startAfter(it) }
+
+        query.get().addOnSuccessListener { snap ->
+            val list = snap.documents.mapNotNull { it.toObject(MissingProductFirebase::class.java) }
+            if (list.size < PAGE_SIZE) endReached = true
+            lastSnapshot = snap.documents.lastOrNull()
+            _missingList.value += list
+            _isLoading.value = false
+        }.addOnFailureListener {
+            Log.e(TAG, "Error cargando faltantes: $it")
+            _isLoading.value = false
+        }
     }
+
+    // Clase para agrupar los faltantes por año y mes
+    data class GroupedMissing(
+        val year: String,
+        val month: String,
+        val missing: List<MissingProductFirebase>
+    )
+
+    fun groupMissingByYearAndMonth(missing: List<MissingProductFirebase>): List<GroupedMissing> {
+        val formatter = SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.getDefault())
+        val sorted = missing.sortedByDescending { formatter.parse("${it.date} ${it.time}") }
+        val grouped = sorted.groupBy {
+            val cal = Calendar.getInstance().apply {
+                time = formatter.parse("${it.date} ${it.time}")!!
+            }
+            val yr = cal.get(Calendar.YEAR).toString()
+            val mo = cal.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault())!!
+            Pair(yr, mo)
+        }
+        return grouped
+            .map { (ym, list) -> GroupedMissing(ym.first, ym.second, list) }
+            .sortedWith(compareByDescending<GroupedMissing> { it.year.toInt() }
+                .thenByDescending { monthNameToNumber(it.month) })
+    }
+
+    private fun monthNameToNumber(monthName: String): Int =
+        SimpleDateFormat("MMMM", Locale.getDefault())
+            .parse(monthName)?.let {
+                Calendar.getInstance().apply { time = it }.get(Calendar.MONTH)
+            } ?: 0
 
     fun confirmMissing(
         name: String,
@@ -95,7 +132,7 @@ class MissingProductsViewModel(application: Application) : AndroidViewModel(appl
             // Obtener información de fecha y hora
             val currentDateTimeMissingId = System.currentTimeMillis()
             val currentDateTime = Calendar.getInstance()
-            val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
             val timeFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
 
             val dateFormatted = dateFormat.format(currentDateTime.time)
