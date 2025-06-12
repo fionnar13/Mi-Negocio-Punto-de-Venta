@@ -10,6 +10,7 @@ import com.elfrikiamv.minegocio_puntodeventa.database.AppDatabase
 import com.elfrikiamv.minegocio_puntodeventa.model.home.expenses.ExpenseEntity
 import com.elfrikiamv.minegocio_puntodeventa.model.home.expenses.ExpenseFirebase
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -24,8 +25,10 @@ class ExpensesViewModel(application: Application) : AndroidViewModel(application
         private const val TAG = "ExpensesDetailsViewModel"
         private const val DEFAULT_BUSINESS = "defaultBusiness"
         private const val DEFAULT_EXPENSES = "defaultExpenses"
+        private const val PAGE_SIZE = 22
     }
 
+    // Instancias de Room
     private val expenseDao = AppDatabase.getDatabase(application).expenseDao()
 
     // Instancias de Firebase
@@ -37,9 +40,17 @@ class ExpensesViewModel(application: Application) : AndroidViewModel(application
     val expensesDetailsList: StateFlow<List<ExpenseFirebase>> =
         _expensesDetailsList // StateFlow expuesto a la vista
 
+    // Cargar gastos desde Firebase
+    private val _expenses = MutableStateFlow<List<ExpenseFirebase>>(emptyList())
+    val expenses: StateFlow<List<ExpenseFirebase>> = _expenses
+
     // Nuevo campo para el estado de carga
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
+
+    // Estados de Firebase
+    private var lastSnapshot: DocumentSnapshot? = null
+    private var endReached = false
 
     init {
         val userEmail = auth.currentUser?.email
@@ -47,43 +58,43 @@ class ExpensesViewModel(application: Application) : AndroidViewModel(application
             Log.e(TAG, "Usuario no autenticado. No se pueden cargar los datos.")
         } else {
             Log.d(TAG, "Usuario autenticado: $userEmail")
-            loadExpensesFromFirebase(userEmail)
+            //loadExpensesFromFirebase(userEmail)
+            loadNextPage()
         }
     }
 
-    // Función para cargar los tickets desde Firebase
-    private fun loadExpensesFromFirebase(userEmail: String) {
+    fun loadNextPage() {
+        val userEmail = auth.currentUser?.email ?: return
+        if (_isLoading.value || endReached) return
 
         _isLoading.value = true
-        db.collection("users")
+
+        var query = db.collection("users")
             .document(userEmail)
             .collection("userMyBusinesses")
             .document(DEFAULT_BUSINESS)
             .collection("userMyExpenses")
             .document(DEFAULT_EXPENSES)
             .collection("userExpenses")
-            .addSnapshotListener { snapshot, e ->
-                if (e != null) {
-                    Log.e(TAG, "Error al obtener los gastos: $e")
-                    _isLoading.value = false
-                    return@addSnapshotListener
-                }
+            .orderBy("date", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .orderBy("time", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .limit(PAGE_SIZE.toLong())
 
-                if (snapshot != null && !snapshot.isEmpty) {
-                    val fetchedExpenses = snapshot.documents.mapNotNull { doc ->
-                        doc.toObject(ExpenseFirebase::class.java)
-                    }
-                    _expensesDetailsList.value = fetchedExpenses
-                    Log.d(TAG, "Gastos cargados: ${_expensesDetailsList.value}")
-                    _isLoading.value = false
-                } else {
-                    Log.d(TAG, "No se encontraron gastos")
-                    _expensesDetailsList.value = emptyList()
-                    _isLoading.value = false
-                }
-            }
+        lastSnapshot?.let { query = query.startAfter(it) }
+
+        query.get().addOnSuccessListener { snap ->
+            val list = snap.documents.mapNotNull { it.toObject(ExpenseFirebase::class.java) }
+            if (list.size < PAGE_SIZE) endReached = true
+            lastSnapshot = snap.documents.lastOrNull()
+            _expenses.value = _expenses.value + list
+            _isLoading.value = false
+        }.addOnFailureListener {
+            Log.e(TAG, "Error cargando gastos: $it")
+            _isLoading.value = false
+        }
     }
 
+    // guardar gastos en bd room
     fun confirmExpense(
         paymentConcept: String,
         paymentMethod: String,
@@ -132,6 +143,7 @@ class ExpensesViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
+    // Subir gastos a Firebase
     private fun uploadExpenseToFirebase(expenseEntity: ExpenseEntity) {
 
         _isLoading.value = true
@@ -164,7 +176,7 @@ class ExpensesViewModel(application: Application) : AndroidViewModel(application
             }
     }
 
-    // función para agrupar y ordenar
+    // Agrupación y ordenación
     data class GroupedExpenses(
         val year: String,
         val month: String,
@@ -173,35 +185,24 @@ class ExpensesViewModel(application: Application) : AndroidViewModel(application
 
     fun groupExpensesByYearAndMonth(expenses: List<ExpenseFirebase>): List<GroupedExpenses> {
         val formatter = SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.getDefault())
-        val grouped = expenses.sortedByDescending { formatter.parse("${it.date} ${it.time}") }
-            .groupBy { expense ->
-                val date = formatter.parse("${expense.date} ${expense.time}")
-                val calendar = Calendar.getInstance()
-                calendar.time = date!!
-                val year = calendar.get(Calendar.YEAR).toString()
-                val month =
-                    calendar.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault())!!
-                Pair(year, month)
+        val sorted = expenses.sortedByDescending { formatter.parse("${it.date} ${it.time}") }
+        val grouped = sorted.groupBy {
+            val cal = Calendar.getInstance().apply {
+                time = formatter.parse("${it.date} ${it.time}")!!
             }
-
-        return grouped.map { (yearMonth, expensesList) ->
-            GroupedExpenses(
-                year = yearMonth.first,
-                month = yearMonth.second,
-                expenses = expensesList
-            )
-        }.sortedWith(
-            compareByDescending<GroupedExpenses> { it.year.toInt() }
-                .thenByDescending { monthNameToNumber(it.month) }
-        )
+            val yr = cal.get(Calendar.YEAR).toString()
+            val mo = cal.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault())!!
+            Pair(yr, mo)
+        }
+        return grouped
+            .map { (ym, list) -> GroupedExpenses(ym.first, ym.second, list) }
+            .sortedWith(compareByDescending<GroupedExpenses> { it.year.toInt() }
+                .thenByDescending { monthNameToNumber(it.month) })
     }
 
-    private fun monthNameToNumber(monthName: String): Int {
-        return SimpleDateFormat("MMMM", Locale.getDefault()).parse(monthName)?.let {
-            val calendar = Calendar.getInstance()
-            calendar.time = it
-            calendar.get(Calendar.MONTH)
-        } ?: 0
-    }
-
+    private fun monthNameToNumber(monthName: String): Int =
+        SimpleDateFormat("MMMM", Locale.getDefault())
+            .parse(monthName)?.let {
+                Calendar.getInstance().apply { time = it }.get(Calendar.MONTH)
+            } ?: 0
 }

@@ -2,6 +2,8 @@ package com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.expensesList
 
 // ExpensesListScreen.kt
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -21,10 +23,12 @@ import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -38,19 +42,20 @@ import com.elfrikiamv.minegocio_puntodeventa.model.home.expenses.ExpenseFirebase
 import com.elfrikiamv.minegocio_puntodeventa.navigation.Screen
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.home.expenses.ExpensesViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun ExpensesDetailsScreen(navController: NavController) {
 
     val viewModel: ExpensesViewModel = viewModel()
 
-    val expensesDetails by viewModel.expensesDetailsList.collectAsState()
-
-    // Agrupar los gastos por mes y año
-    val groupedExpenses = viewModel.groupExpensesByYearAndMonth(expensesDetails)
+    //val expensesDetails by viewModel.expensesDetailsList.collectAsState()
+    val expenses by viewModel.expenses.collectAsState()
 
     // Observar el estado de isLoading
     val isLoading by viewModel.isLoading.collectAsState()
+
+    // Cargar los gastos desde Firebase
+    val grouped = viewModel.groupExpensesByYearAndMonth(expenses)
 
     // Contenido de la pantalla que muestra ExpensesDetailsScreen
     Scaffold(
@@ -98,7 +103,7 @@ fun ExpensesDetailsScreen(navController: NavController) {
                     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                 }
 
-                if (expensesDetails.isEmpty() && !isLoading) {
+                if (expenses.isEmpty() && !isLoading) {
                     Column(
                         modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.Center,
@@ -108,8 +113,6 @@ fun ExpensesDetailsScreen(navController: NavController) {
                         Text("):")
                     }
                 } else {
-                    //val groupedExpenses = viewModel.groupExpensesByYearAndMonth(expensesDetails)
-
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(16.dp),
                         modifier = Modifier
@@ -117,20 +120,33 @@ fun ExpensesDetailsScreen(navController: NavController) {
                             .weight(1f)
                             .padding(end = 16.dp, start = 16.dp, top = 16.dp)
                     ) {
-                        groupedExpenses.forEach { group ->
-                            item {
-                                Text(
-                                    text = "${group.month} - ${group.year}",
-                                    //style = MaterialTheme.typography.titleMedium,
-                                    //modifier = Modifier.padding(vertical = 8.dp)
-                                )
+                        grouped.forEach { gr ->
+                            stickyHeader {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .background(MaterialTheme.colorScheme.background)
+                                        .padding(start = 16.dp)
+                                ) {
+                                    Text(
+                                        text = "${gr.month} - ${gr.year}",
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+                                }
                             }
-                            items(group.expenses) { expense ->
-                                ExpensesDetailsCard(expense)
+                            items(gr.expenses) { exp ->
+                                ExpensesDetailsCard(exp)
                             }
                         }
                         item {
-                            Spacer(modifier = Modifier.height(72.dp))
+                            //Spacer(modifier = Modifier.height(16.dp))
+                            // Cargar siguiente página cuando llegues al final
+                            LaunchedEffect(Unit) {
+                                viewModel.loadNextPage()
+                            }
+                        }
+                        item {
+                            Spacer(modifier = Modifier.height(56.dp))
                         }
                     }
                 }
