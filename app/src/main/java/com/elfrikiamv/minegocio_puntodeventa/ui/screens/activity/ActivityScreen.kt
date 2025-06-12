@@ -2,6 +2,8 @@ package com.elfrikiamv.minegocio_puntodeventa.ui.screens.activity
 
 // ActivityScreen.kt
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,10 +22,12 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -37,7 +41,7 @@ import com.elfrikiamv.minegocio_puntodeventa.model.shopping.TicketFirebase
 import com.elfrikiamv.minegocio_puntodeventa.navigation.Screen
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.activity.ActivityViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun ActivityScreen(navController: NavController) {
 
@@ -47,6 +51,9 @@ fun ActivityScreen(navController: NavController) {
 
     // Observar el estado de isLoading
     val isLoading by viewModel.isLoading.collectAsState()
+
+    // Agrupar los tickets por año y mes
+    val grouped = viewModel.groupTicketsByYearAndMonth(tickets)
 
     Scaffold(
         topBar = {
@@ -74,18 +81,39 @@ fun ActivityScreen(navController: NavController) {
                         Text("):")
                     }
                 } else {
-                    // Mostrar los tickets en una lista cuando los datos estén listos
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(16.dp),
                         modifier = Modifier
-                            .fillMaxWidth()
+                            .fillMaxSize()
                             .weight(1f)
-                            .padding(16.dp)
+                            .padding(end = 16.dp, start = 16.dp, top = 16.dp)
                     ) {
-                        items(tickets) { ticket ->
-                            TicketCard(ticket = ticket) {
-                                // Navegar a DetailsTicketScreen pasando el ID del ticket
-                                navController.navigate(Screen.DetailsTicket.route + "?ticketId=${ticket.ticketId}")
+                        grouped.forEach { gr ->
+                            stickyHeader {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .background(MaterialTheme.colorScheme.background)
+                                        .padding(start = 16.dp)
+                                ) {
+                                    Text(
+                                        text = "${gr.month} - ${gr.year}",
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+                                }
+                            }
+                            items(gr.tickets) { ticket ->
+                                TicketCard(ticket = ticket) {
+                                    // Navegar a DetailsTicketScreen pasando el ID del ticket
+                                    navController.navigate(Screen.DetailsTicket.route + "?ticketId=${ticket.ticketId}")
+                                }
+                            }
+                        }
+                        item {
+                            //Spacer(modifier = Modifier.height(16.dp))
+                            // Cargar siguiente página cuando llegues al final
+                            LaunchedEffect(Unit) {
+                                viewModel.loadNextPage()
                             }
                         }
                     }

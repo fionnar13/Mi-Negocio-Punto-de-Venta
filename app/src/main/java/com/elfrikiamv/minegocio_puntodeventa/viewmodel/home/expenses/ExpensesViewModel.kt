@@ -36,9 +36,9 @@ class ExpensesViewModel(application: Application) : AndroidViewModel(application
     private val db = FirebaseFirestore.getInstance()
 
     // MutableStateFlow para almacenar la lista de gastos
-    private val _expensesDetailsList = MutableStateFlow<List<ExpenseFirebase>>(emptyList())
+    /*private val _expensesDetailsList = MutableStateFlow<List<ExpenseFirebase>>(emptyList())
     val expensesDetailsList: StateFlow<List<ExpenseFirebase>> =
-        _expensesDetailsList // StateFlow expuesto a la vista
+        _expensesDetailsList // StateFlow expuesto a la vista*/
 
     // Cargar gastos desde Firebase
     private val _expenses = MutableStateFlow<List<ExpenseFirebase>>(emptyList())
@@ -86,7 +86,7 @@ class ExpensesViewModel(application: Application) : AndroidViewModel(application
             val list = snap.documents.mapNotNull { it.toObject(ExpenseFirebase::class.java) }
             if (list.size < PAGE_SIZE) endReached = true
             lastSnapshot = snap.documents.lastOrNull()
-            _expenses.value = _expenses.value + list
+            _expenses.value += list
             _isLoading.value = false
         }.addOnFailureListener {
             Log.e(TAG, "Error cargando gastos: $it")

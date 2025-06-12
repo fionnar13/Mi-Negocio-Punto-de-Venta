@@ -10,6 +10,7 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.AndroidViewModel
 import com.elfrikiamv.minegocio_puntodeventa.model.shopping.TicketFirebase
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.tom_roush.pdfbox.android.PDFBoxResourceLoader
 import com.tom_roush.pdfbox.pdmodel.PDDocument
@@ -20,9 +21,19 @@ import com.tom_roush.pdfbox.pdmodel.font.PDType1Font
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 // ViewModel para manejar la lógica de ActivityScreen
 class ActivityViewModel(application: Application) : AndroidViewModel(application) {
+
+    companion object {
+        private const val TAG = "ActivityViewModel"
+        private const val DEFAULT_BUSINESS = "defaultBusiness"
+        private const val DEFAULT_TICKETS = "defaultTickets"
+        private const val PAGE_SIZE = 22
+    }
 
     private val auth = FirebaseAuth.getInstance() // Instancia de Firebase Auth
     private val db = FirebaseFirestore.getInstance() // Instancia de Firestore
@@ -31,59 +42,85 @@ class ActivityViewModel(application: Application) : AndroidViewModel(application
     private val _tickets = MutableStateFlow<List<TicketFirebase>>(emptyList())
     val tickets: StateFlow<List<TicketFirebase>> = _tickets // StateFlow expuesto a la vista
 
-    private val userMyBusinesses = "defaultBusiness"
-
-    private val userMyTickets = "defaultTickets"
-
     // Nuevo campo para el estado de carga
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
+    // Estados de Firebase
+    private var lastSnapshot: DocumentSnapshot? = null
+    private var endReached = false
+
     init {
-        // Cargar los tickets al inicializar el ViewModel
-        loadTicketsFromFirebase()
+        val userEmail = auth.currentUser?.email
+        if (userEmail == null) {
+            Log.e(TAG, "Usuario no autenticado. No se pueden cargar los datos.")
+        } else {
+            Log.d(TAG, "Usuario autenticado: $userEmail")
+            loadNextPage()
+        }
     }
 
-    // Función para cargar los tickets desde Firebase
-    private fun loadTicketsFromFirebase() {
+    fun loadNextPage() {
+        val userEmail = auth.currentUser?.email ?: return
+        if (_isLoading.value || endReached) return
 
-        _isLoading.value = true // Mostrar indicador de carga
-        val userEmail = auth.currentUser?.email
-        if (userEmail.isNullOrEmpty()) {
-            Log.e("ActivityViewModel", "Usuario no autenticado")
-            return
-        }
+        _isLoading.value = true
 
-        // Escuchar cambios en tiempo real en la colección de tickets
-        db.collection("users")
+        var query = db.collection("users")
             .document(userEmail)
             .collection("userMyBusinesses")
-            .document(userMyBusinesses)
+            .document(DEFAULT_BUSINESS)
             .collection("userMyTickets")
-            .document(userMyTickets)
+            .document(DEFAULT_TICKETS)
             .collection("userTickets")
+            .orderBy("date", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .orderBy("time", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .limit(PAGE_SIZE.toLong())
 
-            //.collection("tickets")
-            .addSnapshotListener { snapshot, e ->
-                if (e != null) {
-                    Log.e("ActivityViewModel", "Error al obtener los tickets: $e")
-                    _isLoading.value = false // Ocultar indicador de carga en caso de error
-                    return@addSnapshotListener
-                }
+        lastSnapshot?.let { query = query.startAfter(it) }
 
-                if (snapshot != null && !snapshot.isEmpty) {
-                    val fetchedTickets = snapshot.documents.mapNotNull { doc ->
-                        doc.toObject(TicketFirebase::class.java) // Convertir cada documento a objeto Ticket
-                    }
-                    _tickets.value = fetchedTickets // Actualizar el StateFlow
-                    Log.d("ActivityViewModel", "Tickets cargados: ${_tickets.value}")
-                    _isLoading.value = false // Ocultar indicador de carga
-                } else {
-                    Log.d("ActivityViewModel", "No se encontraron tickets")
-                    _isLoading.value = false // Ocultar indicador de carga
-                }
-            }
+        query.get().addOnSuccessListener { snap ->
+            val list = snap.documents.mapNotNull { it.toObject(TicketFirebase::class.java) }
+            if (list.size < PAGE_SIZE) endReached = true
+            lastSnapshot = snap.documents.lastOrNull()
+            _tickets.value += list
+            _isLoading.value = false
+        }.addOnFailureListener {
+            Log.e(TAG, "Error cargando tickets: $it")
+            _isLoading.value = false
+        }
     }
+
+    // Agrupación y ordenación
+    data class GroupedTickets(
+        val year: String,
+        val month: String,
+        val tickets: List<TicketFirebase>
+    )
+
+    fun groupTicketsByYearAndMonth(tickets: List<TicketFirebase>): List<GroupedTickets> {
+        val formatter = SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.getDefault())
+        val sorted = tickets.sortedByDescending { formatter.parse("${it.date} ${it.time}") }
+        val grouped = sorted.groupBy {
+            val cal = Calendar.getInstance().apply {
+                time = formatter.parse("${it.date} ${it.time}")!!
+            }
+            val yr = cal.get(Calendar.YEAR).toString()
+            val mo = cal.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault())!!
+            Pair(yr, mo)
+        }
+        return grouped
+            .map { (ym, list) -> GroupedTickets(ym.first, ym.second, list) }
+            .sortedWith(compareByDescending<GroupedTickets> { it.year.toInt() }
+                .thenByDescending { monthNameToNumber(it.month) })
+    }
+
+    private fun monthNameToNumber(monthName: String): Int =
+        SimpleDateFormat("MMMM", Locale.getDefault())
+            .parse(monthName)?.let {
+                Calendar.getInstance().apply { time = it }.get(Calendar.MONTH)
+            } ?: 0
+
 
     //verificar si el ticket existe en Firestore
     fun checkTicketExists(ticketId: String, callback: (TicketFirebase?) -> Unit) {
@@ -94,9 +131,9 @@ class ActivityViewModel(application: Application) : AndroidViewModel(application
         db.collection("users")
             .document(userEmail)
             .collection("userMyBusinesses")
-            .document(userMyBusinesses)
+            .document(DEFAULT_BUSINESS)
             .collection("userMyTickets")
-            .document(userMyTickets)
+            .document(DEFAULT_TICKETS)
             .collection("userTickets")
 
             //.collection("tickets")
