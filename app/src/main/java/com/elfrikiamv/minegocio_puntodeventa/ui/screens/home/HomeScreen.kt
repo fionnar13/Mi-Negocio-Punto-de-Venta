@@ -31,8 +31,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.elfrikiamv.minegocio_puntodeventa.R
 import com.elfrikiamv.minegocio_puntodeventa.navigation.Screen
-import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.helpTexts.HelpIconWithDialog
-import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.helpTexts.HelpTexts
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.dialogues.helpDialogues.HelpIconWithDialog
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.dialogues.helpDialogues.HelpTexts
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.home.HomeViewModel
 import java.util.Locale
 

@@ -1,8 +1,7 @@
-package com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.helpTexts
+package com.elfrikiamv.minegocio_puntodeventa.ui.screens.dialogues.helpDialogues
 
-// HelpIconWithDialog.kt
+// HelpWithDialog.kt
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size

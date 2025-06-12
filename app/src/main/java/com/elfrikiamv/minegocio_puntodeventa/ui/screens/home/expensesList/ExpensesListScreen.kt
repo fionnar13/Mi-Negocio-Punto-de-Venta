@@ -46,6 +46,9 @@ fun ExpensesDetailsScreen(navController: NavController) {
 
     val expensesDetails by viewModel.expensesDetailsList.collectAsState()
 
+    // Agrupar los gastos por mes y año
+    val groupedExpenses = viewModel.groupExpensesByYearAndMonth(expensesDetails)
+
     // Observar el estado de isLoading
     val isLoading by viewModel.isLoading.collectAsState()
 
@@ -105,6 +108,8 @@ fun ExpensesDetailsScreen(navController: NavController) {
                         Text("):")
                     }
                 } else {
+                    //val groupedExpenses = viewModel.groupExpensesByYearAndMonth(expensesDetails)
+
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(16.dp),
                         modifier = Modifier
@@ -112,8 +117,17 @@ fun ExpensesDetailsScreen(navController: NavController) {
                             .weight(1f)
                             .padding(end = 16.dp, start = 16.dp, top = 16.dp)
                     ) {
-                        items(expensesDetails) { expenses ->
-                            ExpensesDetailsCard(expenses)
+                        groupedExpenses.forEach { group ->
+                            item {
+                                Text(
+                                    text = "${group.month} - ${group.year}",
+                                    //style = MaterialTheme.typography.titleMedium,
+                                    //modifier = Modifier.padding(vertical = 8.dp)
+                                )
+                            }
+                            items(group.expenses) { expense ->
+                                ExpensesDetailsCard(expense)
+                            }
                         }
                         item {
                             Spacer(modifier = Modifier.height(72.dp))

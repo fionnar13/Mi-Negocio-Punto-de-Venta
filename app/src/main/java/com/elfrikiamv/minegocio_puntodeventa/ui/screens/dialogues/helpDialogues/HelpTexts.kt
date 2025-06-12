@@ -1,4 +1,4 @@
-package com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.helpTexts
+package com.elfrikiamv.minegocio_puntodeventa.ui.screens.dialogues.helpDialogues
 
 // HelpTexts.kt
 

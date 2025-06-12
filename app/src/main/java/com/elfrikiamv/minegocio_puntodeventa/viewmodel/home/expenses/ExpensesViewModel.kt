@@ -78,6 +78,7 @@ class ExpensesViewModel(application: Application) : AndroidViewModel(application
                     _isLoading.value = false
                 } else {
                     Log.d(TAG, "No se encontraron gastos")
+                    _expensesDetailsList.value = emptyList()
                     _isLoading.value = false
                 }
             }
@@ -96,7 +97,7 @@ class ExpensesViewModel(application: Application) : AndroidViewModel(application
             // Obtener información de fecha y hora
             val currentDateTimeExpenseId = System.currentTimeMillis()
             val currentDateTime = Calendar.getInstance()
-            val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
             val timeFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
 
             val dateFormatted = dateFormat.format(currentDateTime.time)
@@ -162,4 +163,45 @@ class ExpensesViewModel(application: Application) : AndroidViewModel(application
                 _isLoading.value = false
             }
     }
+
+    // función para agrupar y ordenar
+    data class GroupedExpenses(
+        val year: String,
+        val month: String,
+        val expenses: List<ExpenseFirebase>
+    )
+
+    fun groupExpensesByYearAndMonth(expenses: List<ExpenseFirebase>): List<GroupedExpenses> {
+        val formatter = SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.getDefault())
+        val grouped = expenses.sortedByDescending { formatter.parse("${it.date} ${it.time}") }
+            .groupBy { expense ->
+                val date = formatter.parse("${expense.date} ${expense.time}")
+                val calendar = Calendar.getInstance()
+                calendar.time = date!!
+                val year = calendar.get(Calendar.YEAR).toString()
+                val month =
+                    calendar.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault())!!
+                Pair(year, month)
+            }
+
+        return grouped.map { (yearMonth, expensesList) ->
+            GroupedExpenses(
+                year = yearMonth.first,
+                month = yearMonth.second,
+                expenses = expensesList
+            )
+        }.sortedWith(
+            compareByDescending<GroupedExpenses> { it.year.toInt() }
+                .thenByDescending { monthNameToNumber(it.month) }
+        )
+    }
+
+    private fun monthNameToNumber(monthName: String): Int {
+        return SimpleDateFormat("MMMM", Locale.getDefault()).parse(monthName)?.let {
+            val calendar = Calendar.getInstance()
+            calendar.time = it
+            calendar.get(Calendar.MONTH)
+        } ?: 0
+    }
+
 }
