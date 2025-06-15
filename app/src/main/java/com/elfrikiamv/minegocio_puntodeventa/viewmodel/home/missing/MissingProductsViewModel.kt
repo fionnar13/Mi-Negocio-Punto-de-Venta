@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.elfrikiamv.minegocio_puntodeventa.database.AppDatabase
 import com.elfrikiamv.minegocio_puntodeventa.model.home.missing.MissingProductEntity
 import com.elfrikiamv.minegocio_puntodeventa.model.home.missing.MissingProductFirebase
+import com.elfrikiamv.minegocio_puntodeventa.viewmodel.activity.ActivityViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
@@ -35,8 +36,12 @@ class MissingProductsViewModel(application: Application) : AndroidViewModel(appl
     private val db = FirebaseFirestore.getInstance()
 
     // MutableStateFlow para almacenar la lista de faltantes
-    private val _missingList = MutableStateFlow<List<MissingProductFirebase>>(emptyList())
-    val missingList: StateFlow<List<MissingProductFirebase>> = _missingList
+    /*private val _missingList = MutableStateFlow<List<MissingProductFirebase>>(emptyList())
+    val missingList: StateFlow<List<MissingProductFirebase>> = _missingList*/
+
+    // StateFlow para los missing agrupados por año y mes
+    private val _groupedMissing = MutableStateFlow<List<GroupedMissing>>(emptyList())
+    val groupedMissing: StateFlow<List<GroupedMissing>> = _groupedMissing
 
     // Nuevo campo para el estado de carga
     private val _isLoading = MutableStateFlow(false)
@@ -81,7 +86,11 @@ class MissingProductsViewModel(application: Application) : AndroidViewModel(appl
             val list = snap.documents.mapNotNull { it.toObject(MissingProductFirebase::class.java) }
             if (list.size < PAGE_SIZE) endReached = true
             lastSnapshot = snap.documents.lastOrNull()
-            _missingList.value += list
+
+            // Genera la agrupación reactiva combinando lo que ya había con lo nuevo
+            val allMissing = _groupedMissing.value.flatMap { it.missing } + list
+            _groupedMissing.value = groupMissingByYearAndMonth(allMissing)
+
             _isLoading.value = false
         }.addOnFailureListener {
             Log.e(TAG, "Error cargando faltantes: $it")
@@ -96,7 +105,7 @@ class MissingProductsViewModel(application: Application) : AndroidViewModel(appl
         val missing: List<MissingProductFirebase>
     )
 
-    fun groupMissingByYearAndMonth(missing: List<MissingProductFirebase>): List<GroupedMissing> {
+    private fun groupMissingByYearAndMonth(missing: List<MissingProductFirebase>): List<GroupedMissing> {
         val formatter = SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.getDefault())
         val sorted = missing.sortedByDescending { formatter.parse("${it.date} ${it.time}") }
         val grouped = sorted.groupBy {

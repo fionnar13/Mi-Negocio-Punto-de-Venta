@@ -35,14 +35,13 @@ class ExpensesViewModel(application: Application) : AndroidViewModel(application
     private val auth = FirebaseAuth.getInstance()
     private val db = FirebaseFirestore.getInstance()
 
-    // MutableStateFlow para almacenar la lista de gastos
-    /*private val _expensesDetailsList = MutableStateFlow<List<ExpenseFirebase>>(emptyList())
-    val expensesDetailsList: StateFlow<List<ExpenseFirebase>> =
-        _expensesDetailsList // StateFlow expuesto a la vista*/
-
     // Cargar gastos desde Firebase
-    private val _expenses = MutableStateFlow<List<ExpenseFirebase>>(emptyList())
-    val expenses: StateFlow<List<ExpenseFirebase>> = _expenses
+    /*private val _expenses = MutableStateFlow<List<ExpenseFirebase>>(emptyList())
+    val expenses: StateFlow<List<ExpenseFirebase>> = _expenses*/
+
+    // StateFlow para los expenses agrupados por año y mes
+    private val _groupedExpenses = MutableStateFlow<List<GroupedExpenses>>(emptyList())
+    val groupedExpenses: StateFlow<List<GroupedExpenses>> = _groupedExpenses
 
     // Nuevo campo para el estado de carga
     private val _isLoading = MutableStateFlow(false)
@@ -82,7 +81,7 @@ class ExpensesViewModel(application: Application) : AndroidViewModel(application
 
         lastSnapshot?.let { query = query.startAfter(it) }
 
-        query.get().addOnSuccessListener { snap ->
+        /*query.get().addOnSuccessListener { snap ->
             val list = snap.documents.mapNotNull { it.toObject(ExpenseFirebase::class.java) }
             if (list.size < PAGE_SIZE) endReached = true
             lastSnapshot = snap.documents.lastOrNull()
@@ -91,8 +90,52 @@ class ExpensesViewModel(application: Application) : AndroidViewModel(application
         }.addOnFailureListener {
             Log.e(TAG, "Error cargando gastos: $it")
             _isLoading.value = false
+        }*/
+        query.get().addOnSuccessListener { snap ->
+            val list = snap.documents.mapNotNull { it.toObject(ExpenseFirebase::class.java) }
+            if (list.size < PAGE_SIZE) endReached = true
+            lastSnapshot = snap.documents.lastOrNull()
+
+            // Genera la agrupación reactiva combinando lo que ya había con lo nuevo
+            val allExpenses = _groupedExpenses.value.flatMap { it.expenses } + list
+            _groupedExpenses.value = groupExpensesByYearAndMonth(allExpenses)
+
+            _isLoading.value = false
+        }.addOnFailureListener {
+            Log.e(TAG, "Error cargando gastos: $it")
+            _isLoading.value = false
         }
     }
+
+    // Agrupación y ordenación
+    data class GroupedExpenses(
+        val year: String,
+        val month: String,
+        val expenses: List<ExpenseFirebase>
+    )
+
+    private fun groupExpensesByYearAndMonth(expenses: List<ExpenseFirebase>): List<GroupedExpenses> {
+        val formatter = SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.getDefault())
+        val sorted = expenses.sortedByDescending { formatter.parse("${it.date} ${it.time}") }
+        val grouped = sorted.groupBy {
+            val cal = Calendar.getInstance().apply {
+                time = formatter.parse("${it.date} ${it.time}")!!
+            }
+            val yr = cal.get(Calendar.YEAR).toString()
+            val mo = cal.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault())!!
+            Pair(yr, mo)
+        }
+        return grouped
+            .map { (ym, list) -> GroupedExpenses(ym.first, ym.second, list) }
+            .sortedWith(compareByDescending<GroupedExpenses> { it.year.toInt() }
+                .thenByDescending { monthNameToNumber(it.month) })
+    }
+
+    private fun monthNameToNumber(monthName: String): Int =
+        SimpleDateFormat("MMMM", Locale.getDefault())
+            .parse(monthName)?.let {
+                Calendar.getInstance().apply { time = it }.get(Calendar.MONTH)
+            } ?: 0
 
     // guardar gastos en bd room
     fun confirmExpense(
@@ -175,34 +218,4 @@ class ExpensesViewModel(application: Application) : AndroidViewModel(application
                 _isLoading.value = false
             }
     }
-
-    // Agrupación y ordenación
-    data class GroupedExpenses(
-        val year: String,
-        val month: String,
-        val expenses: List<ExpenseFirebase>
-    )
-
-    fun groupExpensesByYearAndMonth(expenses: List<ExpenseFirebase>): List<GroupedExpenses> {
-        val formatter = SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.getDefault())
-        val sorted = expenses.sortedByDescending { formatter.parse("${it.date} ${it.time}") }
-        val grouped = sorted.groupBy {
-            val cal = Calendar.getInstance().apply {
-                time = formatter.parse("${it.date} ${it.time}")!!
-            }
-            val yr = cal.get(Calendar.YEAR).toString()
-            val mo = cal.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault())!!
-            Pair(yr, mo)
-        }
-        return grouped
-            .map { (ym, list) -> GroupedExpenses(ym.first, ym.second, list) }
-            .sortedWith(compareByDescending<GroupedExpenses> { it.year.toInt() }
-                .thenByDescending { monthNameToNumber(it.month) })
-    }
-
-    private fun monthNameToNumber(monthName: String): Int =
-        SimpleDateFormat("MMMM", Locale.getDefault())
-            .parse(monthName)?.let {
-                Calendar.getInstance().apply { time = it }.get(Calendar.MONTH)
-            } ?: 0
 }

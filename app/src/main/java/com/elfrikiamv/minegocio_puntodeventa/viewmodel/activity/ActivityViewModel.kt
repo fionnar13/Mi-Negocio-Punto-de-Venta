@@ -38,11 +38,11 @@ class ActivityViewModel(application: Application) : AndroidViewModel(application
     private val auth = FirebaseAuth.getInstance() // Instancia de Firebase Auth
     private val db = FirebaseFirestore.getInstance() // Instancia de Firestore
 
-    // MutableStateFlow para almacenar la lista de tickets
-    private val _tickets = MutableStateFlow<List<TicketFirebase>>(emptyList())
-    val tickets: StateFlow<List<TicketFirebase>> = _tickets // StateFlow expuesto a la vista
+    // StateFlow para los tickets agrupados por año y mes
+    private val _groupedTickets = MutableStateFlow<List<GroupedTickets>>(emptyList())
+    val groupedTickets: StateFlow<List<GroupedTickets>> = _groupedTickets
 
-    // Nuevo campo para el estado de carga
+    // campo para el estado de carga
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
@@ -60,6 +60,7 @@ class ActivityViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
+    // Paginación mejorada: carga siguiente página desde Firestore
     fun loadNextPage() {
         val userEmail = auth.currentUser?.email ?: return
         if (_isLoading.value || endReached) return
@@ -83,7 +84,11 @@ class ActivityViewModel(application: Application) : AndroidViewModel(application
             val list = snap.documents.mapNotNull { it.toObject(TicketFirebase::class.java) }
             if (list.size < PAGE_SIZE) endReached = true
             lastSnapshot = snap.documents.lastOrNull()
-            _tickets.value += list
+
+            // Genera la agrupación reactiva combinando lo que ya había con lo nuevo
+            val allTickets = _groupedTickets.value.flatMap { it.tickets } + list
+            _groupedTickets.value = groupTicketsByYearAndMonth(allTickets)
+
             _isLoading.value = false
         }.addOnFailureListener {
             Log.e(TAG, "Error cargando tickets: $it")
@@ -98,7 +103,7 @@ class ActivityViewModel(application: Application) : AndroidViewModel(application
         val tickets: List<TicketFirebase>
     )
 
-    fun groupTicketsByYearAndMonth(tickets: List<TicketFirebase>): List<GroupedTickets> {
+    private fun groupTicketsByYearAndMonth(tickets: List<TicketFirebase>): List<GroupedTickets> {
         val formatter = SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.getDefault())
         val sorted = tickets.sortedByDescending { formatter.parse("${it.date} ${it.time}") }
         val grouped = sorted.groupBy {

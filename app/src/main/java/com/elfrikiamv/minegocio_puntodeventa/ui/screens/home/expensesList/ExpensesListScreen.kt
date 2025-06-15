@@ -2,6 +2,11 @@ package com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.expensesList
 
 // ExpensesListScreen.kt
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -17,6 +22,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -31,6 +38,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -49,13 +57,26 @@ fun ExpensesDetailsScreen(navController: NavController) {
     val viewModel: ExpensesViewModel = viewModel()
 
     //val expensesDetails by viewModel.expensesDetailsList.collectAsState()
-    val expenses by viewModel.expenses.collectAsState()
+    //val expenses by viewModel.expenses.collectAsState()
+    val grouped by viewModel.groupedExpenses.collectAsState()
 
     // Observar el estado de isLoading
     val isLoading by viewModel.isLoading.collectAsState()
 
-    // Cargar los gastos desde Firebase
-    val grouped = viewModel.groupExpensesByYearAndMonth(expenses)
+    // Estado para controlar posición del scroll
+    val listState = rememberLazyListState()
+
+    // Cargar siguiente página al acercarse al final del scroll
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.layoutInfo.visibleItemsInfo }
+            .collect { visibleItems ->
+                val totalItems = listState.layoutInfo.totalItemsCount
+                val lastVisibleItem = visibleItems.lastOrNull()?.index ?: 0
+                if (lastVisibleItem >= totalItems - 4 && !isLoading) {
+                    viewModel.loadNextPage()
+                }
+            }
+    }
 
     // Contenido de la pantalla que muestra ExpensesDetailsScreen
     Scaffold(
@@ -99,11 +120,11 @@ fun ExpensesDetailsScreen(navController: NavController) {
                     .fillMaxSize()
             ) {
                 // Mostrar el LinearProgressIndicator mientras se cargan los datos
-                if (isLoading) {
+                if (isLoading && grouped.isEmpty()) {
                     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                 }
 
-                if (expenses.isEmpty() && !isLoading) {
+                if (grouped.isEmpty() && !isLoading) {
                     Column(
                         modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.Center,
@@ -114,6 +135,7 @@ fun ExpensesDetailsScreen(navController: NavController) {
                     }
                 } else {
                     LazyColumn(
+                        state = listState,
                         verticalArrangement = Arrangement.spacedBy(16.dp),
                         modifier = Modifier
                             .fillMaxSize()
@@ -138,11 +160,21 @@ fun ExpensesDetailsScreen(navController: NavController) {
                                 ExpensesDetailsCard(exp)
                             }
                         }
+                        // AnimatedVisibility: indicador de carga al final de la lista
                         item {
-                            //Spacer(modifier = Modifier.height(16.dp))
-                            // Cargar siguiente página cuando llegues al final
-                            LaunchedEffect(Unit) {
-                                viewModel.loadNextPage()
+                            AnimatedVisibility(
+                                visible = isLoading,
+                                enter = fadeIn() + slideInVertically { it / 2 },
+                                exit = fadeOut() + slideOutVertically { it / 2 }
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(8.dp),
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
+                                    CircularProgressIndicator()
+                                }
                             }
                         }
                         item {
