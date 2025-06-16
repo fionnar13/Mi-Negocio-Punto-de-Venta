@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 class InventoryViewModel : ViewModel() {
@@ -38,16 +39,21 @@ class InventoryViewModel : ViewModel() {
 
     val filteredProducts: StateFlow<List<ProductFirebase>> = _searchQuery
         .combine(_products) { query, products ->
-            if (query.isBlank()) products
+            val result = if (query.isBlank()) products
             else products.filter {
                 it.name.contains(query, ignoreCase = true) ||
                         it.barcode.contains(query, ignoreCase = true)
             }
+            // Ordenar también los resultados filtrados
+            result.sortedBy { it.name.lowercase() }
         }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     // Nuevo campo para el estado de carga
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
+
+    private val _visibleItemCount = MutableStateFlow(50)
+    val visibleItemCount: StateFlow<Int> = _visibleItemCount
 
     // Cargar los productos al iniciar el ViewModel
     init {
@@ -85,10 +91,28 @@ class InventoryViewModel : ViewModel() {
                 val productsList = snapshot.documents.mapNotNull { doc ->
                     doc.toObject(ProductFirebase::class.java)?.copy(id = doc.id)
                 }
-                _products.value = productsList
+                // Aquí ordenamos por nombre alfabético (case insensitive)
+                _products.value = productsList.sortedBy { it.name.lowercase() }
                 _isLoading.value = false
             }
     }
+
+    val groupedProducts: StateFlow<Map<Char, List<ProductFirebase>>> = products
+        .map { productList ->
+            productList.groupBy { product ->
+                product.name.firstOrNull()?.uppercaseChar() ?: '#'
+            }.toSortedMap()
+        }.stateIn(viewModelScope, SharingStarted.Lazily, emptyMap())
+
+    /*fun loadMoreItems() {
+        _visibleItemCount.value += 50
+    }*/
+    fun loadMoreItems(totalItems: Int) {
+        if (_visibleItemCount.value < totalItems) {
+            _visibleItemCount.value = (_visibleItemCount.value + 50).coerceAtMost(totalItems)
+        }
+    }
+
 
     fun updateSearchQuery(query: String) {
         _isLoading.value = true
