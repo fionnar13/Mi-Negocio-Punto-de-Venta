@@ -55,6 +55,9 @@ class InventoryViewModel : ViewModel() {
     private val _visibleItemCount = MutableStateFlow(50)
     val visibleItemCount: StateFlow<Int> = _visibleItemCount
 
+    private val _visibleSearchItemCount = MutableStateFlow(50)
+    val visibleSearchItemCount: StateFlow<Int> = _visibleSearchItemCount
+
     // Cargar los productos al iniciar el ViewModel
     init {
         _isLoading.value = true
@@ -104,20 +107,26 @@ class InventoryViewModel : ViewModel() {
             }.toSortedMap()
         }.stateIn(viewModelScope, SharingStarted.Lazily, emptyMap())
 
-    /*fun loadMoreItems() {
-        _visibleItemCount.value += 50
-    }*/
     fun loadMoreItems(totalItems: Int) {
         if (_visibleItemCount.value < totalItems) {
             _visibleItemCount.value = (_visibleItemCount.value + 50).coerceAtMost(totalItems)
         }
     }
 
+    fun loadMoreSearchItems(totalItems: Int) {
+        if (_visibleSearchItemCount.value < totalItems) {
+            _visibleSearchItemCount.value =
+                (_visibleSearchItemCount.value + 50).coerceAtMost(totalItems)
+        }
+    }
+
+    private fun resetVisibleSearchItemCount() {
+        _visibleSearchItemCount.value = 50
+    }
 
     fun updateSearchQuery(query: String) {
-        _isLoading.value = true
         _searchQuery.value = query
-        _isLoading.value = false
+        resetVisibleSearchItemCount()
     }
 
     // Función para agregar un producto a Firestore

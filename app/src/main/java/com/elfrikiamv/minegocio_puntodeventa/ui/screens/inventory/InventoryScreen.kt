@@ -84,6 +84,9 @@ fun InventoryScreen(navController: NavController) {
     val listState = rememberLazyListState()
     val visibleItemCount by viewModel.visibleItemCount.collectAsState()
 
+    val searchListState = rememberLazyListState()
+    val visibleSearchCount by viewModel.visibleSearchItemCount.collectAsState()
+
     // Detectar scroll para cargar más items
     LaunchedEffect(listState, products.size) {
         snapshotFlow { listState.layoutInfo.visibleItemsInfo }
@@ -96,6 +99,14 @@ fun InventoryScreen(navController: NavController) {
             }
     }
 
+    LaunchedEffect(searchListState) {
+        snapshotFlow { searchListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
+            .collect { lastVisibleItemIndex ->
+                if (lastVisibleItemIndex != null && lastVisibleItemIndex >= filteredProducts.size - 5) {
+                    viewModel.loadMoreSearchItems(filteredProducts.size)
+                }
+            }
+    }
 
     Scaffold(
         topBar = {
@@ -185,11 +196,59 @@ fun InventoryScreen(navController: NavController) {
                                     )
                                 }
                             } else {
+                                LazyColumn(
+                                    state = searchListState,
+                                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .weight(1f)
+                                        .padding(end = 16.dp, start = 16.dp, top = 16.dp)
+                                ) {
+                                    val productsToShow = filteredProducts.take(visibleSearchCount)
 
-                                SearchResults(filteredProducts) { selectedProduct ->
-                                    //localSearchQuery = ""
-                                    isSearchActive = false
-                                    navController.navigate(Screen.DetailsProduct.route + "?barcode=${selectedProduct.barcode}")
+                                    items(productsToShow) { product ->
+                                        Log.d(
+                                            "InventoryScreen",
+                                            "Renderizando producto: ${product.name}"
+                                        )
+                                        ProductCard(product = product) {
+                                            isSearchActive = false
+                                            navController.navigate(Screen.DetailsProduct.route + "?barcode=${product.barcode}")
+                                        }
+                                    }
+
+                                    if (visibleSearchCount >= filteredProducts.size) {
+                                        item {
+                                            Text(
+                                                text = "No hay más productos",
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(16.dp),
+                                                textAlign = TextAlign.Center,
+                                                style = MaterialTheme.typography.bodyMedium.copy(
+                                                    color = MaterialTheme.colorScheme.onSurface.copy(
+                                                        alpha = 0.6f
+                                                    )
+                                                )
+                                            )
+                                        }
+                                    } else {
+                                        // Mientras no se muestre todo, mostramos indicador de carga para scroll infinito
+                                        item {
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(16.dp),
+                                                horizontalArrangement = Arrangement.Center
+                                            ) {
+                                                CircularProgressIndicator()
+                                            }
+                                        }
+                                    }
+
+                                    item {
+                                        Spacer(modifier = Modifier.height(56.dp))
+                                    }
                                 }
                             }
                         },
