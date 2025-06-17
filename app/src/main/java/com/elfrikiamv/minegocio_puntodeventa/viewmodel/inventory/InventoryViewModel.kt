@@ -166,7 +166,14 @@ class InventoryViewModel : ViewModel() {
             .collection("userInventory")
             .document(productId)
             .set(product)
-        _isLoading.value = false
+            .addOnSuccessListener {
+                _isLoading.value = false
+            }
+            .addOnFailureListener {
+                Log.e(TAG, "Error al agregar o actualizar producto", it)
+                _isLoading.value = false
+            }
+
     }
 
     //verificar si el producto existe en Firestore

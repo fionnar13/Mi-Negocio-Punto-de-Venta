@@ -89,10 +89,10 @@ fun InventoryScreen(navController: NavController) {
 
     // Detectar scroll para cargar más items
     LaunchedEffect(listState, products.size) {
-        snapshotFlow { listState.layoutInfo.visibleItemsInfo }
-            .collect { visibleItems ->
-                val totalItems = products.size
-                val lastVisibleItem = visibleItems.lastOrNull()?.index ?: 0
+        snapshotFlow { listState.layoutInfo }
+            .collect { layoutInfo ->
+                val totalItems = layoutInfo.totalItemsCount
+                val lastVisibleItem = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
                 if (lastVisibleItem >= visibleItemCount - 4 && visibleItemCount < totalItems) {
                     viewModel.loadMoreItems(totalItems)
                 }
@@ -100,13 +100,16 @@ fun InventoryScreen(navController: NavController) {
     }
 
     LaunchedEffect(searchListState) {
-        snapshotFlow { searchListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
-            .collect { lastVisibleItemIndex ->
-                if (lastVisibleItemIndex != null && lastVisibleItemIndex >= filteredProducts.size - 5) {
+        snapshotFlow { searchListState.layoutInfo }
+            .collect { layoutInfo ->
+                val totalItems = layoutInfo.totalItemsCount
+                val lastVisibleItem = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+                if (lastVisibleItem >= totalItems - 5) {
                     viewModel.loadMoreSearchItems(filteredProducts.size)
                 }
             }
     }
+
 
     Scaffold(
         topBar = {
@@ -217,22 +220,7 @@ fun InventoryScreen(navController: NavController) {
                                         }
                                     }
 
-                                    if (visibleSearchCount >= filteredProducts.size) {
-                                        item {
-                                            Text(
-                                                text = "No hay más productos",
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .padding(16.dp),
-                                                textAlign = TextAlign.Center,
-                                                style = MaterialTheme.typography.bodyMedium.copy(
-                                                    color = MaterialTheme.colorScheme.onSurface.copy(
-                                                        alpha = 0.6f
-                                                    )
-                                                )
-                                            )
-                                        }
-                                    } else {
+                                    if (visibleSearchCount < filteredProducts.size) {
                                         // Mientras no se muestre todo, mostramos indicador de carga para scroll infinito
                                         item {
                                             Row(
@@ -243,6 +231,21 @@ fun InventoryScreen(navController: NavController) {
                                             ) {
                                                 CircularProgressIndicator()
                                             }
+                                        }
+                                    } else if (filteredProducts.isNotEmpty()) {
+                                        item {
+                                            Text(
+                                                text = "No hay más productos disponibles.",
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(bottom = 16.dp),
+                                                textAlign = TextAlign.Center,
+                                                style = MaterialTheme.typography.bodyMedium.copy(
+                                                    color = MaterialTheme.colorScheme.onSurface.copy(
+                                                        alpha = 0.8f
+                                                    )
+                                                )
+                                            )
                                         }
                                     }
 
@@ -312,22 +315,8 @@ fun InventoryScreen(navController: NavController) {
                         }
 
                         // Al final: si ya mostramos todos los productos, mostramos mensaje de fin
-                        if (visibleItemCount >= products.size) {
-                            item {
-                                Text(
-                                    text = "No hay más productos",
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(16.dp),
-                                    textAlign = TextAlign.Center,
-                                    style = MaterialTheme.typography.bodyMedium.copy(
-                                        color = MaterialTheme.colorScheme.onSurface.copy(
-                                            alpha = 0.6f
-                                        )
-                                    )
-                                )
-                            }
-                        } else {
+                        if (visibleItemCount < products.size) {
+
                             // Mientras no se muestre todo, mostramos indicador de carga para scroll infinito
                             item {
                                 Row(
@@ -338,6 +327,21 @@ fun InventoryScreen(navController: NavController) {
                                 ) {
                                     CircularProgressIndicator()
                                 }
+                            }
+                        } else if (products.isNotEmpty()) {
+                            item {
+                                Text(
+                                    text = "No hay más productos disponibles.",
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(bottom = 16.dp),
+                                    textAlign = TextAlign.Center,
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        color = MaterialTheme.colorScheme.onSurface.copy(
+                                            alpha = 0.8f
+                                        )
+                                    )
+                                )
                             }
                         }
 

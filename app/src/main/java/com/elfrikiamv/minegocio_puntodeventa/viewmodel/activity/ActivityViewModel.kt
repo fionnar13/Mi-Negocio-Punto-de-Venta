@@ -32,7 +32,7 @@ class ActivityViewModel(application: Application) : AndroidViewModel(application
         private const val TAG = "ActivityViewModel"
         private const val DEFAULT_BUSINESS = "defaultBusiness"
         private const val DEFAULT_TICKETS = "defaultTickets"
-        private const val PAGE_SIZE = 22
+        private const val PAGE_SIZE = 420
     }
 
     private val auth = FirebaseAuth.getInstance() // Instancia de Firebase Auth
@@ -49,6 +49,9 @@ class ActivityViewModel(application: Application) : AndroidViewModel(application
     // Estados de Firebase
     private var lastSnapshot: DocumentSnapshot? = null
     private var endReached = false
+
+    val isEndReached: Boolean
+        get() = endReached
 
     init {
         val userEmail = auth.currentUser?.email

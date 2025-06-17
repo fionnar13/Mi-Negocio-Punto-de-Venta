@@ -9,7 +9,6 @@ import androidx.lifecycle.viewModelScope
 import com.elfrikiamv.minegocio_puntodeventa.database.AppDatabase
 import com.elfrikiamv.minegocio_puntodeventa.model.home.missing.MissingProductEntity
 import com.elfrikiamv.minegocio_puntodeventa.model.home.missing.MissingProductFirebase
-import com.elfrikiamv.minegocio_puntodeventa.viewmodel.activity.ActivityViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
@@ -26,7 +25,7 @@ class MissingProductsViewModel(application: Application) : AndroidViewModel(appl
         private const val TAG = "MissingListViewModel"
         private const val DEFAULT_BUSINESS = "defaultBusiness"
         private const val DEFAULT_MISSING = "defaultMissing"
-        private const val PAGE_SIZE = 22
+        private const val PAGE_SIZE = 420
     }
 
     private val missingDao = AppDatabase.getDatabase(application).missingProductDao()
@@ -50,6 +49,9 @@ class MissingProductsViewModel(application: Application) : AndroidViewModel(appl
     // Estados de Firebase
     private var lastSnapshot: DocumentSnapshot? = null
     private var endReached = false
+
+    val isEndReached: Boolean
+        get() = endReached
 
     init {
         val userEmail = auth.currentUser?.email

@@ -2,6 +2,7 @@ package com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.missingList
 
 // MissingListScreen.kt
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -42,6 +43,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -56,25 +58,20 @@ fun MissingListScreen(navController: NavController) {
 
     val viewModel: MissingProductsViewModel = viewModel()
 
-    //val missingList by viewModel.missingList.collectAsState()
     val grouped by viewModel.groupedMissing.collectAsState()
 
     // Observar el estado de isLoading
     val isLoading by viewModel.isLoading.collectAsState()
 
-    // Cargar los faltantes desde Firebase
-    //val grouped = viewModel.groupMissingByYearAndMonth(missingList)
-
     // Estado para controlar posición del scroll
     val listState = rememberLazyListState()
 
-    // Cargar siguiente página al acercarse al final del scroll
     LaunchedEffect(listState) {
-        snapshotFlow { listState.layoutInfo.visibleItemsInfo }
-            .collect { visibleItems ->
-                val totalItems = listState.layoutInfo.totalItemsCount
-                val lastVisibleItem = visibleItems.lastOrNull()?.index ?: 0
-                if (lastVisibleItem >= totalItems - 4 && !isLoading) {
+        snapshotFlow { listState.layoutInfo }
+            .collect { layoutInfo ->
+                val totalItems = layoutInfo.totalItemsCount
+                val lastVisibleItem = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+                if (lastVisibleItem >= totalItems - 4 && !isLoading && !viewModel.isEndReached) {
                     viewModel.loadNextPage()
                 }
             }
@@ -159,6 +156,10 @@ fun MissingListScreen(navController: NavController) {
                                 }
                             }
                             items(gr.missing) { missing ->
+                                Log.d(
+                                    "MissingListScreen",
+                                    "Renderizando faltante: ${missing.missingId}"
+                                )
                                 MissingProductCard(missing)
                             }
                         }
@@ -177,6 +178,23 @@ fun MissingListScreen(navController: NavController) {
                                 ) {
                                     CircularProgressIndicator()
                                 }
+                            }
+                        }
+                        // Mensaje de fin de lista
+                        item {
+                            if (!isLoading && viewModel.isEndReached) {
+                                Text(
+                                    text = "No hay más faltantes disponibles.",
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(bottom = 16.dp),
+                                    textAlign = TextAlign.Center,
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        color = MaterialTheme.colorScheme.onSurface.copy(
+                                            alpha = 0.8f
+                                        )
+                                    )
+                                )
                             }
                         }
                         item {

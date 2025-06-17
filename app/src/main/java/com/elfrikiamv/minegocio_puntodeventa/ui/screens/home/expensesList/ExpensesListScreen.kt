@@ -2,6 +2,7 @@ package com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.expensesList
 
 // ExpensesListScreen.kt
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -42,6 +43,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -56,8 +58,6 @@ fun ExpensesDetailsScreen(navController: NavController) {
 
     val viewModel: ExpensesViewModel = viewModel()
 
-    //val expensesDetails by viewModel.expensesDetailsList.collectAsState()
-    //val expenses by viewModel.expenses.collectAsState()
     val grouped by viewModel.groupedExpenses.collectAsState()
 
     // Observar el estado de isLoading
@@ -68,11 +68,11 @@ fun ExpensesDetailsScreen(navController: NavController) {
 
     // Cargar siguiente página al acercarse al final del scroll
     LaunchedEffect(listState) {
-        snapshotFlow { listState.layoutInfo.visibleItemsInfo }
-            .collect { visibleItems ->
-                val totalItems = listState.layoutInfo.totalItemsCount
-                val lastVisibleItem = visibleItems.lastOrNull()?.index ?: 0
-                if (lastVisibleItem >= totalItems - 4 && !isLoading) {
+        snapshotFlow { listState.layoutInfo }
+            .collect { layoutInfo ->
+                val totalItems = layoutInfo.totalItemsCount
+                val lastVisibleItem = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+                if (lastVisibleItem >= totalItems - 4 && !isLoading && !viewModel.isEndReached) {
                     viewModel.loadNextPage()
                 }
             }
@@ -157,6 +157,10 @@ fun ExpensesDetailsScreen(navController: NavController) {
                                 }
                             }
                             items(gr.expenses) { exp ->
+                                Log.d(
+                                    "ExpensesDetailsScreen",
+                                    "Renderizando gasto: ${exp.expenseId}"
+                                )
                                 ExpensesDetailsCard(exp)
                             }
                         }
@@ -175,6 +179,23 @@ fun ExpensesDetailsScreen(navController: NavController) {
                                 ) {
                                     CircularProgressIndicator()
                                 }
+                            }
+                        }
+                        // Mensaje de fin de lista
+                        item {
+                            if (!isLoading && viewModel.isEndReached) {
+                                Text(
+                                    text = "No hay más gastos disponibles.",
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(bottom = 16.dp),
+                                    textAlign = TextAlign.Center,
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        color = MaterialTheme.colorScheme.onSurface.copy(
+                                            alpha = 0.8f
+                                        )
+                                    )
+                                )
                             }
                         }
                         item {

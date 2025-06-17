@@ -2,6 +2,7 @@ package com.elfrikiamv.minegocio_puntodeventa.ui.screens.activity
 
 // ActivityScreen.kt
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -41,6 +42,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -60,13 +62,12 @@ fun ActivityScreen(navController: NavController) {
     // Estado para controlar posición del scroll
     val listState = rememberLazyListState()
 
-    // Cargar siguiente página al acercarse al final del scroll
     LaunchedEffect(listState) {
-        snapshotFlow { listState.layoutInfo.visibleItemsInfo }
-            .collect { visibleItems ->
-                val totalItems = listState.layoutInfo.totalItemsCount
-                val lastVisibleItem = visibleItems.lastOrNull()?.index ?: 0
-                if (lastVisibleItem >= totalItems - 4 && !isLoading) {
+        snapshotFlow { listState.layoutInfo }
+            .collect { layoutInfo ->
+                val totalItems = layoutInfo.totalItemsCount
+                val lastVisibleItem = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+                if (lastVisibleItem >= totalItems - 4 && !isLoading && !viewModel.isEndReached) {
                     viewModel.loadNextPage()
                 }
             }
@@ -121,12 +122,16 @@ fun ActivityScreen(navController: NavController) {
                                 }
                             }
                             items(gr.tickets) { ticket ->
+                                Log.d(
+                                    "ActivityScreen",
+                                    "Renderizando ticket: ${ticket.ticketId}"
+                                )
                                 TicketCard(ticket = ticket) {
                                     navController.navigate(Screen.DetailsTicket.route + "?ticketId=${ticket.ticketId}")
                                 }
                             }
                         }
-                        // AnimatedVisibility: indicador de carga al final de la lista
+                        // Indicador de carga al final
                         item {
                             AnimatedVisibility(
                                 visible = isLoading,
@@ -141,6 +146,23 @@ fun ActivityScreen(navController: NavController) {
                                 ) {
                                     CircularProgressIndicator()
                                 }
+                            }
+                        }
+                        // Mensaje de fin de lista
+                        item {
+                            if (!isLoading && viewModel.isEndReached) {
+                                Text(
+                                    text = "No hay más tickets disponibles.",
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(bottom = 16.dp),
+                                    textAlign = TextAlign.Center,
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        color = MaterialTheme.colorScheme.onSurface.copy(
+                                            alpha = 0.8f
+                                        )
+                                    )
+                                )
                             }
                         }
                     }
