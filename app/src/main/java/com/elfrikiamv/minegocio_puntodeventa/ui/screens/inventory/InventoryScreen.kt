@@ -131,7 +131,12 @@ fun InventoryScreen(navController: NavController) {
                         .fillMaxWidth()
                 ) {
 
-                    val onActiveChange: (Boolean) -> Unit = { isSearchActive = it }
+                    //val onActiveChange: (Boolean) -> Unit = { isSearchActive = it }
+                    val onActiveChange: (Boolean) -> Unit = {
+                        isSearchActive = it
+                        if (!it) viewModel.updateSearchQuery("")
+                    }
+
                     SearchBar(
                         inputField = {
                             SearchBarDefaults.InputField(
@@ -183,6 +188,10 @@ fun InventoryScreen(navController: NavController) {
                         windowInsets = SearchBarDefaults.windowInsets,
                         content = {
 
+                            if (isLoading) {
+                                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                            }
+
                             if (filteredProducts.isEmpty() && !isLoading && searchQuery.isNotEmpty()) {
                                 Column(
                                     modifier = Modifier.fillMaxSize(),
@@ -190,7 +199,7 @@ fun InventoryScreen(navController: NavController) {
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
                                     Text(
-                                        "No se encontraron coincidencias",
+                                        "No se encontraron coincidencias.",
                                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
                                     )
                                     Text(
@@ -259,7 +268,52 @@ fun InventoryScreen(navController: NavController) {
                 }
 
                 // Lista de productos
-                if (products.isEmpty() && !isLoading) {
+                if (filteredProducts.isEmpty() && !isLoading && searchQuery.isNotEmpty()) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            //.weight(1f)
+                            .padding(end = 16.dp, start = 16.dp, top = 16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            "No se encontraron coincidencias.",
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                        )
+                        Text(
+                            "):",
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                        )
+                    }
+                } else if (filteredProducts.isNotEmpty() && !isLoading && searchQuery.isNotEmpty()) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            //.weight(1f)
+                            .padding(end = 16.dp, start = 16.dp, top = 16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text("Resultados de la búsqueda:")
+                    }
+                    LazyColumn(
+                        //state = searchListState,
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                            .padding(end = 16.dp, start = 16.dp, top = 16.dp)
+                    ) {
+                        // Resultados de la búsqueda en su propio LazyColumn
+                        items(filteredProducts) { product ->
+                            ProductCard(product = product) {
+                                navController.navigate(Screen.DetailsProduct.route + "?barcode=${product.barcode}")
+                            }
+                        }
+                        item {
+                            Spacer(modifier = Modifier.height(72.dp))
+                        }
+                    }
+                } else if (products.isEmpty() && !isLoading) {
                     Column(
                         modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.Center,

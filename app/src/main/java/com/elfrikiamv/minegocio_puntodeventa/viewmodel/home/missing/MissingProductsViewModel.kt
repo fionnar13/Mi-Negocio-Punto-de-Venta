@@ -53,6 +53,14 @@ class MissingProductsViewModel(application: Application) : AndroidViewModel(appl
     val isEndReached: Boolean
         get() = endReached
 
+    // Estado para query de búsqueda
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery
+
+    // Estado para resultados de búsqueda
+    private val _searchResults = MutableStateFlow<List<MissingProductFirebase>>(emptyList())
+    val searchResults: StateFlow<List<MissingProductFirebase>> = _searchResults
+
     init {
         val userEmail = auth.currentUser?.email
         if (userEmail == null) {
@@ -62,6 +70,67 @@ class MissingProductsViewModel(application: Application) : AndroidViewModel(appl
             //loadMissingFromFirebase(userEmail)
             loadNextPage()
         }
+    }
+
+    fun updateSearchQuery(query: String) {
+        _searchQuery.value = query
+
+        if (query.isBlank()) {
+            _searchResults.value = emptyList()
+            return
+        }
+
+        searchMissingProductsByIdOrDate(query)
+    }
+
+    private fun searchMissingProductsByIdOrDate(query: String) {
+        val userEmail = auth.currentUser?.email ?: return
+        _isLoading.value = true
+
+        val missingRef = db.collection("users")
+            .document(userEmail)
+            .collection("userMyBusinesses")
+            .document(DEFAULT_BUSINESS)
+            .collection("userMyMissing")
+            .document(DEFAULT_MISSING)
+            .collection("userMissing")
+
+        // Buscar por missingId
+        missingRef.whereEqualTo("missingId", query)
+            .get()
+            .addOnSuccessListener { idSnapshot ->
+                val idResults =
+                    idSnapshot.documents.mapNotNull { it.toObject(MissingProductFirebase::class.java) }
+
+                if (idResults.isNotEmpty()) {
+                    _searchResults.value = idResults
+                    _isLoading.value = false
+                } else {
+                    // Si no hay resultados por ID, buscar por date
+                    missingRef.whereEqualTo("date", query)
+                        .get()
+                        .addOnSuccessListener { dateSnapshot ->
+                            val dateResults =
+                                dateSnapshot.documents.mapNotNull {
+                                    it.toObject(
+                                        MissingProductFirebase::class.java
+                                    )
+                                }
+                            _searchResults.value = dateResults
+                            _isLoading.value = false
+                        }
+                        .addOnFailureListener { e ->
+                            Log.e(TAG, "Error buscando por fecha: $e")
+                            _searchResults.value = emptyList()
+                            _isLoading.value = false
+                        }
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "Error buscando por ID: $e")
+                _searchResults.value = emptyList()
+                _isLoading.value = false
+            }
     }
 
     // Función para cargar la lista de faltantes desde Firebase

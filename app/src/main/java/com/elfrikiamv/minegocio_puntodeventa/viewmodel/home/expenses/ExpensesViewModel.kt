@@ -35,10 +35,6 @@ class ExpensesViewModel(application: Application) : AndroidViewModel(application
     private val auth = FirebaseAuth.getInstance()
     private val db = FirebaseFirestore.getInstance()
 
-    // Cargar gastos desde Firebase
-    /*private val _expenses = MutableStateFlow<List<ExpenseFirebase>>(emptyList())
-    val expenses: StateFlow<List<ExpenseFirebase>> = _expenses*/
-
     // StateFlow para los expenses agrupados por año y mes
     private val _groupedExpenses = MutableStateFlow<List<GroupedExpenses>>(emptyList())
     val groupedExpenses: StateFlow<List<GroupedExpenses>> = _groupedExpenses
@@ -54,6 +50,14 @@ class ExpensesViewModel(application: Application) : AndroidViewModel(application
     val isEndReached: Boolean
         get() = endReached
 
+    // Estado para query de búsqueda
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery
+
+    // Estado para resultados de búsqueda
+    private val _searchResults = MutableStateFlow<List<ExpenseFirebase>>(emptyList())
+    val searchResults: StateFlow<List<ExpenseFirebase>> = _searchResults
+
     init {
         val userEmail = auth.currentUser?.email
         if (userEmail == null) {
@@ -65,6 +69,64 @@ class ExpensesViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
+    fun updateSearchQuery(query: String) {
+        _searchQuery.value = query
+
+        if (query.isBlank()) {
+            _searchResults.value = emptyList()
+            return
+        }
+
+        searchExpensesByIdOrDate(query)
+    }
+
+    private fun searchExpensesByIdOrDate(query: String) {
+        val userEmail = auth.currentUser?.email ?: return
+        _isLoading.value = true
+
+        val expensesRef = db.collection("users")
+            .document(userEmail)
+            .collection("userMyBusinesses")
+            .document(DEFAULT_BUSINESS)
+            .collection("userMyExpenses")
+            .document(DEFAULT_EXPENSES)
+            .collection("userExpenses")
+
+        // Buscar por expenseId
+        expensesRef.whereEqualTo("expenseId", query)
+            .get()
+            .addOnSuccessListener { idSnapshot ->
+                val idResults =
+                    idSnapshot.documents.mapNotNull { it.toObject(ExpenseFirebase::class.java) }
+
+                if (idResults.isNotEmpty()) {
+                    _searchResults.value = idResults
+                    _isLoading.value = false
+                } else {
+                    // Si no hay resultados por ID, buscar por date
+                    expensesRef.whereEqualTo("date", query)
+                        .get()
+                        .addOnSuccessListener { dateSnapshot ->
+                            val dateResults =
+                                dateSnapshot.documents.mapNotNull { it.toObject(ExpenseFirebase::class.java) }
+                            _searchResults.value = dateResults
+                            _isLoading.value = false
+                        }
+                        .addOnFailureListener { e ->
+                            Log.e(TAG, "Error buscando por fecha: $e")
+                            _searchResults.value = emptyList()
+                            _isLoading.value = false
+                        }
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "Error buscando por ID: $e")
+                _searchResults.value = emptyList()
+                _isLoading.value = false
+            }
+    }
+
+    // Cargar gastos desde Firebase (Paginación)
     fun loadNextPage() {
         val userEmail = auth.currentUser?.email ?: return
         if (_isLoading.value || endReached) return
@@ -84,16 +146,6 @@ class ExpensesViewModel(application: Application) : AndroidViewModel(application
 
         lastSnapshot?.let { query = query.startAfter(it) }
 
-        /*query.get().addOnSuccessListener { snap ->
-            val list = snap.documents.mapNotNull { it.toObject(ExpenseFirebase::class.java) }
-            if (list.size < PAGE_SIZE) endReached = true
-            lastSnapshot = snap.documents.lastOrNull()
-            _expenses.value += list
-            _isLoading.value = false
-        }.addOnFailureListener {
-            Log.e(TAG, "Error cargando gastos: $it")
-            _isLoading.value = false
-        }*/
         query.get().addOnSuccessListener { snap ->
             val list = snap.documents.mapNotNull { it.toObject(ExpenseFirebase::class.java) }
             if (list.size < PAGE_SIZE) endReached = true

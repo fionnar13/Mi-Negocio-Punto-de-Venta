@@ -30,15 +30,21 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -65,6 +71,14 @@ fun ExpensesDetailsScreen(navController: NavController) {
 
     // Estado para controlar posición del scroll
     val listState = rememberLazyListState()
+
+    // Observar búsqueda y resultados en tiempo real
+    val searchQuery by viewModel.searchQuery.collectAsState()
+    val searchResults by viewModel.searchResults.collectAsState()
+
+    //val searchListState = rememberLazyListState()
+
+    var isSearchActive by remember { mutableStateOf(false) }
 
     // Cargar siguiente página al acercarse al final del scroll
     LaunchedEffect(listState) {
@@ -124,7 +138,166 @@ fun ExpensesDetailsScreen(navController: NavController) {
                     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                 }
 
-                if (grouped.isEmpty() && !isLoading) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
+
+                    /*val onActiveChange: (Boolean) -> Unit = { isSearchActive = it }*/
+                    val onActiveChange: (Boolean) -> Unit = {
+                        isSearchActive = it
+                        if (!it) viewModel.updateSearchQuery("")
+                    }
+
+                    SearchBar(
+                        inputField = {
+                            SearchBarDefaults.InputField(
+                                query = searchQuery,
+                                onQueryChange = { viewModel.updateSearchQuery(it) },
+                                onSearch = { isSearchActive = false },
+                                expanded = isSearchActive,
+                                onExpandedChange = onActiveChange,
+                                enabled = true,
+                                placeholder = { Text("Buscar por ID o fecha") },
+                                leadingIcon = {
+                                    if (isSearchActive) {
+                                        IconButton(
+                                            onClick = { isSearchActive = false }
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(id = R.drawable.baseline_arrow_back_ios_new_24),
+                                                contentDescription = "Volver"
+                                            )
+                                        }
+                                    } else {
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.baseline_search_24),
+                                            contentDescription = "Buscar"
+                                        )
+                                    }
+                                },
+                                trailingIcon = {
+                                    if (searchQuery.isNotEmpty()) {
+                                        IconButton(onClick = { viewModel.updateSearchQuery("") }) {
+                                            Icon(
+                                                painter = painterResource(id = R.drawable.baseline_close_24),
+                                                contentDescription = "Borrar búsqueda"
+                                            )
+                                        }
+                                    }
+                                },
+                                colors = SearchBarDefaults.inputFieldColors(),
+                                interactionSource = null,
+                            )
+                        },
+                        expanded = isSearchActive,
+                        onExpandedChange = onActiveChange,
+                        modifier = Modifier.align(Alignment.CenterHorizontally),
+                        shape = SearchBarDefaults.inputFieldShape,
+                        colors = SearchBarDefaults.colors(),
+                        tonalElevation = SearchBarDefaults.TonalElevation,
+                        shadowElevation = SearchBarDefaults.ShadowElevation,
+                        windowInsets = SearchBarDefaults.windowInsets,
+                        content = {
+
+                            if (isLoading) {
+                                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                            }
+
+                            if (searchQuery.isEmpty() && !isLoading) {
+                                Column(
+                                    modifier = Modifier.fillMaxSize(),
+                                    //verticalArrangement = Arrangement.Center,
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text(
+                                        "rules of search.",
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                                    )
+                                }
+                            } else if (searchResults.isEmpty() && searchQuery.isNotEmpty() && !isLoading) {
+                                Column(
+                                    modifier = Modifier.fillMaxSize(),
+                                    verticalArrangement = Arrangement.Center,
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text(
+                                        "No se encontraron coincidencias",
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                                    )
+                                    Text(
+                                        "):",
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                                    )
+                                }
+                            } else {
+                                LazyColumn(
+                                    //state = searchListState,
+                                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .weight(1f)
+                                        .padding(end = 16.dp, start = 16.dp, top = 16.dp)
+                                ) {
+                                    // Resultados de la búsqueda en su propio LazyColumn dentro del SearchBar
+                                    items(searchResults) { exp ->
+                                        ExpensesDetailsCard(exp)
+                                    }
+
+                                    item {
+                                        Spacer(modifier = Modifier.height(72.dp))
+                                    }
+                                }
+                            }
+                        },
+                    )
+                }
+
+                if (searchResults.isEmpty() && !isLoading && searchQuery.isNotEmpty()) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            //.weight(1f)
+                            .padding(end = 16.dp, start = 16.dp, top = 16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            "No se encontraron coincidencias.",
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                        )
+                        Text(
+                            "):",
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                        )
+                    }
+                } else if (searchResults.isNotEmpty() && !isLoading && searchQuery.isNotEmpty()) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            //.weight(1f)
+                            .padding(end = 16.dp, start = 16.dp, top = 16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text("Resultados de la búsqueda:")
+                    }
+                    LazyColumn(
+                        //state = searchListState,
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                            .padding(end = 16.dp, start = 16.dp, top = 16.dp)
+                    ) {
+                        // Resultados de la búsqueda en su propio LazyColumn
+                        items(searchResults) { exp ->
+                            ExpensesDetailsCard(exp)
+                        }
+
+                        item {
+                            Spacer(modifier = Modifier.height(72.dp))
+                        }
+                    }
+                } else if (grouped.isEmpty() && !isLoading) {
                     Column(
                         modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.Center,

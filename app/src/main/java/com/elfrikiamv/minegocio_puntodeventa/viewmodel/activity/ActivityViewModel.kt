@@ -53,6 +53,14 @@ class ActivityViewModel(application: Application) : AndroidViewModel(application
     val isEndReached: Boolean
         get() = endReached
 
+    // Estado para query de búsqueda
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery
+
+    // Estado para resultados de búsqueda
+    private val _searchResults = MutableStateFlow<List<TicketFirebase>>(emptyList())
+    val searchResults: StateFlow<List<TicketFirebase>> = _searchResults
+
     init {
         val userEmail = auth.currentUser?.email
         if (userEmail == null) {
@@ -61,6 +69,63 @@ class ActivityViewModel(application: Application) : AndroidViewModel(application
             Log.d(TAG, "Usuario autenticado: $userEmail")
             loadNextPage()
         }
+    }
+
+    fun updateSearchQuery(query: String) {
+        _searchQuery.value = query
+
+        if (query.isBlank()) {
+            _searchResults.value = emptyList()
+            return
+        }
+
+        searchTicketByIdOrDate(query)
+    }
+
+    private fun searchTicketByIdOrDate(query: String) {
+        val userEmail = auth.currentUser?.email ?: return
+        _isLoading.value = true
+
+        val ticketRef = db.collection("users")
+            .document(userEmail)
+            .collection("userMyBusinesses")
+            .document(DEFAULT_BUSINESS)
+            .collection("userMyTickets")
+            .document(DEFAULT_TICKETS)
+            .collection("userTickets")
+
+        // Buscar por ticketId
+        ticketRef.whereEqualTo("ticketId", query)
+            .get()
+            .addOnSuccessListener { idSnapshot ->
+                val idResults =
+                    idSnapshot.documents.mapNotNull { it.toObject(TicketFirebase::class.java) }
+
+                if (idResults.isNotEmpty()) {
+                    _searchResults.value = idResults
+                    _isLoading.value = false
+                } else {
+                    // Si no hay resultados por ID, buscar por date
+                    ticketRef.whereEqualTo("date", query)
+                        .get()
+                        .addOnSuccessListener { dateSnapshot ->
+                            val dateResults =
+                                dateSnapshot.documents.mapNotNull { it.toObject(TicketFirebase::class.java) }
+                            _searchResults.value = dateResults
+                            _isLoading.value = false
+                        }
+                        .addOnFailureListener { e ->
+                            Log.e(TAG, "Error buscando por fecha: $e")
+                            _searchResults.value = emptyList()
+                            _isLoading.value = false
+                        }
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "Error buscando por ID: $e")
+                _searchResults.value = emptyList()
+                _isLoading.value = false
+            }
     }
 
     // Paginación mejorada: carga siguiente página desde Firestore
