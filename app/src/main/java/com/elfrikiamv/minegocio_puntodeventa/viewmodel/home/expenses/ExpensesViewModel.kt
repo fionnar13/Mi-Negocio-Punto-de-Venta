@@ -10,8 +10,12 @@ import com.elfrikiamv.minegocio_puntodeventa.database.AppDatabase
 import com.elfrikiamv.minegocio_puntodeventa.model.home.expenses.ExpenseEntity
 import com.elfrikiamv.minegocio_puntodeventa.model.home.expenses.ExpenseFirebase
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.CollectionReference
+import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
+import com.google.firebase.firestore.Query
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -58,6 +62,12 @@ class ExpensesViewModel(application: Application) : AndroidViewModel(application
     private val _searchResults = MutableStateFlow<List<ExpenseFirebase>>(emptyList())
     val searchResults: StateFlow<List<ExpenseFirebase>> = _searchResults
 
+    // Listener de búsqueda activo
+    private var searchListener: ListenerRegistration? = null
+
+    // Guardar referencia al listener
+    private var expensesListener: ListenerRegistration? = null
+
     init {
         val userEmail = auth.currentUser?.email
         if (userEmail == null) {
@@ -84,64 +94,101 @@ class ExpensesViewModel(application: Application) : AndroidViewModel(application
         val userEmail = auth.currentUser?.email ?: return
         _isLoading.value = true
 
-        val expensesRef = db.collection("users")
-            .document(userEmail)
-            .collection("userMyBusinesses")
-            .document(DEFAULT_BUSINESS)
-            .collection("userMyExpenses")
-            .document(DEFAULT_EXPENSES)
-            .collection("userExpenses")
+        val expensesRef = getExpensesRef(userEmail)
 
-        // Buscar por expenseId
-        expensesRef.whereEqualTo("expenseId", query)
-            .get()
-            .addOnSuccessListener { idSnapshot ->
-                val idResults =
-                    idSnapshot.documents.mapNotNull { it.toObject(ExpenseFirebase::class.java) }
+        // Cancelar listeners anteriores para evitar fugas y llamadas duplicadas
+        searchListener?.remove()
 
-                if (idResults.isNotEmpty()) {
-                    _searchResults.value = idResults
+        // Mapa mutable para mantener los resultados combinados sin duplicados
+        val combinedResults = mutableMapOf<String, ExpenseFirebase>()
+
+        // Función para actualizar el StateFlow cuando ambos listeners hayan cargado al menos una vez
+        fun updateResults() {
+            _searchResults.value = combinedResults.values.toList()
+            _isLoading.value = false
+        }
+
+        // Flag para saber si ya recibimos datos al menos una vez en cada listener
+        var expenseIdReady = false
+        var dateReady = false
+
+        // Listener para búsqueda por expenseId con prefijo (rango Unicode)
+        val expenseIdListener = expensesRef
+            .whereGreaterThanOrEqualTo("expenseId", query)
+            .whereLessThanOrEqualTo("expenseId", query + '\uf8ff')
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    Log.e(TAG, "Error buscando por expenseId: $error")
+                    _searchResults.value = emptyList()
                     _isLoading.value = false
-                } else {
-                    // Si no hay resultados por ID, buscar por date
-                    expensesRef.whereEqualTo("date", query)
-                        .get()
-                        .addOnSuccessListener { dateSnapshot ->
-                            val dateResults =
-                                dateSnapshot.documents.mapNotNull { it.toObject(ExpenseFirebase::class.java) }
-                            _searchResults.value = dateResults
-                            _isLoading.value = false
-                        }
-                        .addOnFailureListener { e ->
-                            Log.e(TAG, "Error buscando por fecha: $e")
-                            _searchResults.value = emptyList()
-                            _isLoading.value = false
-                        }
+                    return@addSnapshotListener
+                }
+
+                // Procesar los cambios incrementales para mantener combinedResults actualizado
+                snapshot?.documentChanges?.forEach { change ->
+                    val expense = change.document.toObject(ExpenseFirebase::class.java)
+                    when (change.type) {
+                        DocumentChange.Type.ADDED, DocumentChange.Type.MODIFIED -> combinedResults[expense.expenseId] =
+                            expense
+
+                        DocumentChange.Type.REMOVED -> combinedResults.remove(expense.expenseId)
+                    }
+                }
+
+                expenseIdReady = true
+                if (expenseIdReady && dateReady) {
+                    updateResults()
                 }
             }
-            .addOnFailureListener { e ->
-                Log.e(TAG, "Error buscando por ID: $e")
-                _searchResults.value = emptyList()
-                _isLoading.value = false
+
+        // Listener para búsqueda por date con prefijo (rango Unicode)
+        val dateListener = expensesRef
+            .whereGreaterThanOrEqualTo("date", query)
+            .whereLessThanOrEqualTo("date", query + '\uf8ff')
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    Log.e(TAG, "Error buscando por date: $error")
+                    _searchResults.value = emptyList()
+                    _isLoading.value = false
+                    return@addSnapshotListener
+                }
+
+                // Procesar los cambios incrementales para mantener combinedResults actualizado
+                snapshot?.documentChanges?.forEach { change ->
+                    val expense = change.document.toObject(ExpenseFirebase::class.java)
+                    when (change.type) {
+                        DocumentChange.Type.ADDED, DocumentChange.Type.MODIFIED -> combinedResults[expense.expenseId] =
+                            expense
+
+                        DocumentChange.Type.REMOVED -> combinedResults.remove(expense.expenseId)
+                    }
+                }
+
+                dateReady = true
+                if (expenseIdReady && dateReady) {
+                    updateResults()
+                }
             }
+
+        // Guardar la referencia combinada para cancelar ambos listeners juntos
+        searchListener = object : ListenerRegistration {
+            override fun remove() {
+                expenseIdListener.remove()
+                dateListener.remove()
+            }
+        }
     }
 
-    // Cargar gastos desde Firebase (Paginación)
+
     fun loadNextPage() {
         val userEmail = auth.currentUser?.email ?: return
         if (_isLoading.value || endReached) return
 
         _isLoading.value = true
 
-        var query = db.collection("users")
-            .document(userEmail)
-            .collection("userMyBusinesses")
-            .document(DEFAULT_BUSINESS)
-            .collection("userMyExpenses")
-            .document(DEFAULT_EXPENSES)
-            .collection("userExpenses")
-            .orderBy("date", com.google.firebase.firestore.Query.Direction.DESCENDING)
-            .orderBy("time", com.google.firebase.firestore.Query.Direction.DESCENDING)
+        var query = getExpensesRef(userEmail)
+            .orderBy("date", Query.Direction.DESCENDING)
+            .orderBy("time", Query.Direction.DESCENDING)
             .limit(PAGE_SIZE.toLong())
 
         lastSnapshot?.let { query = query.startAfter(it) }
@@ -151,18 +198,69 @@ class ExpensesViewModel(application: Application) : AndroidViewModel(application
             if (list.size < PAGE_SIZE) endReached = true
             lastSnapshot = snap.documents.lastOrNull()
 
-            // Genera la agrupación reactiva combinando lo que ya había con lo nuevo
-            val allExpenses = _groupedExpenses.value.flatMap { it.expenses } + list
-            _groupedExpenses.value = groupExpensesByYearAndMonth(allExpenses)
+            val combined = _groupedExpenses.value.flatMap { it.expenses } + list
+            _groupedExpenses.value = groupExpensesByYearAndMonth(combined)
 
             _isLoading.value = false
+
+            // Cuando termina carga inicial, activa realtime listener una sola vez
+            if (expensesListener == null) {
+                startRealtimeUpdates()
+            }
+
         }.addOnFailureListener {
             Log.e(TAG, "Error cargando gastos: $it")
             _isLoading.value = false
         }
     }
 
-    // Agrupación y ordenación
+    private fun startRealtimeUpdates() {
+        val userEmail = auth.currentUser?.email ?: return
+        expensesListener = getExpensesRef(userEmail)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    Log.e(TAG, "Error en realtime listener: $error")
+                    return@addSnapshotListener
+                }
+
+                snapshot?.let {
+                    // Obtener gastos actuales como Map
+                    val currentExpenses = _groupedExpenses.value.flatMap { it.expenses }
+                        .associateBy { it.expenseId }
+                        .toMutableMap()
+
+                    // Procesar cada cambio en documentos
+                    for (change in it.documentChanges) {
+                        val expense = change.document.toObject(ExpenseFirebase::class.java)
+                        when (change.type) {
+                            DocumentChange.Type.ADDED, DocumentChange.Type.MODIFIED -> {
+                                currentExpenses[expense.expenseId] = expense
+                            }
+
+                            DocumentChange.Type.REMOVED -> {
+                                currentExpenses.remove(expense.expenseId)
+                            }
+                        }
+                    }
+
+                    // Volver a agrupar y emitir el nuevo listado actualizado
+                    val mergedExpenses = currentExpenses.values.toList()
+                    _groupedExpenses.value = groupExpensesByYearAndMonth(mergedExpenses)
+                }
+            }
+    }
+
+
+    private fun getExpensesRef(userEmail: String): CollectionReference {
+        return db.collection("users")
+            .document(userEmail)
+            .collection("userMyBusinesses")
+            .document(DEFAULT_BUSINESS)
+            .collection("userMyExpenses")
+            .document(DEFAULT_EXPENSES)
+            .collection("userExpenses")
+    }
+
     data class GroupedExpenses(
         val year: String,
         val month: String,
@@ -173,24 +271,31 @@ class ExpensesViewModel(application: Application) : AndroidViewModel(application
         val formatter = SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.getDefault())
         val sorted = expenses.sortedByDescending { formatter.parse("${it.date} ${it.time}") }
         val grouped = sorted.groupBy {
-            val cal = Calendar.getInstance().apply {
-                time = formatter.parse("${it.date} ${it.time}")!!
-            }
-            val yr = cal.get(Calendar.YEAR).toString()
-            val mo = cal.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault())!!
-            Pair(yr, mo)
+            val cal =
+                Calendar.getInstance().apply { time = formatter.parse("${it.date} ${it.time}")!! }
+            Pair(
+                cal.get(Calendar.YEAR).toString(),
+                cal.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault())!!
+            )
         }
-        return grouped
-            .map { (ym, list) -> GroupedExpenses(ym.first, ym.second, list) }
-            .sortedWith(compareByDescending<GroupedExpenses> { it.year.toInt() }
-                .thenByDescending { monthNameToNumber(it.month) })
+        return grouped.map { (ym, list) ->
+            GroupedExpenses(ym.first, ym.second, list)
+        }.sortedWith(
+            compareByDescending<GroupedExpenses> { it.year.toInt() }
+                .thenByDescending { monthNameToNumber(it.month) }
+        )
     }
 
     private fun monthNameToNumber(monthName: String): Int =
-        SimpleDateFormat("MMMM", Locale.getDefault())
-            .parse(monthName)?.let {
-                Calendar.getInstance().apply { time = it }.get(Calendar.MONTH)
-            } ?: 0
+        SimpleDateFormat("MMMM", Locale.getDefault()).parse(monthName)?.let {
+            Calendar.getInstance().apply { time = it }.get(Calendar.MONTH)
+        } ?: 0
+
+    override fun onCleared() {
+        super.onCleared()
+        expensesListener?.remove()
+        searchListener?.remove()
+    }
 
     // guardar gastos en bd room
     fun confirmExpense(
