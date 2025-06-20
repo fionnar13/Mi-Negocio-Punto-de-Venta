@@ -24,6 +24,10 @@ class ProductDetailsByIdViewModel : ViewModel() {
     private val _products = MutableStateFlow<List<Map<String, Any>>>(emptyList())
     val products: StateFlow<List<Map<String, Any>>> = _products
 
+    private val _groupedProducts = MutableStateFlow<Map<String, List<Map<String, Any>>>>(emptyMap())
+    val groupedProducts: StateFlow<Map<String, List<Map<String, Any>>>> = _groupedProducts
+
+
     // Nuevo campo para el estado de carga
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
@@ -38,7 +42,7 @@ class ProductDetailsByIdViewModel : ViewModel() {
 
         if (productIds.isEmpty()) {
             Log.d(TAG, "No hay IDs para buscar productos.")
-            _products.value = emptyList()
+            _groupedProducts.value = emptyMap()
             _isLoading.value = false
             return
         }
@@ -60,7 +64,7 @@ class ProductDetailsByIdViewModel : ViewModel() {
                 .document(id)
                 .addSnapshotListener { snapshot, error ->
                     if (error != null) {
-                        Log.e(TAG, "Error al escuchar cambios de producto $id: ${error.message}")
+                        Log.e(TAG, "Error escuchando producto $id: ${error.message}")
                         return@addSnapshotListener
                     }
 
@@ -71,15 +75,17 @@ class ProductDetailsByIdViewModel : ViewModel() {
                             "barcode" to snapshot.getString("barcode").orEmpty(),
                             "quantity" to ((snapshot["quantity"] as? Number)?.toInt() ?: 0)
                         )
-
                         newProducts[id] = product
                     } else {
                         // Si se eliminó, lo quitamos del mapa
                         newProducts.remove(id)
                     }
 
-                    // Actualizamos StateFlow con la lista actualizada
-                    _products.value = newProducts.values.toList()
+                    // Actualizar agrupación y emitir StateFlow
+                    _groupedProducts.value = newProducts.values
+                        .sortedBy { it["name"].toString().lowercase() }
+                        .groupBy { it["name"].toString().firstOrNull()?.uppercase() ?: "#" }
+
                     _isLoading.value = false
                 }
 

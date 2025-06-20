@@ -2,11 +2,14 @@ package com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.outOfStockList
 
 // OutOfStockListScreen.kt
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -14,7 +17,9 @@ import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -32,7 +37,7 @@ import com.elfrikiamv.minegocio_puntodeventa.navigation.Screen
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.home.HomeViewModel
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.home.ProductDetailsByIdViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun OutOfStockScreen(navController: NavController) {
 
@@ -40,7 +45,7 @@ fun OutOfStockScreen(navController: NavController) {
     val homeViewModel: HomeViewModel = viewModel()
 
     val outOfStockIds by homeViewModel.outStockProducts.collectAsState()
-    val outOfStockProducts by outOfStockViewModel.products.collectAsState()
+    val groupedProducts by outOfStockViewModel.groupedProducts.collectAsState()
 
     // Observar el estado de isLoading
     val isLoading by outOfStockViewModel.isLoading.collectAsState()
@@ -84,7 +89,7 @@ fun OutOfStockScreen(navController: NavController) {
                     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                 }
 
-                if (outOfStockProducts.isEmpty() && !isLoading) {
+                if (groupedProducts.isEmpty() && !isLoading) {
                     Column(
                         modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.Center,
@@ -99,10 +104,29 @@ fun OutOfStockScreen(navController: NavController) {
                         modifier = Modifier
                             .fillMaxSize()
                             .weight(1f)
-                            .padding(16.dp)
+                            .padding(end = 16.dp, start = 16.dp, top = 16.dp)
                     ) {
-                        items(outOfStockProducts) { product ->
-                            OutOfStockCard(product)
+
+                        groupedProducts.forEach { (initial, products) ->
+                            stickyHeader {
+                                Surface(
+                                    color = MaterialTheme.colorScheme.background,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(start = 16.dp)
+                                ) {
+                                    Text(
+                                        text = initial,
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+                                }
+                            }
+                            items(products) { product ->
+                                OutOfStockCard(product)
+                            }
+                        }
+                        item {
+                            Spacer(modifier = Modifier.height(16.dp))
                         }
                     }
                 }
