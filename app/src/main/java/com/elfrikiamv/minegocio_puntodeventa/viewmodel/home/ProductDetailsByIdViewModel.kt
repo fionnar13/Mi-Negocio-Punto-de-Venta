@@ -21,12 +21,8 @@ class ProductDetailsByIdViewModel : ViewModel() {
     private val auth = FirebaseAuth.getInstance()
     private val db = FirebaseFirestore.getInstance()
 
-    private val _products = MutableStateFlow<List<Map<String, Any>>>(emptyList())
-    val products: StateFlow<List<Map<String, Any>>> = _products
-
     private val _groupedProducts = MutableStateFlow<Map<String, List<Map<String, Any>>>>(emptyMap())
     val groupedProducts: StateFlow<Map<String, List<Map<String, Any>>>> = _groupedProducts
-
 
     // Nuevo campo para el estado de carga
     private val _isLoading = MutableStateFlow(false)
