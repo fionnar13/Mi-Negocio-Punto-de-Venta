@@ -84,7 +84,7 @@ class BestSellersProductsViewModel : ViewModel() {
                 val barcode = product["barcode"] as? String ?: "Sin código"
                 val quantity = (product["quantity"] as? Long)?.toInt() ?: 0
 
-                val entry = productSales.getOrPut(productName) {
+                val entry = productSales.getOrPut(barcode) {
                     mutableMapOf(
                         "name" to productName,
                         "barcode" to barcode,

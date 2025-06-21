@@ -7,7 +7,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.elfrikiamv.minegocio_puntodeventa.model.inventory.ProductFirebase
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -58,6 +60,9 @@ class InventoryViewModel : ViewModel() {
     private val _visibleSearchItemCount = MutableStateFlow(50)
     val visibleSearchItemCount: StateFlow<Int> = _visibleSearchItemCount
 
+    // Agregado para guardar referencia al listener
+    private var inventoryListener: ListenerRegistration? = null
+
     // Cargar los productos al iniciar el ViewModel
     init {
         _isLoading.value = true
@@ -68,15 +73,15 @@ class InventoryViewModel : ViewModel() {
         } else {
             Log.d(TAG, "Usuario autenticado: $userEmail")
             _isLoading.value = false
-            loadProducts(userEmail)
+            startListeningToProducts(userEmail)
         }
     }
 
     // Función para cargar los productos desde Firestore
-    private fun loadProducts(userEmail: String) {
-
+    private fun startListeningToProducts(userEmail: String) {
         _isLoading.value = true
-        db.collection("users")
+
+        inventoryListener = db.collection("users")
             .document(userEmail)
             .collection("userMyBusinesses")
             .document(DEFAULT_BUSINESS)
@@ -85,19 +90,40 @@ class InventoryViewModel : ViewModel() {
             .collection("userInventory")
             .addSnapshotListener { snapshot, e ->
                 if (e != null || snapshot == null) {
-                    // Manejar error
+                    Log.e(TAG, "Error al escuchar cambios en inventario: ${e?.message}")
                     _isLoading.value = false
                     return@addSnapshotListener
                 }
 
-                // Convertir los documentos a objetos Product
-                val productsList = snapshot.documents.mapNotNull { doc ->
-                    doc.toObject(ProductFirebase::class.java)?.copy(id = doc.id)
+                // Convertir StateFlow actual en Map mutable para modificar por cambio incremental
+                val currentProducts = _products.value.associateBy { it.id }.toMutableMap()
+
+                // Procesar cambios incrementales
+                for (change in snapshot.documentChanges) {
+                    val product = change.document.toObject(ProductFirebase::class.java)
+                        .copy(id = change.document.id)
+                    when (change.type) {
+                        DocumentChange.Type.ADDED, DocumentChange.Type.MODIFIED -> {
+                            currentProducts[product.id] = product
+                        }
+
+                        DocumentChange.Type.REMOVED -> {
+                            currentProducts.remove(product.id)
+                        }
+                    }
                 }
-                // Aquí ordenamos por nombre alfabético (case insensitive)
-                _products.value = productsList.sortedBy { it.name.lowercase() }
+
+                // Actualizar el StateFlow ordenado alfabéticamente
+                _products.value = currentProducts.values.sortedBy { it.name.lowercase() }
                 _isLoading.value = false
             }
+    }
+
+    // Cancelar listener en onCleared
+    override fun onCleared() {
+        super.onCleared()
+        inventoryListener?.remove()
+        Log.d(TAG, "Listener de inventario eliminado en onCleared()")
     }
 
     val groupedProducts: StateFlow<Map<Char, List<ProductFirebase>>> = products
