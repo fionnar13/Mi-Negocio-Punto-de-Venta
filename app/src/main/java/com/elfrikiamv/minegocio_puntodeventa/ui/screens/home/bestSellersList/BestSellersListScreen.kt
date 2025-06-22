@@ -2,18 +2,23 @@ package com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.bestSellersList
 
 // BestSellersListScreen.kt
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -30,7 +35,7 @@ import com.elfrikiamv.minegocio_puntodeventa.R
 import com.elfrikiamv.minegocio_puntodeventa.navigation.Screen
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.home.bestSellers.BestSellersProductsViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun BestSellersScreen(navController: NavController) {
 
@@ -87,14 +92,32 @@ fun BestSellersScreen(navController: NavController) {
                         modifier = Modifier
                             .fillMaxSize()
                             .weight(1f)
-                            .padding(16.dp)
+                            .padding(end = 16.dp, start = 16.dp, top = 16.dp)
                     ) {
-                        items(bestSellers) { product ->
-                            BestSellersCard(
-                                name = product["name"] as String,
-                                barcode = product["barcode"] as String,
-                                quantitySold = product["quantitySold"] as Int
-                            )
+                        bestSellers.forEachIndexed { index, product ->
+                            stickyHeader {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .background(MaterialTheme.colorScheme.background)
+                                        .padding(start = 16.dp)
+                                ) {
+                                    Text(
+                                        text = "Top ${index + 1}",
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+                                }
+                            }
+                            item {
+                                BestSellersCard(
+                                    name = product["name"] as String,
+                                    barcode = product["barcode"] as String,
+                                    quantitySold = product["quantitySold"] as Int
+                                )
+                            }
+                        }
+                        item {
+                            Spacer(modifier = Modifier.height(16.dp))
                         }
                     }
                 }

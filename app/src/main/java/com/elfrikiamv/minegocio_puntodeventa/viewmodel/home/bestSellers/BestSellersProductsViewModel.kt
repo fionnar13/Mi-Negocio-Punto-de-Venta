@@ -17,7 +17,7 @@ class BestSellersProductsViewModel : ViewModel() {
         private const val TAG = "BestSellersViewModel"
         private const val DEFAULT_BUSINESS = "defaultBusiness"
         private const val DEFAULT_TICKETS = "defaultTickets"
-        private const val BEST_SELLERS_LIMIT = 7
+        private const val BEST_SELLERS_LIMIT = 17
     }
 
     private val auth = FirebaseAuth.getInstance()
