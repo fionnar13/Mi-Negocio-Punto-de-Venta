@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -60,37 +61,39 @@ class HomeViewModel : ViewModel() {
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
+    // Guardar referencias de los listeners para cancelarlos después
+    private val listenerRegistrations = mutableListOf<ListenerRegistration>()
+
     init {
         val userEmail = auth.currentUser?.email
         if (userEmail == null) {
             Log.e(TAG, "Usuario no autenticado. No se pueden cargar los datos.")
         } else {
             Log.d(TAG, "Usuario autenticado: $userEmail")
-            loadTotalQuantity(userEmail)
-            loadTotalSalePrice(userEmail)
-            loadLowStockProducts(userEmail)
-            loadOutStockProducts(userEmail)
-            loadTotalTicketsSold(userEmail)
-            loadTotalTransactions(userEmail)
-            loadTotalExpenses(userEmail)
-            loadTotalProfitEarned(userEmail)
+            startListeners(userEmail)
         }
+    }
+
+    private fun startListeners(userEmail: String) {
+        loadTotalQuantity(userEmail)
+        loadTotalSalePrice(userEmail)
+        loadLowStockProducts(userEmail)
+        loadOutStockProducts(userEmail)
+        loadTotalTicketsSold(userEmail)
+        loadTotalTransactions(userEmail)
+        loadTotalExpenses(userEmail)
+        loadTotalProfitEarned(userEmail)
     }
 
     // Función para cargar el número total de transacciones (tickets)
     private fun loadTotalTransactions(userEmail: String) {
-
-        _isLoading.value = true // Mostrar indicador de carga
-        Log.d(TAG, "Cargando número total de transacciones para el usuario: $userEmail")
-
-        db.collection("users")
-            .document(userEmail)
-            .collection("userMyBusinesses")
-            .document(DEFAULT_BUSINESS)
-            .collection("userMyTickets")
-            .document(DEFAULT_TICKETS)
+        _isLoading.value = true
+        val listener = db.collection("users").document(userEmail)
+            .collection("userMyBusinesses").document(DEFAULT_BUSINESS)
+            .collection("userMyTickets").document(DEFAULT_TICKETS)
             .collection("userTickets")
             .addSnapshotListener { snapshot, e ->
+                //if (e != null) return@addSnapshotListener
                 if (e != null) {
                     Log.e(TAG, "Error al escuchar cambios en la colección de tickets: ${e.message}")
                     _isLoading.value = false // Ocultar indicador de carga en caso de error
@@ -102,27 +105,21 @@ class HomeViewModel : ViewModel() {
                     _isLoading.value = false // Ocultar indicador de carga en caso de error
                     return@addSnapshotListener
                 }
-
-                Log.d(TAG, "Número total de tickets procesados: ${snapshot.documents.size}")
-                _totalTransactions.value = snapshot.documents.size // Actualiza el flujo
-                _isLoading.value = false // Ocultar indicador de carga
+                _totalTransactions.value = snapshot.size()
+                _isLoading.value = false
             }
+        listenerRegistrations.add(listener)
     }
 
     // Saca el total de tickets vendidos para el usuario
     private fun loadTotalTicketsSold(userEmail: String) {
-
-        _isLoading.value = true // Mostrar indicador de carga
-        Log.d(TAG, "Cargando total de ventas de tickets para el usuario: $userEmail")
-
-        db.collection("users")
-            .document(userEmail)
-            .collection("userMyBusinesses")
-            .document(DEFAULT_BUSINESS)
-            .collection("userMyTickets")
-            .document(DEFAULT_TICKETS)
+        _isLoading.value = true
+        val listener = db.collection("users").document(userEmail)
+            .collection("userMyBusinesses").document(DEFAULT_BUSINESS)
+            .collection("userMyTickets").document(DEFAULT_TICKETS)
             .collection("userTickets")
             .addSnapshotListener { snapshot, e ->
+                //if (e != null) return@addSnapshotListener
                 if (e != null) {
                     Log.e(TAG, "Error al escuchar cambios en la colección de tickets: ${e.message}")
                     _isLoading.value = false // Ocultar indicador de carga en caso de error
@@ -134,32 +131,22 @@ class HomeViewModel : ViewModel() {
                     _isLoading.value = false // Ocultar indicador de carga en caso de error
                     return@addSnapshotListener
                 }
-
-                Log.d(TAG, "Procesando ${snapshot.documents.size} documentos de tickets.")
-                val total = snapshot.documents.sumOf { doc ->
-                    doc.getDouble("totalPrice") ?: 0.0
-                }
-
-                Log.d(TAG, "Total de ventas calculado: $total")
+                val total = snapshot.documents.sumOf { it.getDouble("totalPrice") ?: 0.0 }
                 _totalTicketsSold.value = total
                 _isLoading.value = false // Ocultar indicador de carga
             }
+        listenerRegistrations.add(listener)
     }
 
     // Saca los productos con stock bajo para el usuario
     private fun loadLowStockProducts(userEmail: String) {
-
-        _isLoading.value = true // Mostrar indicador de carga
-        Log.d(TAG, "Cargando productos con stock bajo para el usuario: $userEmail")
-
-        db.collection("users")
-            .document(userEmail)
-            .collection("userMyBusinesses")
-            .document(DEFAULT_BUSINESS)
-            .collection("userMyInventories")
-            .document(DEFAULT_INVENTORY)
+        _isLoading.value = true
+        val listener = db.collection("users").document(userEmail)
+            .collection("userMyBusinesses").document(DEFAULT_BUSINESS)
+            .collection("userMyInventories").document(DEFAULT_INVENTORY)
             .collection("userInventory")
             .addSnapshotListener { snapshot, e ->
+                //if (e != null) return@addSnapshotListener
                 if (e != null) {
                     Log.e(TAG, "Error al escuchar cambios en Firestore: ${e.message}")
                     _isLoading.value = false // Ocultar indicador de carga en caso de error
@@ -171,41 +158,25 @@ class HomeViewModel : ViewModel() {
                     _isLoading.value = false // Ocultar indicador de carga en caso de error
                     return@addSnapshotListener
                 }
-
-                Log.d(TAG, "Procesando ${snapshot.documents.size} documentos para stock bajo.")
-                val lowStockList = snapshot.documents.filter { doc ->
-                    val quantity = doc.getLong("quantity")?.toInt() ?: 0
+                val lowStockList = snapshot.documents.filter {
+                    val quantity = it.getLong("quantity")?.toInt() ?: 0
                     quantity in 1..LOW_STOCK_THRESHOLD
-                }.mapNotNull { doc ->
-
-                    // Validar los datos y construir el mapa de producto
-                    val product = mapOf(
-                        "id" to doc.id
-                    )
-                    Log.d(TAG, "Producto con stock bajo: $product")
-                    product
-                }
-
-                Log.d(TAG, "Productos con stock bajo encontrados: ${lowStockList.size}")
+                }.map { mapOf("id" to it.id) }
                 _lowStockProducts.value = lowStockList
                 _isLoading.value = false // Ocultar indicador de carga
             }
+        listenerRegistrations.add(listener)
     }
 
     // Saca los productos sin stock para el usuario
     private fun loadOutStockProducts(userEmail: String) {
-
-        _isLoading.value = true // Mostrar indicador de carga
-        Log.d(TAG, "Cargando productos sin stock para el usuario: $userEmail")
-
-        db.collection("users")
-            .document(userEmail)
-            .collection("userMyBusinesses")
-            .document(DEFAULT_BUSINESS)
-            .collection("userMyInventories")
-            .document(DEFAULT_INVENTORY)
+        _isLoading.value = true
+        val listener = db.collection("users").document(userEmail)
+            .collection("userMyBusinesses").document(DEFAULT_BUSINESS)
+            .collection("userMyInventories").document(DEFAULT_INVENTORY)
             .collection("userInventory")
             .addSnapshotListener { snapshot, e ->
+                //if (e != null) return@addSnapshotListener
                 if (e != null) {
                     Log.e(TAG, "Error al escuchar cambios en Firestore: ${e.message}")
                     _isLoading.value = false // Ocultar indicador de carga en caso de error
@@ -217,41 +188,24 @@ class HomeViewModel : ViewModel() {
                     _isLoading.value = false // Ocultar indicador de carga en caso de error
                     return@addSnapshotListener
                 }
-
-                Log.d(TAG, "Procesando ${snapshot.documents.size} documentos para sin stock.")
-                val outStockList = snapshot.documents.filter { doc ->
-                    val quantity = doc.getLong("quantity")?.toInt() ?: 0
-                    quantity <= OUT_STOCK_THRESHOLD
-                }.mapNotNull { doc ->
-
-                    // Validar los datos y construir el mapa de producto
-                    val product = mapOf(
-                        "id" to doc.id
-                    )
-                    Log.d(TAG, "Producto sin stock: $product")
-                    product
-                }
-
-                Log.d(TAG, "Productos sin stock encontrados: ${outStockList.size}")
+                val outStockList = snapshot.documents.filter {
+                    (it.getLong("quantity") ?: 0) <= OUT_STOCK_THRESHOLD
+                }.map { mapOf("id" to it.id) }
                 _outStockProducts.value = outStockList
                 _isLoading.value = false // Ocultar indicador de carga
             }
+        listenerRegistrations.add(listener)
     }
 
     // Calcula el valor total del inventario multiplicando `salePrice` por `quantity` para cada producto.
     private fun loadTotalSalePrice(userEmail: String) {
-
-        _isLoading.value = true // Mostrar indicador de carga
-        Log.d(TAG, "Cargando valor total del inventario para el usuario: $userEmail")
-
-        db.collection("users")
-            .document(userEmail)
-            .collection("userMyBusinesses")
-            .document(DEFAULT_BUSINESS)
-            .collection("userMyInventories")
-            .document(DEFAULT_INVENTORY)
+        _isLoading.value = true
+        val listener = db.collection("users").document(userEmail)
+            .collection("userMyBusinesses").document(DEFAULT_BUSINESS)
+            .collection("userMyInventories").document(DEFAULT_INVENTORY)
             .collection("userInventory")
             .addSnapshotListener { snapshot, e ->
+                //if (e != null) return@addSnapshotListener
                 if (e != null) {
                     Log.e(TAG, "Error al escuchar cambios en Firestore: ${e.message}")
                     _isLoading.value = false // Ocultar indicador de carga en caso de error
@@ -263,39 +217,24 @@ class HomeViewModel : ViewModel() {
                     _isLoading.value = false // Ocultar indicador de carga en caso de error
                     return@addSnapshotListener
                 }
-
-                Log.d(TAG, "Procesando ${snapshot.documents.size} documentos para valor total.")
-                val total = snapshot.documents.sumOf { doc ->
-                    val quantity = doc.getLong("quantity")?.toInt() ?: 0
-                    val salePrice = doc.getDouble("salePrice") ?: 0.0
-                    val productValue = quantity * salePrice
-                    Log.d(
-                        TAG,
-                        "Producto procesado - ID: ${doc.id}, quantity: $quantity, salePrice: $salePrice, value: $productValue"
-                    )
-                    productValue
+                val total = snapshot.documents.sumOf {
+                    (it.getLong("quantity")?.toInt() ?: 0) * (it.getDouble("salePrice") ?: 0.0)
                 }
-
-                Log.d(TAG, "Valor total del inventario calculado: $total")
                 _totalSalePrice.value = total
                 _isLoading.value = false // Ocultar indicador de carga
             }
+        listenerRegistrations.add(listener)
     }
 
     // Calcula la cantidad total de productos en el inventario.
     private fun loadTotalQuantity(userEmail: String) {
-
-        _isLoading.value = true // Mostrar indicador de carga
-        Log.d(TAG, "Cargando cantidad total de productos para el usuario: $userEmail")
-
-        db.collection("users")
-            .document(userEmail)
-            .collection("userMyBusinesses")
-            .document(DEFAULT_BUSINESS)
-            .collection("userMyInventories")
-            .document(DEFAULT_INVENTORY)
+        _isLoading.value = true
+        val listener = db.collection("users").document(userEmail)
+            .collection("userMyBusinesses").document(DEFAULT_BUSINESS)
+            .collection("userMyInventories").document(DEFAULT_INVENTORY)
             .collection("userInventory")
             .addSnapshotListener { snapshot, e ->
+                //if (e != null) return@addSnapshotListener
                 if (e != null) {
                     Log.e(TAG, "Error al escuchar cambios en Firestore: ${e.message}")
                     _isLoading.value = false // Ocultar indicador de carga en caso de error
@@ -307,33 +246,22 @@ class HomeViewModel : ViewModel() {
                     _isLoading.value = false // Ocultar indicador de carga en caso de error
                     return@addSnapshotListener
                 }
-
-                Log.d(TAG, "Procesando ${snapshot.documents.size} documentos para cantidad total.")
-                val total = snapshot.documents.sumOf { doc ->
-                    val quantity = doc.getLong("quantity")?.toInt() ?: 0
-                    Log.d(TAG, "Producto procesado - ID: ${doc.id}, quantity: $quantity")
-                    quantity
-                }
-
-                Log.d(TAG, "Cantidad total calculada: $total")
+                val total = snapshot.documents.sumOf { it.getLong("quantity")?.toInt() ?: 0 }
                 _totalQuantity.value = total
                 _isLoading.value = false // Ocultar indicador de carga
             }
+        listenerRegistrations.add(listener)
     }
 
     // Calcula el total de gastos
     private fun loadTotalExpenses(userEmail: String) {
         _isLoading.value = true
-        Log.d(TAG, "Cargando total de gastos para el usuario: $userEmail")
-
-        db.collection("users")
-            .document(userEmail)
-            .collection("userMyBusinesses")
-            .document(DEFAULT_BUSINESS)
-            .collection("userMyExpenses")
-            .document(DEFAULT_EXPENSES)
+        val listener = db.collection("users").document(userEmail)
+            .collection("userMyBusinesses").document(DEFAULT_BUSINESS)
+            .collection("userMyExpenses").document(DEFAULT_EXPENSES)
             .collection("userExpenses")
             .addSnapshotListener { snapshot, e ->
+                //if (e != null) return@addSnapshotListener
                 if (e != null) {
                     Log.e(TAG, "Error al escuchar cambios en la colección de gastos: ${e.message}")
                     _isLoading.value = false
@@ -345,31 +273,23 @@ class HomeViewModel : ViewModel() {
                     _isLoading.value = false
                     return@addSnapshotListener
                 }
-
-                Log.d(TAG, "Procesando ${snapshot.documents.size} documentos de gastos.")
-                val total = snapshot.documents.sumOf { doc ->
-                    doc.getDouble("amountExpense") ?: 0.0
-                }
-
-                Log.d(TAG, "Total de gastos calculado: $total")
+                val total =
+                    snapshot.documents.sumOf { it.getDouble("amountExpense") ?: 0.0 }
                 _totalExpenses.value = total
                 _isLoading.value = false
             }
+        listenerRegistrations.add(listener)
     }
 
     // Calcula el total de ganancias
     private fun loadTotalProfitEarned(userEmail: String) {
         _isLoading.value = true
-        Log.d(TAG, "Cargando ganancias totales para el usuario: $userEmail")
-
-        db.collection("users")
-            .document(userEmail)
-            .collection("userMyBusinesses")
-            .document(DEFAULT_BUSINESS)
-            .collection("userMyTickets")
-            .document(DEFAULT_TICKETS)
+        val listener = db.collection("users").document(userEmail)
+            .collection("userMyBusinesses").document(DEFAULT_BUSINESS)
+            .collection("userMyTickets").document(DEFAULT_TICKETS)
             .collection("userTickets")
             .addSnapshotListener { snapshot, e ->
+                //if (e != null) return@addSnapshotListener
                 if (e != null) {
                     Log.e(TAG, "Error al escuchar cambios en la colección de tickets: ${e.message}")
                     _isLoading.value = false
@@ -381,32 +301,27 @@ class HomeViewModel : ViewModel() {
                     _isLoading.value = false
                     return@addSnapshotListener
                 }
-
-                Log.d(TAG, "Procesando ${snapshot.documents.size} tickets para ganancias.")
-
                 var totalProfit = 0.0
-
-                snapshot.documents.forEach { ticketDoc ->
-                    val productsList = ticketDoc.get("products")
-                    if (productsList is List<*>) {
-                        val products = productsList.filterIsInstance<Map<String, Any>>()
-                        products.forEach { product ->
-                            val salePrice = product["salePrice"] as? Double ?: 0.0
-                            val providerPrice = product["providerPrice"] as? Double ?: 0.0
+                snapshot.documents.forEach { doc ->
+                    (doc.get("products") as? List<*>)?.filterIsInstance<Map<String, Any>>()
+                        ?.forEach { product ->
+                            val sale = product["salePrice"] as? Double ?: 0.0
+                            val provider = product["providerPrice"] as? Double ?: 0.0
                             val quantity = (product["quantity"] as? Long)?.toInt() ?: 0
-                            val productProfit = (salePrice - providerPrice) * quantity
-                            totalProfit += productProfit
-                            Log.d(TAG, "Ganancia producto: $productProfit")
+                            totalProfit += (sale - provider) * quantity
                         }
-                    } else {
-                        Log.e(TAG, "El campo 'products' no es una lista o está mal formado.")
-                    }
                 }
-
-                Log.d(TAG, "Ganancia total calculada: $totalProfit")
                 _totalProfitEarned.value = totalProfit
                 _isLoading.value = false
             }
+        listenerRegistrations.add(listener)
     }
 
+    // Cancelamos todos los listeners cuando se destruye el ViewModel
+    override fun onCleared() {
+        super.onCleared()
+        listenerRegistrations.forEach { it.remove() }
+        listenerRegistrations.clear()
+        Log.d(TAG, "Todos los listeners de HomeViewModel eliminados en onCleared()")
+    }
 }
