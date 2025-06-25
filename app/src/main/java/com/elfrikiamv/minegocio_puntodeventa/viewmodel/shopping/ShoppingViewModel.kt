@@ -11,7 +11,9 @@ import com.elfrikiamv.minegocio_puntodeventa.database.AppDatabase
 import com.elfrikiamv.minegocio_puntodeventa.model.inventory.ProductFirebase
 import com.elfrikiamv.minegocio_puntodeventa.model.shopping.ProductEntity
 import com.elfrikiamv.minegocio_puntodeventa.model.shopping.TicketEntity
+import com.elfrikiamv.minegocio_puntodeventa.model.shopping.TicketFirebase
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.activity.ActivityViewModel
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,6 +21,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Date
 import java.util.Locale
 import kotlin.coroutines.suspendCoroutine
 
@@ -134,6 +137,7 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
     ) {
         viewModelScope.launch {
             // Obtener información de fecha y hora
+            val currentDateTimeMillis = System.currentTimeMillis()
             val currentDateTimeTicketId = System.currentTimeMillis()
             val currentDateTime = Calendar.getInstance()
             val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
@@ -161,7 +165,8 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
                 totalPrice = totalPrice,
                 totalProducts = totalProducts,
                 amountReceived = amountReceived,
-                change = change
+                change = change,
+                timestamp = currentDateTimeMillis
             )
 
             // Guardar en Room
@@ -177,27 +182,36 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    private fun loadCartProducts() {
-        viewModelScope.launch {
-            val products = productDao.getAllProducts().map {
-                ProductFirebase(
-                    barcode = it.barcode,
-                    name = it.name,
-                    quantity = it.quantity,
-                    salePrice = it.salePrice,
-                    providerPrice = it.providerPrice
-                )
-            }
-            _cartProducts.value = products
-        }
-    }
-
     private fun uploadTicketToFirebase(
         ticketEntity: TicketEntity,
         context: Context,
         email: String
     ) {
         val userEmail = auth.currentUser?.email ?: return
+
+        // Convertir productos a Map<String, Any>
+        val productsList = ticketEntity.products.map { product ->
+            mapOf(
+                "barcode" to product.barcode,
+                "name" to product.name,
+                "quantity" to product.quantity,
+                "providerPrice" to product.providerPrice,
+                "salePrice" to product.salePrice
+            )
+        }
+
+        // Convertir TicketEntity → TicketFirebase con Timestamp
+        val ticketFirebase = TicketFirebase(
+            ticketId = ticketEntity.ticketId,
+            products = productsList,
+            totalPrice = ticketEntity.totalPrice,
+            totalProducts = ticketEntity.totalProducts,
+            amountReceived = ticketEntity.amountReceived,
+            change = ticketEntity.change,
+            date = ticketEntity.date,
+            time = ticketEntity.time,
+            timestamp = Timestamp(Date(ticketEntity.timestamp))
+        )
 
         db.collection("users")
             .document(userEmail)
@@ -206,9 +220,8 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
             .collection("userMyTickets")
             .document(userMyTickets)
             .collection("userTickets")
-
-            .document(ticketEntity.ticketId)
-            .set(ticketEntity)
+            .document(ticketFirebase.ticketId)
+            .set(ticketFirebase)
             .addOnSuccessListener {
                 viewModelScope.launch {
 
@@ -222,6 +235,21 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
             .addOnFailureListener { e ->
                 Log.e("ShoppingViewModel", "Error al subir el ticket a Firebase: $e")
             }
+    }
+
+    private fun loadCartProducts() {
+        viewModelScope.launch {
+            val products = productDao.getAllProducts().map {
+                ProductFirebase(
+                    barcode = it.barcode,
+                    name = it.name,
+                    quantity = it.quantity,
+                    salePrice = it.salePrice,
+                    providerPrice = it.providerPrice
+                )
+            }
+            _cartProducts.value = products
+        }
     }
 
     private fun sharePDF(ticketId: String, context: Context, email: String) {

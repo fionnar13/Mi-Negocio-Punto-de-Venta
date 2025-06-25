@@ -1,6 +1,8 @@
 package com.elfrikiamv.minegocio_puntodeventa.model.shopping
 
-// Ticket.kt
+// TicketFirebase.kt
+
+import com.google.firebase.Timestamp
 
 // Modelo para representar un ticket
 data class TicketFirebase(
@@ -13,5 +15,6 @@ data class TicketFirebase(
     val amountReceived: Double = 0.0, // Nuevo campo con valor por defecto 0.0
     val change: Double = 0.0, // Nuevo campo con valor por defecto 0.0// Precio total del ticket
     val date: String = "", // Nuevo campo para la fecha
-    val time: String = ""  // Nuevo campo para la hora
+    val time: String = "",  // Nuevo campo para la hora
+    val timestamp: Timestamp? = null // Campo para almacenar el timestamp
 )

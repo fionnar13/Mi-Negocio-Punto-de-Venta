@@ -111,7 +111,7 @@ class HomeViewModel : ViewModel() {
         listenerRegistrations.add(listener)
     }
 
-    // Saca el total de tickets vendidos para el usuario
+    // SAca el total de ventas sumando `totalPrice` de cada ticket
     private fun loadTotalTicketsSold(userEmail: String) {
         _isLoading.value = true
         val listener = db.collection("users").document(userEmail)
@@ -134,6 +134,70 @@ class HomeViewModel : ViewModel() {
                 val total = snapshot.documents.sumOf { it.getDouble("totalPrice") ?: 0.0 }
                 _totalTicketsSold.value = total
                 _isLoading.value = false // Ocultar indicador de carga
+            }
+        listenerRegistrations.add(listener)
+    }
+
+    // Calcula el total de gastos
+    private fun loadTotalExpenses(userEmail: String) {
+        _isLoading.value = true
+        val listener = db.collection("users").document(userEmail)
+            .collection("userMyBusinesses").document(DEFAULT_BUSINESS)
+            .collection("userMyExpenses").document(DEFAULT_EXPENSES)
+            .collection("userExpenses")
+            .addSnapshotListener { snapshot, e ->
+                //if (e != null) return@addSnapshotListener
+                if (e != null) {
+                    Log.e(TAG, "Error al escuchar cambios en la colección de gastos: ${e.message}")
+                    _isLoading.value = false
+                    return@addSnapshotListener
+                }
+
+                if (snapshot == null) {
+                    Log.e(TAG, "Snapshot vacío o nulo al cargar los gastos.")
+                    _isLoading.value = false
+                    return@addSnapshotListener
+                }
+                val total =
+                    snapshot.documents.sumOf { it.getDouble("amountExpense") ?: 0.0 }
+                _totalExpenses.value = total
+                _isLoading.value = false
+            }
+        listenerRegistrations.add(listener)
+    }
+
+    // Calcula el total de ganancias
+    private fun loadTotalProfitEarned(userEmail: String) {
+        _isLoading.value = true
+        val listener = db.collection("users").document(userEmail)
+            .collection("userMyBusinesses").document(DEFAULT_BUSINESS)
+            .collection("userMyTickets").document(DEFAULT_TICKETS)
+            .collection("userTickets")
+            .addSnapshotListener { snapshot, e ->
+                //if (e != null) return@addSnapshotListener
+                if (e != null) {
+                    Log.e(TAG, "Error al escuchar cambios en la colección de tickets: ${e.message}")
+                    _isLoading.value = false
+                    return@addSnapshotListener
+                }
+
+                if (snapshot == null) {
+                    Log.e(TAG, "Snapshot vacío o nulo al cargar las ganancias.")
+                    _isLoading.value = false
+                    return@addSnapshotListener
+                }
+                var totalProfit = 0.0
+                snapshot.documents.forEach { doc ->
+                    (doc.get("products") as? List<*>)?.filterIsInstance<Map<String, Any>>()
+                        ?.forEach { product ->
+                            val sale = product["salePrice"] as? Double ?: 0.0
+                            val provider = product["providerPrice"] as? Double ?: 0.0
+                            val quantity = (product["quantity"] as? Long)?.toInt() ?: 0
+                            totalProfit += (sale - provider) * quantity
+                        }
+                }
+                _totalProfitEarned.value = totalProfit
+                _isLoading.value = false
             }
         listenerRegistrations.add(listener)
     }
@@ -249,70 +313,6 @@ class HomeViewModel : ViewModel() {
                 val total = snapshot.documents.sumOf { it.getLong("quantity")?.toInt() ?: 0 }
                 _totalQuantity.value = total
                 _isLoading.value = false // Ocultar indicador de carga
-            }
-        listenerRegistrations.add(listener)
-    }
-
-    // Calcula el total de gastos
-    private fun loadTotalExpenses(userEmail: String) {
-        _isLoading.value = true
-        val listener = db.collection("users").document(userEmail)
-            .collection("userMyBusinesses").document(DEFAULT_BUSINESS)
-            .collection("userMyExpenses").document(DEFAULT_EXPENSES)
-            .collection("userExpenses")
-            .addSnapshotListener { snapshot, e ->
-                //if (e != null) return@addSnapshotListener
-                if (e != null) {
-                    Log.e(TAG, "Error al escuchar cambios en la colección de gastos: ${e.message}")
-                    _isLoading.value = false
-                    return@addSnapshotListener
-                }
-
-                if (snapshot == null) {
-                    Log.e(TAG, "Snapshot vacío o nulo al cargar los gastos.")
-                    _isLoading.value = false
-                    return@addSnapshotListener
-                }
-                val total =
-                    snapshot.documents.sumOf { it.getDouble("amountExpense") ?: 0.0 }
-                _totalExpenses.value = total
-                _isLoading.value = false
-            }
-        listenerRegistrations.add(listener)
-    }
-
-    // Calcula el total de ganancias
-    private fun loadTotalProfitEarned(userEmail: String) {
-        _isLoading.value = true
-        val listener = db.collection("users").document(userEmail)
-            .collection("userMyBusinesses").document(DEFAULT_BUSINESS)
-            .collection("userMyTickets").document(DEFAULT_TICKETS)
-            .collection("userTickets")
-            .addSnapshotListener { snapshot, e ->
-                //if (e != null) return@addSnapshotListener
-                if (e != null) {
-                    Log.e(TAG, "Error al escuchar cambios en la colección de tickets: ${e.message}")
-                    _isLoading.value = false
-                    return@addSnapshotListener
-                }
-
-                if (snapshot == null) {
-                    Log.e(TAG, "Snapshot vacío o nulo al cargar las ganancias.")
-                    _isLoading.value = false
-                    return@addSnapshotListener
-                }
-                var totalProfit = 0.0
-                snapshot.documents.forEach { doc ->
-                    (doc.get("products") as? List<*>)?.filterIsInstance<Map<String, Any>>()
-                        ?.forEach { product ->
-                            val sale = product["salePrice"] as? Double ?: 0.0
-                            val provider = product["providerPrice"] as? Double ?: 0.0
-                            val quantity = (product["quantity"] as? Long)?.toInt() ?: 0
-                            totalProfit += (sale - provider) * quantity
-                        }
-                }
-                _totalProfitEarned.value = totalProfit
-                _isLoading.value = false
             }
         listenerRegistrations.add(listener)
     }

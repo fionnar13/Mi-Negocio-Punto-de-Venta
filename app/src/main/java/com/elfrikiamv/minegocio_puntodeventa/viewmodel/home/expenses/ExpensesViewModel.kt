@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.elfrikiamv.minegocio_puntodeventa.database.AppDatabase
 import com.elfrikiamv.minegocio_puntodeventa.model.home.expenses.ExpenseEntity
 import com.elfrikiamv.minegocio_puntodeventa.model.home.expenses.ExpenseFirebase
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentChange
@@ -21,6 +22,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Date
 import java.util.Locale
 
 class ExpensesViewModel(application: Application) : AndroidViewModel(application) {
@@ -309,6 +311,7 @@ class ExpensesViewModel(application: Application) : AndroidViewModel(application
         _isLoading.value = true
         viewModelScope.launch {
             // Obtener información de fecha y hora
+            val currentDateTimeMillis = System.currentTimeMillis()
             val currentDateTimeExpenseId = System.currentTimeMillis()
             val currentDateTime = Calendar.getInstance()
             val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
@@ -329,7 +332,8 @@ class ExpensesViewModel(application: Application) : AndroidViewModel(application
                 amountExpense = amountExpense,
                 amountGiven = amountGiven,
                 change = change,
-                description = description
+                description = description,
+                timestamp = currentDateTimeMillis
             )
 
             // Guardar en Room
@@ -348,9 +352,22 @@ class ExpensesViewModel(application: Application) : AndroidViewModel(application
 
     // Subir gastos a Firebase
     private fun uploadExpenseToFirebase(expenseEntity: ExpenseEntity) {
-
         _isLoading.value = true
         val userEmail = auth.currentUser?.email ?: return
+
+        // Convertimos ExpenseEntity → ExpenseFirebase con Timestamp
+        val expenseFirebase = ExpenseFirebase(
+            expenseId = expenseEntity.expenseId,
+            date = expenseEntity.date,
+            time = expenseEntity.time,
+            paymentConcept = expenseEntity.paymentConcept,
+            paymentMethod = expenseEntity.paymentMethod,
+            amountExpense = expenseEntity.amountExpense,
+            amountGiven = expenseEntity.amountGiven,
+            change = expenseEntity.change,
+            description = expenseEntity.description,
+            timestamp = Timestamp(Date(expenseEntity.timestamp))
+        )
 
         db.collection("users")
             .document(userEmail)
@@ -359,16 +376,10 @@ class ExpensesViewModel(application: Application) : AndroidViewModel(application
             .collection("userMyExpenses")
             .document(DEFAULT_EXPENSES)
             .collection("userExpenses")
-
-            .document(expenseEntity.expenseId)
-            .set(expenseEntity)
+            .document(expenseFirebase.expenseId)
+            .set(expenseFirebase)
             .addOnSuccessListener {
                 viewModelScope.launch {
-
-                    // compartir ticket
-                    /*val ticketId = ticketEntity.ticketId
-                    sharePDF(ticketId, context, email)*/
-                    // Eliminar ticket de Room
                     expenseDao.deleteExpenseById(expenseEntity.expenseId)
                     _isLoading.value = false
                 }

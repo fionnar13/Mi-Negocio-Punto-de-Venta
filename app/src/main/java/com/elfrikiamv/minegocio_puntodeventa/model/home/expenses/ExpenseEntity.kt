@@ -17,5 +17,6 @@ data class ExpenseEntity(
     val amountExpense: Double = 0.0, // Nuevo campo con valor por defecto 0.0
     val amountGiven: Double = 0.0, // Nuevo campo con valor por defecto 0.0
     val change: Double = 0.0, // Nuevo campo con valor por defecto 0.0// Precio total del ticket
-    val description: String = ""
+    val description: String = "",
+    val timestamp: Long = 0L // Campo para almacenar el timestamp
 )

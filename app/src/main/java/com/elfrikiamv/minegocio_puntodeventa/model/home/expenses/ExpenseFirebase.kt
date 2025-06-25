@@ -1,5 +1,7 @@
 package com.elfrikiamv.minegocio_puntodeventa.model.home.expenses
 
+import com.google.firebase.Timestamp
+
 // ExpenseFirebase.kt
 
 data class ExpenseFirebase(
@@ -13,5 +15,6 @@ data class ExpenseFirebase(
     val amountExpense: Double = 0.0, // Nuevo campo con valor por defecto 0.0
     val amountGiven: Double = 0.0, // Nuevo campo con valor por defecto 0.0
     val change: Double = 0.0, // Nuevo campo con valor por defecto 0.0// Precio total del ticket
-    val description: String = ""
+    val description: String = "",
+    val timestamp: Timestamp? = null // Campo para almacenar el timestamp
 )
