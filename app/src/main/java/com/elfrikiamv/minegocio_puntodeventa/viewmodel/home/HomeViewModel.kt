@@ -4,11 +4,13 @@ package com.elfrikiamv.minegocio_puntodeventa.viewmodel.home
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import java.util.Calendar
 
 class HomeViewModel : ViewModel() {
 
@@ -64,7 +66,22 @@ class HomeViewModel : ViewModel() {
     // Guardar referencias de los listeners para cancelarlos después
     private val listenerRegistrations = mutableListOf<ListenerRegistration>()
 
+    private val monthStart: Timestamp
+    private val monthEnd: Timestamp
+
     init {
+        val calendar = Calendar.getInstance().apply {
+            set(Calendar.DAY_OF_MONTH, 1)
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        monthStart = Timestamp(calendar.time)
+
+        calendar.add(Calendar.MONTH, 1)
+        monthEnd = Timestamp(calendar.time)
+
         val userEmail = auth.currentUser?.email
         if (userEmail == null) {
             Log.e(TAG, "Usuario no autenticado. No se pueden cargar los datos.")
@@ -92,6 +109,8 @@ class HomeViewModel : ViewModel() {
             .collection("userMyBusinesses").document(DEFAULT_BUSINESS)
             .collection("userMyTickets").document(DEFAULT_TICKETS)
             .collection("userTickets")
+            .whereGreaterThanOrEqualTo("timestamp", monthStart)
+            .whereLessThan("timestamp", monthEnd)
             .addSnapshotListener { snapshot, e ->
                 //if (e != null) return@addSnapshotListener
                 if (e != null) {
@@ -118,6 +137,8 @@ class HomeViewModel : ViewModel() {
             .collection("userMyBusinesses").document(DEFAULT_BUSINESS)
             .collection("userMyTickets").document(DEFAULT_TICKETS)
             .collection("userTickets")
+            .whereGreaterThanOrEqualTo("timestamp", monthStart)
+            .whereLessThan("timestamp", monthEnd)
             .addSnapshotListener { snapshot, e ->
                 //if (e != null) return@addSnapshotListener
                 if (e != null) {
@@ -145,6 +166,8 @@ class HomeViewModel : ViewModel() {
             .collection("userMyBusinesses").document(DEFAULT_BUSINESS)
             .collection("userMyExpenses").document(DEFAULT_EXPENSES)
             .collection("userExpenses")
+            .whereGreaterThanOrEqualTo("timestamp", monthStart)
+            .whereLessThan("timestamp", monthEnd)
             .addSnapshotListener { snapshot, e ->
                 //if (e != null) return@addSnapshotListener
                 if (e != null) {
@@ -173,6 +196,8 @@ class HomeViewModel : ViewModel() {
             .collection("userMyBusinesses").document(DEFAULT_BUSINESS)
             .collection("userMyTickets").document(DEFAULT_TICKETS)
             .collection("userTickets")
+            .whereGreaterThanOrEqualTo("timestamp", monthStart)
+            .whereLessThan("timestamp", monthEnd)
             .addSnapshotListener { snapshot, e ->
                 //if (e != null) return@addSnapshotListener
                 if (e != null) {
