@@ -10,7 +10,9 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Locale
 
 class HomeViewModel : ViewModel() {
 
@@ -66,6 +68,10 @@ class HomeViewModel : ViewModel() {
     // Guardar referencias de los listeners para cancelarlos después
     private val listenerRegistrations = mutableListOf<ListenerRegistration>()
 
+    // Nuevo campo para el mes actual
+    private val _currentMonth = MutableStateFlow("")
+    val currentMonth: StateFlow<String> = _currentMonth
+
     private val monthStart: Timestamp
     private val monthEnd: Timestamp
 
@@ -100,6 +106,14 @@ class HomeViewModel : ViewModel() {
         loadTotalTransactions(userEmail)
         loadTotalExpenses(userEmail)
         loadTotalProfitEarned(userEmail)
+        loadCurrentMonth()
+    }
+
+    private fun loadCurrentMonth() {
+        // Obtener y guardar mes actual
+        val dateFormat = SimpleDateFormat("MMMM yyyy", Locale.getDefault())
+        val currentDate = Calendar.getInstance().time
+        _currentMonth.value = dateFormat.format(currentDate).replaceFirstChar { it.uppercase() }
     }
 
     // Función para cargar el número total de transacciones (tickets)

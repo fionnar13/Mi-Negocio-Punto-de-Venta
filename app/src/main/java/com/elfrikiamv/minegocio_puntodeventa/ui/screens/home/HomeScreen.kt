@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Scaffold
@@ -50,6 +51,7 @@ fun HomeScreen(navController: NavController) {
     val totalTransactions by viewModel.totalTransactions.collectAsState()
     val totalExpenses by viewModel.totalExpenses.collectAsState()
     val totalProfitEarned by viewModel.totalProfitEarned.collectAsState()
+    val currentMonth by viewModel.currentMonth.collectAsState()
 
     // Estado de carga: verificar si algún dato aún no está disponible
     val isLoading by viewModel.isLoading.collectAsState()
@@ -88,7 +90,8 @@ fun HomeScreen(navController: NavController) {
                                 totalTicketsSold,
                                 totalTransactions,
                                 totalExpenses,
-                                totalProfitEarned
+                                totalProfitEarned,
+                                currentMonth
                             )
                         }
                     }
@@ -108,7 +111,8 @@ fun MyReport(
     totalTicketsSold: Double,
     totalTransactions: Int,
     totalExpenses: Double,
-    totalProfitEarned: Double
+    totalProfitEarned: Double,
+    currentMonth: String
 ) {
 
     Column(
@@ -116,7 +120,11 @@ fun MyReport(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
 
-        Text(text = "Resumen de mi negocio:")
+        Text(
+            text = "Resumen de mi negocio ($currentMonth):"
+            //style = MaterialTheme.typography.titleMedium
+        )
+
 
         Row(
             modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -133,7 +141,11 @@ fun MyReport(
                         .padding(16.dp)
                 ) {
                     Row {
-                        Text(text = "Has\nvendido:")
+                        Text(
+                            text = "Has\nvendido:",
+                            maxLines = 2,
+                            minLines = 2
+                        )
                         Spacer(modifier = Modifier.weight(1f))
                         //HelpIconWithDialog(helpText = "Aquí se muestra la suma total de dinero generado por las ventas registradas.")
                         //helpText = HelpTexts.hasVendido
@@ -273,6 +285,11 @@ fun MyReport(
                 }
             }
         }
+
+        HorizontalDivider(
+            modifier = Modifier.padding(top = 3.dp),
+            thickness = 1.dp
+        )
 
         Text(text = "Resumen de mi inventario:")
         // Tarjeta de resumen de mi inventario
