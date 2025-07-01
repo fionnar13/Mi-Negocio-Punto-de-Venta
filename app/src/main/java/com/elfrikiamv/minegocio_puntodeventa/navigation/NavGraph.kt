@@ -13,7 +13,7 @@ import com.elfrikiamv.minegocio_puntodeventa.ui.screens.activity.ActivityScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.activity.DetailsTicketScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.bestSellersList.BestSellersScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.expensesList.AddExpenseScreen
-import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.expensesList.ExpensesDetailsScreen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.expensesList.ExpensesListScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.lowInventoryList.LowInventoryScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.missingList.AddMissingScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.missingList.MissingListScreen
@@ -67,7 +67,7 @@ fun NavGraph(navController: NavHostController) {
         }
         // Ruta para la pantalla de escanear producto
         composable(Screen.ScanProduct.route) {
-            ScanScreen(navController)
+            ScanScreen()
         }
 
         // Ruta para la pantalla de escanear producto
@@ -100,32 +100,32 @@ fun NavGraph(navController: NavHostController) {
             arguments = listOf(navArgument("ticketId") { type = NavType.StringType })
         ) { backStackEntry ->
             val ticketId = backStackEntry.arguments?.getString("ticketId")
-            DetailsTicketScreen(navController = navController, ticketId = ticketId)
+            DetailsTicketScreen(ticketId = ticketId)
         }
 
         // Ruta para la pantalla con los productos mas vendidos
         composable(Screen.BestSellersProducts.route) {
-            BestSellersScreen(navController)
+            BestSellersScreen()
         }
 
         // Ruta para la pantalla con los productos con bajo inventario
         composable(Screen.LowInventoryProducts.route) {
-            LowInventoryScreen(navController)
+            LowInventoryScreen()
         }
 
         // Ruta para la pantalla con los productos agotados
         composable(Screen.OutOfStockProducts.route) {
-            OutOfStockScreen(navController)
+            OutOfStockScreen()
         }
 
         // Ruta para la pantalla con los productos faltantes
         composable(Screen.MissingListProducts.route) {
-            MissingListScreen(navController)
+            MissingListScreen()
         }
 
         // Ruta para la pantalla con los detalles de los gastos
-        composable(Screen.ExpensesDetails.route) {
-            ExpensesDetailsScreen(navController)
+        composable(Screen.ExpensesListScreen.route) {
+            ExpensesListScreen()
         }
 
         // Ruta para la pantalla para agregar gastos

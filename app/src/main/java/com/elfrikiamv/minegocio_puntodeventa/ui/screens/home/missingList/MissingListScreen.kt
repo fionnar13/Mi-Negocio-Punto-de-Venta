@@ -10,11 +10,11 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -27,17 +27,14 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -60,7 +57,7 @@ import com.elfrikiamv.minegocio_puntodeventa.viewmodel.home.missing.MissingProdu
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-fun MissingListScreen(navController: NavController) {
+fun MissingListScreen() {
 
     val viewModel: MissingProductsViewModel = viewModel()
 
@@ -92,300 +89,264 @@ fun MissingListScreen(navController: NavController) {
     }
 
     // Contenido de la pantalla que muestra los MissingListScreen
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("MissingListScreen") },
-                navigationIcon = {
-                    Icon(
-                        painter = painterResource(id = R.drawable.baseline_arrow_back_ios_new_24),
-                        contentDescription = "Regresar",
-                        modifier = Modifier
-                            .padding(horizontal = 16.dp)
-                            .clickable {
-                                navController.navigate(Screen.Main.route) {
-                                    popUpTo(Screen.Main.route) { inclusive = true }
-                                }
-                            }
-                    )
-                }
-            )
-        },
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = {
-                    // Lógica para agregar un gasto
-                    onAddMissing(navController = navController)
-                },
-                icon = {
-                    Icon(
-                        painter = painterResource(id = R.drawable.baseline_add_24),
-                        contentDescription = "Agregar faltante"
-                    )
-                },
-                text = { Text("Agregar faltante") }
-            )
-        },
-        content = { paddingValues ->
-            Column(
-                modifier = Modifier
-                    .padding(paddingValues)
-                    .fillMaxSize()
-            ) {
-                // Mostrar el LinearProgressIndicator mientras se cargan los datos
-                if (isLoading && grouped.isEmpty()) {
-                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                }
+    Column(
+        modifier = Modifier
+            //.padding(paddingValues)
+            .fillMaxSize()
+    ) {
+        // Mostrar el LinearProgressIndicator mientras se cargan los datos
+        if (isLoading && grouped.isEmpty()) {
+            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+        }
 
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
 
-                    /*val onActiveChange: (Boolean) -> Unit = { isSearchActive = it }*/
-                    val onActiveChange: (Boolean) -> Unit = {
-                        isSearchActive = it
-                        if (!it) viewModel.updateSearchQuery("")
-                    }
+            /*val onActiveChange: (Boolean) -> Unit = { isSearchActive = it }*/
+            val onActiveChange: (Boolean) -> Unit = {
+                isSearchActive = it
+                if (!it) viewModel.updateSearchQuery("")
+            }
 
-                    SearchBar(
-                        inputField = {
-                            SearchBarDefaults.InputField(
-                                query = searchQuery,
-                                onQueryChange = { viewModel.updateSearchQuery(it) },
-                                onSearch = { isSearchActive = false },
-                                expanded = isSearchActive,
-                                onExpandedChange = onActiveChange,
-                                enabled = true,
-                                placeholder = { Text("Buscar por ID o fecha") },
-                                leadingIcon = {
-                                    if (isSearchActive) {
-                                        IconButton(
-                                            onClick = { isSearchActive = false }
-                                        ) {
-                                            Icon(
-                                                painter = painterResource(id = R.drawable.baseline_arrow_back_ios_new_24),
-                                                contentDescription = "Volver"
-                                            )
-                                        }
-                                    } else {
-                                        Icon(
-                                            painter = painterResource(id = R.drawable.baseline_search_24),
-                                            contentDescription = "Buscar"
-                                        )
-                                    }
-                                },
-                                trailingIcon = {
-                                    if (searchQuery.isNotEmpty()) {
-                                        IconButton(onClick = { viewModel.updateSearchQuery("") }) {
-                                            Icon(
-                                                painter = painterResource(id = R.drawable.baseline_close_24),
-                                                contentDescription = "Borrar búsqueda"
-                                            )
-                                        }
-                                    }
-                                },
-                                colors = SearchBarDefaults.inputFieldColors(),
-                                interactionSource = null,
-                            )
-                        },
+            SearchBar(
+                inputField = {
+                    SearchBarDefaults.InputField(
+                        query = searchQuery,
+                        onQueryChange = { viewModel.updateSearchQuery(it) },
+                        onSearch = { isSearchActive = false },
                         expanded = isSearchActive,
                         onExpandedChange = onActiveChange,
-                        modifier = Modifier.align(Alignment.CenterHorizontally),
-                        shape = SearchBarDefaults.inputFieldShape,
-                        colors = SearchBarDefaults.colors(),
-                        tonalElevation = SearchBarDefaults.TonalElevation,
-                        shadowElevation = SearchBarDefaults.ShadowElevation,
-                        windowInsets = SearchBarDefaults.windowInsets,
-                        content = {
-
-                            if (isLoading) {
-                                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                            }
-
-                            if (searchQuery.isEmpty() && !isLoading) {
-                                Column(
-                                    modifier = Modifier.fillMaxSize(),
-                                    //verticalArrangement = Arrangement.Center,
-                                    horizontalAlignment = Alignment.CenterHorizontally
+                        enabled = true,
+                        placeholder = { Text("Buscar por ID o fecha") },
+                        leadingIcon = {
+                            if (isSearchActive) {
+                                IconButton(
+                                    onClick = { isSearchActive = false }
                                 ) {
-                                    Text(
-                                        "rules of search.",
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
-                                    )
-                                }
-                            } else if (searchResults.isEmpty() && searchQuery.isNotEmpty() && !isLoading) {
-                                Column(
-                                    modifier = Modifier.fillMaxSize(),
-                                    verticalArrangement = Arrangement.Center,
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    Text(
-                                        "No se encontraron coincidencias",
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
-                                    )
-                                    Text(
-                                        "):",
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.baseline_arrow_back_ios_new_24),
+                                        contentDescription = "Volver"
                                     )
                                 }
                             } else {
-                                LazyColumn(
-                                    //state = searchListState,
-                                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .weight(1f)
-                                        .padding(end = 16.dp, start = 16.dp, top = 16.dp)
-                                ) {
-                                    // Resultados de la búsqueda en su propio LazyColumn dentro del SearchBar
-
-                                    items(searchResults) { missing ->
-                                        MissingProductCard(missing)
-                                    }
-
-                                    /*items(searchResults) { exp ->
-                                        ExpensesDetailsCard(exp)
-                                    }*/
-
-                                    item {
-                                        Spacer(modifier = Modifier.height(72.dp))
-                                    }
+                                Icon(
+                                    painter = painterResource(id = R.drawable.baseline_search_24),
+                                    contentDescription = "Buscar"
+                                )
+                            }
+                        },
+                        trailingIcon = {
+                            if (searchQuery.isNotEmpty()) {
+                                IconButton(onClick = { viewModel.updateSearchQuery("") }) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.baseline_close_24),
+                                        contentDescription = "Borrar búsqueda"
+                                    )
                                 }
                             }
                         },
+                        colors = SearchBarDefaults.inputFieldColors(),
+                        interactionSource = null,
                     )
-                }
+                },
+                expanded = isSearchActive,
+                onExpandedChange = onActiveChange,
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                shape = SearchBarDefaults.inputFieldShape,
+                colors = SearchBarDefaults.colors(),
+                tonalElevation = SearchBarDefaults.TonalElevation,
+                shadowElevation = SearchBarDefaults.ShadowElevation,
+                //windowInsets = SearchBarDefaults.windowInsets,
+                windowInsets = WindowInsets(0.dp),
+                content = {
 
-                if (searchResults.isEmpty() && !isLoading && searchQuery.isNotEmpty()) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            //.weight(1f)
-                            .padding(end = 16.dp, start = 16.dp, top = 16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            "No se encontraron coincidencias.",
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
-                        )
-                        Text(
-                            "):",
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
-                        )
+                    if (isLoading) {
+                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                     }
-                } else if (searchResults.isNotEmpty() && !isLoading && searchQuery.isNotEmpty()) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            //.weight(1f)
-                            .padding(end = 16.dp, start = 16.dp, top = 16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text("Resultados de la búsqueda:")
-                    }
-                    LazyColumn(
-                        //state = searchListState,
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f)
-                            .padding(end = 16.dp, start = 16.dp, top = 16.dp)
-                    ) {
-                        // Resultados de la búsqueda en su propio LazyColumn
-                        /*items(searchResults) { exp ->
-                            ExpensesDetailsCard(exp)
-                        }*/
-                        items(searchResults) { missing ->
-                            MissingProductCard(missing)
-                        }
 
-                        item {
-                            Spacer(modifier = Modifier.height(72.dp))
+                    if (searchQuery.isEmpty() && !isLoading) {
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            //verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                "rules of search.",
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                            )
                         }
-                    }
-                } else if (grouped.isEmpty() && !isLoading) {
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text("No hay faltantes disponibles.")
-                        Text("):")
-                    }
-                } else {
-                    LazyColumn(
-                        state = listState,
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .weight(1f)
-                            .padding(end = 16.dp, start = 16.dp, top = 16.dp)
-                    ) {
-                        grouped.forEach { gr ->
-                            stickyHeader {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .background(MaterialTheme.colorScheme.background)
-                                        .padding(start = 16.dp)
-                                ) {
-                                    Text(
-                                        text = "${gr.month} - ${gr.year}",
-                                        style = MaterialTheme.typography.titleMedium
-                                    )
-                                }
-                            }
-                            items(gr.missing) { missing ->
-                                Log.d(
-                                    "MissingListScreen",
-                                    "Renderizando faltante: ${missing.missingId}"
-                                )
+                    } else if (searchResults.isEmpty() && searchQuery.isNotEmpty() && !isLoading) {
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                "No se encontraron coincidencias",
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                            )
+                            Text(
+                                "):",
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                            )
+                        }
+                    } else {
+                        LazyColumn(
+                            //state = searchListState,
+                            verticalArrangement = Arrangement.spacedBy(16.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f)
+                                .padding(end = 16.dp, start = 16.dp, top = 16.dp)
+                        ) {
+                            // Resultados de la búsqueda en su propio LazyColumn dentro del SearchBar
+
+                            items(searchResults) { missing ->
                                 MissingProductCard(missing)
                             }
-                        }
-                        // AnimatedVisibility: indicador de carga al final de la lista
-                        item {
-                            AnimatedVisibility(
-                                visible = isLoading,
-                                enter = fadeIn() + slideInVertically { it / 2 },
-                                exit = fadeOut() + slideOutVertically { it / 2 }
-                            ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(8.dp),
-                                    horizontalArrangement = Arrangement.Center
-                                ) {
-                                    CircularProgressIndicator()
-                                }
+
+                            /*items(searchResults) { exp ->
+                                ExpensesDetailsCard(exp)
+                            }*/
+
+                            item {
+                                Spacer(modifier = Modifier.height(72.dp))
                             }
-                        }
-                        // Mensaje de fin de lista
-                        item {
-                            if (!isLoading && viewModel.isEndReached) {
-                                Text(
-                                    text = "No hay más faltantes disponibles.",
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(bottom = 16.dp),
-                                    textAlign = TextAlign.Center,
-                                    style = MaterialTheme.typography.bodyMedium.copy(
-                                        color = MaterialTheme.colorScheme.onSurface.copy(
-                                            alpha = 0.8f
-                                        )
-                                    )
-                                )
-                            }
-                        }
-                        item {
-                            Spacer(modifier = Modifier.height(56.dp))
                         }
                     }
+                },
+            )
+        }
+
+        if (searchResults.isEmpty() && !isLoading && searchQuery.isNotEmpty()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    //.weight(1f)
+                    .padding(end = 16.dp, start = 16.dp, top = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    "No se encontraron coincidencias.",
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                )
+                Text(
+                    "):",
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                )
+            }
+        } else if (searchResults.isNotEmpty() && !isLoading && searchQuery.isNotEmpty()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    //.weight(1f)
+                    .padding(end = 16.dp, start = 16.dp, top = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text("Resultados de la búsqueda:")
+            }
+            LazyColumn(
+                //state = searchListState,
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .padding(end = 16.dp, start = 16.dp, top = 16.dp)
+            ) {
+                // Resultados de la búsqueda en su propio LazyColumn
+                /*items(searchResults) { exp ->
+                    ExpensesDetailsCard(exp)
+                }*/
+                items(searchResults) { missing ->
+                    MissingProductCard(missing)
+                }
+
+                item {
+                    Spacer(modifier = Modifier.height(72.dp))
+                }
+            }
+        } else if (grouped.isEmpty() && !isLoading) {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text("No hay faltantes disponibles.")
+                Text("):")
+            }
+        } else {
+            LazyColumn(
+                state = listState,
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .weight(1f)
+                    .padding(end = 16.dp, start = 16.dp, top = 16.dp)
+            ) {
+                grouped.forEach { gr ->
+                    stickyHeader {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(MaterialTheme.colorScheme.background)
+                                .padding(start = 16.dp)
+                        ) {
+                            Text(
+                                text = "${gr.month} - ${gr.year}",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                        }
+                    }
+                    items(gr.missing) { missing ->
+                        Log.d(
+                            "MissingListScreen",
+                            "Renderizando faltante: ${missing.missingId}"
+                        )
+                        MissingProductCard(missing)
+                    }
+                }
+                // AnimatedVisibility: indicador de carga al final de la lista
+                item {
+                    AnimatedVisibility(
+                        visible = isLoading,
+                        enter = fadeIn() + slideInVertically { it / 2 },
+                        exit = fadeOut() + slideOutVertically { it / 2 }
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    }
+                }
+                // Mensaje de fin de lista
+                item {
+                    if (!isLoading && viewModel.isEndReached) {
+                        Text(
+                            text = "No hay más faltantes disponibles.",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 16.dp),
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                color = MaterialTheme.colorScheme.onSurface.copy(
+                                    alpha = 0.8f
+                                )
+                            )
+                        )
+                    }
+                }
+                item {
+                    Spacer(modifier = Modifier.height(56.dp))
                 }
             }
         }
-    )
+    }
 }
 
 @Composable

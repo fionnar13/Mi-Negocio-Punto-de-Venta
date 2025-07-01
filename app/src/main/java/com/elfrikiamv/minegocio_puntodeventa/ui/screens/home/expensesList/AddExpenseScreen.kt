@@ -136,8 +136,8 @@ fun AddExpenseScreen(navController: NavController) {
                         modifier = Modifier
                             .padding(horizontal = 16.dp)
                             .clickable {
-                                navController.navigate(Screen.ExpensesDetails.route) {
-                                    popUpTo(Screen.ExpensesDetails.route) { inclusive = true }
+                                navController.navigate(Screen.ExpensesListScreen.route) {
+                                    popUpTo(Screen.ExpensesListScreen.route) { inclusive = true }
                                 }
                             }
                     )

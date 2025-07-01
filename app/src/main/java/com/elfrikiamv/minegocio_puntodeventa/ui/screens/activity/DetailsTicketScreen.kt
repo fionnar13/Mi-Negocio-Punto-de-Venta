@@ -2,7 +2,6 @@ package com.elfrikiamv.minegocio_puntodeventa.ui.screens.activity
 
 // DetailsTicketScreen.kt
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,14 +12,10 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -31,20 +26,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
-import com.elfrikiamv.minegocio_puntodeventa.R
 import com.elfrikiamv.minegocio_puntodeventa.model.shopping.TicketFirebase
-import com.elfrikiamv.minegocio_puntodeventa.navigation.Screen
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.activity.ActivityViewModel
 import kotlinx.coroutines.launch
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DetailsTicketScreen(navController: NavController, ticketId: String?) {
+fun DetailsTicketScreen(ticketId: String?) {
     val viewModel: ActivityViewModel = viewModel()
     var ticketDetails by remember { mutableStateOf<TicketFirebase?>(null) }
 
@@ -61,57 +51,35 @@ fun DetailsTicketScreen(navController: NavController, ticketId: String?) {
         } ?: run { isLoading = false } // Si no hay ID, terminamos la carga
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Detalles del ticket") },
-                navigationIcon = {
-                    Icon(
-                        painter = painterResource(id = R.drawable.baseline_arrow_back_ios_new_24),
-                        contentDescription = "Regresar",
-                        modifier = Modifier
-                            .padding(horizontal = 16.dp)
-                            .clickable {
-                                navController.navigate(Screen.Activity.route) {
-                                    popUpTo(Screen.Activity.route) { inclusive = true }
-                                }
-                            }
-                    )
-                }
+    Column(
+        modifier = Modifier
+            //.padding(paddingValues)
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        if (isLoading) {
+            // Indicador de carga
+            CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+        } else if (ticketDetails == null) {
+            // Mensaje de error si no hay datos
+            Text(
+                "No se encontraron detalles del ticket.",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
             )
-        },
-        content = { paddingValues ->
-            Column(
+        } else {
+            // Mostrar detalles del ticket
+            LazyColumn(
                 modifier = Modifier
-                    .padding(paddingValues)
                     .fillMaxSize()
-                    .padding(16.dp)
+                    .weight(1f)
             ) {
-                if (isLoading) {
-                    // Indicador de carga
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
-                } else if (ticketDetails == null) {
-                    // Mensaje de error si no hay datos
-                    Text(
-                        "No se encontraron detalles del ticket.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                    )
-                } else {
-                    // Mostrar detalles del ticket
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .weight(1f)
-                    ) {
-                        item {
-                            TicketDetailsCard(ticketDetails!!)
-                        }
-                    }
+                item {
+                    TicketDetailsCard(ticketDetails!!)
                 }
             }
         }
-    )
+    }
 }
 
 @Composable

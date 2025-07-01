@@ -21,15 +21,11 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -47,7 +43,6 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import com.elfrikiamv.minegocio_puntodeventa.model.inventory.ProductFirebase
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.inventory.InventoryViewModel
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.scan.ScanViewModel
@@ -59,15 +54,8 @@ import com.google.mlkit.vision.common.InputImage
 import kotlinx.coroutines.delay
 import java.util.concurrent.Executors
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ScanScreen(
-    /*viewModelInventory: InventoryViewModel,
-    viewModelShopping: ShoppingViewModel,
-    scanViewModel: ScanViewModel,*/
-    navController: NavController,
-    modifier: Modifier = Modifier
-) {
+fun ScanScreen() {
     val viewModelInventory: InventoryViewModel = viewModel()
     val viewModelShopping: ShoppingViewModel = viewModel()
     val scanViewModel: ScanViewModel = viewModel()
@@ -94,48 +82,42 @@ fun ScanScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("Escanear Código de Barras") })
-        }
-    ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .padding(paddingValues)
-                .fillMaxSize()
-            //.background(screenColor)
-        ) {
-            if (cameraError != null) {
-                // Mostrar mensaje de error si ocurre un problema con la cámara
-                Text(
-                    text = cameraError ?: "Error desconocido",
-                    modifier = Modifier.align(Alignment.Center),
-                    color = MaterialTheme.colorScheme.error
-                )
-            } else {
-                CameraPreview(
-                    onBarcodeDetected = { barcode ->
-                        // Manejar el código de barras detectado
-                        scanViewModel.onBarcodeDetected(barcode, viewModelInventory)
-                    },
-                    onFocusTapped = { x, y ->
-                        focusPoint = Offset(x, y)
-                        showFocusIndicator = true
-                    }
-                )
-                // Mostrar indicador visual de enfoque
-                if (showFocusIndicator) {
-                    Canvas(modifier = Modifier.fillMaxSize()) {
-                        drawCircle(
-                            color = Color.Green,
-                            radius = 50f,
-                            center = focusPoint
-                        )
-                    }
-                    LaunchedEffect(Unit) {
-                        delay(500) // Ocultar el indicador después de 0.5 segundos
-                        showFocusIndicator = false
-                    }
+    Box(
+        modifier = Modifier
+            //.padding(paddingValues)
+            .fillMaxSize()
+        //.background(screenColor)
+    ) {
+        if (cameraError != null) {
+            // Mostrar mensaje de error si ocurre un problema con la cámara
+            Text(
+                text = cameraError ?: "Error desconocido",
+                modifier = Modifier.align(Alignment.Center),
+                color = MaterialTheme.colorScheme.error
+            )
+        } else {
+            CameraPreview(
+                onBarcodeDetected = { barcode ->
+                    // Manejar el código de barras detectado
+                    scanViewModel.onBarcodeDetected(barcode, viewModelInventory)
+                },
+                onFocusTapped = { x, y ->
+                    focusPoint = Offset(x, y)
+                    showFocusIndicator = true
+                }
+            )
+            // Mostrar indicador visual de enfoque
+            if (showFocusIndicator) {
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    drawCircle(
+                        color = Color.Green,
+                        radius = 50f,
+                        center = focusPoint
+                    )
+                }
+                LaunchedEffect(Unit) {
+                    delay(500) // Ocultar el indicador después de 0.5 segundos
+                    showFocusIndicator = false
                 }
             }
         }

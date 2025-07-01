@@ -16,16 +16,10 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -39,14 +33,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.elfrikiamv.minegocio_puntodeventa.R
 import com.elfrikiamv.minegocio_puntodeventa.navigation.Screen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.scan.BarcodeAnalyzer
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.inventory.ScanProductViewModel
@@ -54,12 +45,8 @@ import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import kotlinx.coroutines.delay
 import java.util.concurrent.Executors
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ScanProductScreen(
-    navController: NavHostController,
-    modifier: Modifier = Modifier
-) {
+fun ScanProductScreen(navController: NavHostController) {
     val scanProductViewModel: ScanProductViewModel = viewModel()
 
     val context = LocalContext.current
@@ -82,67 +69,45 @@ fun ScanProductScreen(
     var showFocusIndicator by remember { mutableStateOf(false) }
     var focusPoint by remember { mutableStateOf(Offset.Zero) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Escanear Producto") },
-                navigationIcon = {
-                    Icon(
-                        painter = painterResource(id = R.drawable.baseline_arrow_back_ios_new_24),
-                        contentDescription = "Regresar",
-                        modifier = Modifier
-                            //.size(24.dp)
-                            .padding(horizontal = 16.dp)
-                            .clickable {
-                                navController.navigate(Screen.Inventory.route) {
-                                    popUpTo(Screen.Inventory.route) { inclusive = true }
-                                }
-                            }
-                    )
+    Box(
+        modifier = Modifier
+            //.padding(paddingValues)
+            .fillMaxSize()
+    ) {
+        if (cameraError != null) {
+            Text(
+                text = cameraError ?: "Error desconocido",
+                modifier = Modifier.align(Alignment.Center),
+                color = MaterialTheme.colorScheme.error
+            )
+        } else {
+            CameraPreview(
+                onBarcodeDetected = { barcode ->
+                    scanProductViewModel.onBarcodeDetected(barcode) { detectedBarcode ->
+                        navController.currentBackStackEntry?.savedStateHandle?.set(
+                            "barcode",
+                            detectedBarcode
+                        )
+                        val barcodeRoute = ""
+                        navController.navigate(Screen.AddProduct.route + "?barcode=${barcodeRoute}")
+                    }
+                },
+                onFocusTapped = { x, y ->
+                    focusPoint = Offset(x, y)
+                    showFocusIndicator = true
                 }
             )
-        }
-    ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .padding(paddingValues)
-                .fillMaxSize()
-        ) {
-            if (cameraError != null) {
-                Text(
-                    text = cameraError ?: "Error desconocido",
-                    modifier = Modifier.align(Alignment.Center),
-                    color = MaterialTheme.colorScheme.error
-                )
-            } else {
-                CameraPreview(
-                    onBarcodeDetected = { barcode ->
-                        scanProductViewModel.onBarcodeDetected(barcode) { detectedBarcode ->
-                            navController.currentBackStackEntry?.savedStateHandle?.set(
-                                "barcode",
-                                detectedBarcode
-                            )
-                            val barcodeRoute = ""
-                            navController.navigate(Screen.AddProduct.route + "?barcode=${barcodeRoute}")
-                        }
-                    },
-                    onFocusTapped = { x, y ->
-                        focusPoint = Offset(x, y)
-                        showFocusIndicator = true
-                    }
-                )
-                if (showFocusIndicator) {
-                    Canvas(modifier = Modifier.fillMaxSize()) {
-                        drawCircle(
-                            color = Color.Green,
-                            radius = 50f,
-                            center = focusPoint
-                        )
-                    }
-                    LaunchedEffect(Unit) {
-                        delay(500)
-                        showFocusIndicator = false
-                    }
+            if (showFocusIndicator) {
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    drawCircle(
+                        color = Color.Green,
+                        radius = 50f,
+                        center = focusPoint
+                    )
+                }
+                LaunchedEffect(Unit) {
+                    delay(500)
+                    showFocusIndicator = false
                 }
             }
         }

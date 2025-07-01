@@ -19,7 +19,7 @@ sealed class Screen(val route: String) {
     object LowInventoryProducts : Screen("lowInventoryProducts")
     object OutOfStockProducts : Screen("outOfStockProducts")
     object MissingListProducts : Screen("missingListProducts")
-    object ExpensesDetails : Screen("expensesDetails")
+    object ExpensesListScreen : Screen("expensesListScreen")
     object AddExpense : Screen("addExpense")
     object AddMissing : Screen("addMissing")
 
