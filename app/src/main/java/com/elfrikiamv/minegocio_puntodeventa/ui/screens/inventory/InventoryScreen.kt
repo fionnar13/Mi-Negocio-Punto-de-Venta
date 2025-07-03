@@ -23,19 +23,16 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -54,7 +51,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import com.elfrikiamv.minegocio_puntodeventa.R
 import com.elfrikiamv.minegocio_puntodeventa.model.inventory.ProductFirebase
 import com.elfrikiamv.minegocio_puntodeventa.navigation.Screen
@@ -63,14 +60,15 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-fun InventoryScreen(navController: NavController) {
-    val viewModel: InventoryViewModel = viewModel()
+fun InventoryScreen(navController: NavHostController, viewModel: InventoryViewModel) {
+    //val viewModel: InventoryViewModel = viewModel()
     val products by viewModel.products.collectAsState()
 
     // Estado del Bottom Sheet
     val sheetState = rememberModalBottomSheetState()
     val coroutineScope = rememberCoroutineScope()
-    var showBottomSheet by remember { mutableStateOf(false) }
+    val showBottomSheet by viewModel.showBottomSheet
+    //var showBottomSheet by remember { mutableStateOf(false) }
 
     // Observar el estado de isLoading
     val isLoading by viewModel.isLoading.collectAsState()
@@ -112,320 +110,301 @@ fun InventoryScreen(navController: NavController) {
     }
 
 
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("Inventario") })
-        },
-        content = { paddingValues ->
-            Column(
-                modifier = Modifier
-                    .padding(paddingValues)
-                    .fillMaxSize()
-            ) {
-                // Mostrar indicador de carga mientras los datos están cargándose
-                if (isLoading) {
-                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                }
+    Column(
+        modifier = Modifier
+            //.padding(paddingValues)
+            .fillMaxSize()
+    ) {
+        // Mostrar indicador de carga mientras los datos están cargándose
+        if (isLoading) {
+            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+        }
 
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
 
-                    //val onActiveChange: (Boolean) -> Unit = { isSearchActive = it }
-                    val onActiveChange: (Boolean) -> Unit = {
-                        isSearchActive = it
-                        if (!it) viewModel.updateSearchQuery("")
-                    }
+            //val onActiveChange: (Boolean) -> Unit = { isSearchActive = it }
+            val onActiveChange: (Boolean) -> Unit = {
+                isSearchActive = it
+                if (!it) viewModel.updateSearchQuery("")
+            }
 
-                    SearchBar(
-                        inputField = {
-                            SearchBarDefaults.InputField(
-                                query = searchQuery,
-                                onQueryChange = { viewModel.updateSearchQuery(it) },
-                                onSearch = { isSearchActive = false },
-                                expanded = isSearchActive,
-                                onExpandedChange = onActiveChange,
-                                enabled = true,
-                                placeholder = { Text("Buscar producto") },
-                                leadingIcon = {
-                                    if (isSearchActive) {
-                                        IconButton(
-                                            onClick = { isSearchActive = false }
-                                        ) {
-                                            Icon(
-                                                painter = painterResource(id = R.drawable.baseline_arrow_back_ios_new_24),
-                                                contentDescription = "Volver"
-                                            )
-                                        }
-                                    } else {
-                                        Icon(
-                                            painter = painterResource(id = R.drawable.baseline_search_24),
-                                            contentDescription = "Buscar"
-                                        )
-                                    }
-                                },
-                                trailingIcon = {
-                                    if (searchQuery.isNotEmpty()) {
-                                        IconButton(onClick = { viewModel.updateSearchQuery("") }) {
-                                            Icon(
-                                                painter = painterResource(id = R.drawable.baseline_close_24),
-                                                contentDescription = "Borrar búsqueda"
-                                            )
-                                        }
-                                    }
-                                },
-                                colors = SearchBarDefaults.inputFieldColors(),
-                                interactionSource = null,
-                            )
-                        },
+            SearchBar(
+                inputField = {
+                    SearchBarDefaults.InputField(
+                        query = searchQuery,
+                        onQueryChange = { viewModel.updateSearchQuery(it) },
+                        onSearch = { isSearchActive = false },
                         expanded = isSearchActive,
                         onExpandedChange = onActiveChange,
-                        modifier = Modifier.align(Alignment.CenterHorizontally),
-                        shape = SearchBarDefaults.inputFieldShape,
-                        colors = SearchBarDefaults.colors(),
-                        tonalElevation = SearchBarDefaults.TonalElevation,
-                        shadowElevation = SearchBarDefaults.ShadowElevation,
-                        //windowInsets = SearchBarDefaults.windowInsets,
-                        windowInsets = WindowInsets(0.dp),
-                        content = {
-
-                            if (isLoading) {
-                                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                            }
-
-                            if (filteredProducts.isEmpty() && !isLoading && searchQuery.isNotEmpty()) {
-                                Column(
-                                    modifier = Modifier.fillMaxSize(),
-                                    verticalArrangement = Arrangement.Center,
-                                    horizontalAlignment = Alignment.CenterHorizontally
+                        enabled = true,
+                        placeholder = { Text("Buscar producto") },
+                        leadingIcon = {
+                            if (isSearchActive) {
+                                IconButton(
+                                    onClick = { isSearchActive = false }
                                 ) {
-                                    Text(
-                                        "No se encontraron coincidencias.",
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
-                                    )
-                                    Text(
-                                        "):",
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.baseline_arrow_back_ios_new_24),
+                                        contentDescription = "Volver"
                                     )
                                 }
                             } else {
-                                LazyColumn(
-                                    state = searchListState,
-                                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .weight(1f)
-                                        .padding(end = 16.dp, start = 16.dp, top = 16.dp)
-                                ) {
-                                    val productsToShow = filteredProducts.take(visibleSearchCount)
-
-                                    items(productsToShow) { product ->
-                                        Log.d(
-                                            "InventoryScreen",
-                                            "Renderizando producto: ${product.name}"
-                                        )
-                                        ProductCard(product = product) {
-                                            isSearchActive = false
-                                            navController.navigate(Screen.DetailsProduct.route + "?barcode=${product.barcode}")
-                                        }
-                                    }
-
-                                    if (visibleSearchCount < filteredProducts.size) {
-                                        // Mientras no se muestre todo, mostramos indicador de carga para scroll infinito
-                                        item {
-                                            Row(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .padding(16.dp),
-                                                horizontalArrangement = Arrangement.Center
-                                            ) {
-                                                CircularProgressIndicator()
-                                            }
-                                        }
-                                    } else if (filteredProducts.isNotEmpty()) {
-                                        item {
-                                            Text(
-                                                text = "No hay más productos disponibles.",
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .padding(bottom = 16.dp),
-                                                textAlign = TextAlign.Center,
-                                                style = MaterialTheme.typography.bodyMedium.copy(
-                                                    color = MaterialTheme.colorScheme.onSurface.copy(
-                                                        alpha = 0.8f
-                                                    )
-                                                )
-                                            )
-                                        }
-                                    }
-
-                                    item {
-                                        Spacer(modifier = Modifier.height(56.dp))
-                                    }
-                                }
+                                Icon(
+                                    painter = painterResource(id = R.drawable.baseline_search_24),
+                                    contentDescription = "Buscar"
+                                )
                             }
                         },
-                    )
-                }
-
-                // Lista de productos
-                if (filteredProducts.isEmpty() && !isLoading && searchQuery.isNotEmpty()) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            //.weight(1f)
-                            .padding(end = 16.dp, start = 16.dp, top = 16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            "No se encontraron coincidencias.",
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
-                        )
-                        Text(
-                            "):",
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
-                        )
-                    }
-                } else if (filteredProducts.isNotEmpty() && !isLoading && searchQuery.isNotEmpty()) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            //.weight(1f)
-                            .padding(end = 16.dp, start = 16.dp, top = 16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text("Resultados de la búsqueda:")
-                    }
-                    LazyColumn(
-                        //state = searchListState,
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f)
-                            .padding(end = 16.dp, start = 16.dp, top = 16.dp)
-                    ) {
-                        // Resultados de la búsqueda en su propio LazyColumn
-                        items(filteredProducts) { product ->
-                            ProductCard(product = product) {
-                                navController.navigate(Screen.DetailsProduct.route + "?barcode=${product.barcode}")
-                            }
-                        }
-                        item {
-                            Spacer(modifier = Modifier.height(72.dp))
-                        }
-                    }
-                } else if (products.isEmpty() && !isLoading) {
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            "No hay productos en el inventario",
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
-                        )
-                        Text(
-                            "):",
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
-                        )
-                    }
-                } else {
-                    LazyColumn(
-                        state = listState,
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f)
-                            .padding(end = 16.dp, start = 16.dp, top = 16.dp)
-                    ) {
-                        var displayedCount = 0
-
-                        grouped.forEach { (letter, productsForLetter) ->
-                            val remaining = visibleItemCount - displayedCount
-                            if (remaining <= 0) return@forEach
-
-                            stickyHeader {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .background(MaterialTheme.colorScheme.background)
-                                        .padding(start = 16.dp)
-                                ) {
-                                    Text(
-                                        text = letter.toString(),
-                                        style = MaterialTheme.typography.titleMedium
+                        trailingIcon = {
+                            if (searchQuery.isNotEmpty()) {
+                                IconButton(onClick = { viewModel.updateSearchQuery("") }) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.baseline_close_24),
+                                        contentDescription = "Borrar búsqueda"
                                     )
                                 }
                             }
+                        },
+                        colors = SearchBarDefaults.inputFieldColors(),
+                        interactionSource = null,
+                    )
+                },
+                expanded = isSearchActive,
+                onExpandedChange = onActiveChange,
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                shape = SearchBarDefaults.inputFieldShape,
+                colors = SearchBarDefaults.colors(),
+                tonalElevation = SearchBarDefaults.TonalElevation,
+                shadowElevation = SearchBarDefaults.ShadowElevation,
+                //windowInsets = SearchBarDefaults.windowInsets,
+                windowInsets = WindowInsets(0.dp),
+                content = {
 
-                            val productsToShow = productsForLetter.take(remaining)
+                    if (isLoading) {
+                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                    }
+
+                    if (filteredProducts.isEmpty() && !isLoading && searchQuery.isNotEmpty()) {
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                "No se encontraron coincidencias.",
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                            )
+                            Text(
+                                "):",
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                            )
+                        }
+                    } else {
+                        LazyColumn(
+                            state = searchListState,
+                            verticalArrangement = Arrangement.spacedBy(16.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f)
+                                .padding(end = 16.dp, start = 16.dp, top = 16.dp)
+                        ) {
+                            val productsToShow = filteredProducts.take(visibleSearchCount)
+
                             items(productsToShow) { product ->
-                                Log.d("InventoryScreen", "Renderizando producto: ${product.name}")
+                                Log.d(
+                                    "InventoryScreen",
+                                    "Renderizando producto: ${product.name}"
+                                )
                                 ProductCard(product = product) {
+                                    isSearchActive = false
                                     navController.navigate(Screen.DetailsProduct.route + "?barcode=${product.barcode}")
                                 }
                             }
 
-                            displayedCount += productsToShow.size
-                        }
-
-                        // Al final: si ya mostramos todos los productos, mostramos mensaje de fin
-                        if (visibleItemCount < products.size) {
-
-                            // Mientras no se muestre todo, mostramos indicador de carga para scroll infinito
-                            item {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(16.dp),
-                                    horizontalArrangement = Arrangement.Center
-                                ) {
-                                    CircularProgressIndicator()
+                            if (visibleSearchCount < filteredProducts.size) {
+                                // Mientras no se muestre todo, mostramos indicador de carga para scroll infinito
+                                item {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(16.dp),
+                                        horizontalArrangement = Arrangement.Center
+                                    ) {
+                                        CircularProgressIndicator()
+                                    }
                                 }
-                            }
-                        } else if (products.isNotEmpty()) {
-                            item {
-                                Text(
-                                    text = "No hay más productos disponibles.",
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(bottom = 16.dp),
-                                    textAlign = TextAlign.Center,
-                                    style = MaterialTheme.typography.bodyMedium.copy(
-                                        color = MaterialTheme.colorScheme.onSurface.copy(
-                                            alpha = 0.8f
+                            } else if (filteredProducts.isNotEmpty()) {
+                                item {
+                                    Text(
+                                        text = "No hay más productos disponibles.",
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(bottom = 16.dp),
+                                        textAlign = TextAlign.Center,
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            color = MaterialTheme.colorScheme.onSurface.copy(
+                                                alpha = 0.8f
+                                            )
                                         )
                                     )
-                                )
+                                }
+                            }
+
+                            item {
+                                Spacer(modifier = Modifier.height(56.dp))
                             }
                         }
-
-                        item {
-                            Spacer(modifier = Modifier.height(56.dp))
-                        }
                     }
-                }
-            }
-        },
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = { showBottomSheet = true },
-                icon = {
-                    Icon(
-                        painter = painterResource(id = R.drawable.baseline_add_24),
-                        contentDescription = "Añadir Producto"
-                    )
                 },
-                text = { Text("Añadir Producto") }
             )
         }
-    )
+
+        // Lista de productos
+        if (filteredProducts.isEmpty() && !isLoading && searchQuery.isNotEmpty()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    //.weight(1f)
+                    .padding(end = 16.dp, start = 16.dp, top = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    "No se encontraron coincidencias.",
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                )
+                Text(
+                    "):",
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                )
+            }
+        } else if (filteredProducts.isNotEmpty() && !isLoading && searchQuery.isNotEmpty()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    //.weight(1f)
+                    .padding(end = 16.dp, start = 16.dp, top = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text("Resultados de la búsqueda:")
+            }
+            LazyColumn(
+                //state = searchListState,
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .padding(end = 16.dp, start = 16.dp, top = 16.dp)
+            ) {
+                // Resultados de la búsqueda en su propio LazyColumn
+                items(filteredProducts) { product ->
+                    ProductCard(product = product) {
+                        navController.navigate(Screen.DetailsProduct.route + "?barcode=${product.barcode}")
+                    }
+                }
+                item {
+                    Spacer(modifier = Modifier.height(72.dp))
+                }
+            }
+        } else if (products.isEmpty() && !isLoading) {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    "No hay productos en el inventario",
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                )
+                Text(
+                    "):",
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                )
+            }
+        } else {
+            LazyColumn(
+                state = listState,
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .padding(end = 16.dp, start = 16.dp, top = 16.dp)
+            ) {
+                var displayedCount = 0
+
+                grouped.forEach { (letter, productsForLetter) ->
+                    val remaining = visibleItemCount - displayedCount
+                    if (remaining <= 0) return@forEach
+
+                    stickyHeader {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(MaterialTheme.colorScheme.background)
+                                .padding(start = 16.dp)
+                        ) {
+                            Text(
+                                text = letter.toString(),
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                        }
+                    }
+
+                    val productsToShow = productsForLetter.take(remaining)
+                    items(productsToShow) { product ->
+                        Log.d("InventoryScreen", "Renderizando producto: ${product.name}")
+                        ProductCard(product = product) {
+                            navController.navigate(Screen.DetailsProduct.route + "?barcode=${product.barcode}")
+                        }
+                    }
+
+                    displayedCount += productsToShow.size
+                }
+
+                // Al final: si ya mostramos todos los productos, mostramos mensaje de fin
+                if (visibleItemCount < products.size) {
+
+                    // Mientras no se muestre todo, mostramos indicador de carga para scroll infinito
+                    item {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    }
+                } else if (products.isNotEmpty()) {
+                    item {
+                        Text(
+                            text = "No hay más productos disponibles.",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 16.dp),
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                color = MaterialTheme.colorScheme.onSurface.copy(
+                                    alpha = 0.8f
+                                )
+                            )
+                        )
+                    }
+                }
+
+                item {
+                    Spacer(modifier = Modifier.height(56.dp))
+                }
+            }
+        }
+    }
 
     // Bottom Sheet con opciones
     if (showBottomSheet) {
         ModalBottomSheet(
-            onDismissRequest = { showBottomSheet = false },
+            onDismissRequest = { viewModel.showBottomSheet.value = false },
             sheetState = sheetState
         ) {
             Column(
@@ -447,7 +426,7 @@ fun InventoryScreen(navController: NavController) {
                         val barcodeRoute = ""
                         navController.navigate(Screen.AddProduct.route + "?barcode=${barcodeRoute}")
                         coroutineScope.launch { sheetState.hide() }.invokeOnCompletion {
-                            showBottomSheet = false
+                            viewModel.showBottomSheet.value = false
                         }
                     },
                     modifier = Modifier.fillMaxWidth()
@@ -465,7 +444,7 @@ fun InventoryScreen(navController: NavController) {
                     onClick = {
                         navController.navigate(Screen.ScanAddProduct.route)
                         coroutineScope.launch { sheetState.hide() }.invokeOnCompletion {
-                            showBottomSheet = false
+                            viewModel.showBottomSheet.value = false
                         }
                     },
                     modifier = Modifier.fillMaxWidth()

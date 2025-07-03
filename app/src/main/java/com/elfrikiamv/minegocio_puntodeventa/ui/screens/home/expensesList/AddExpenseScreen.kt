@@ -2,7 +2,6 @@ package com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.expensesList
 
 // AddExpenseScreen.kt
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,20 +20,15 @@ import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -43,30 +37,33 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
-import com.elfrikiamv.minegocio_puntodeventa.R
-import com.elfrikiamv.minegocio_puntodeventa.navigation.Screen
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.home.expenses.ExpensesViewModel
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddExpenseScreen(navController: NavController) {
-    val viewModel: ExpensesViewModel = viewModel()
+fun AddExpenseScreen(viewModel: ExpensesViewModel) {
+    //val viewModel: ExpensesViewModel = viewModel()
 
     // Variables para capturar los valores del formulario
-    var concept by remember { mutableStateOf("") }
+
+    val concept by viewModel.concept
+    val paymentMethod by viewModel.paymentMethod
+    val description by viewModel.description
+    val expensePriceInCents by viewModel.expensePriceInCents
+    val expenseAmountGivenInCents by viewModel.expenseAmountGivenInCents
+    val errorMessage by viewModel.errorMessage
+
+
+    /*var concept by remember { mutableStateOf("") }
     var paymentMethod by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
-    var errorMessage by remember { mutableStateOf("") }
+    var errorMessage by remember { mutableStateOf("") }*/
 
     // Manejo de enfoque
     val focusManager = LocalFocusManager.current
@@ -87,7 +84,7 @@ fun AddExpenseScreen(navController: NavController) {
     }
 
     // Inicializamos expensePriceInCents a partir del monto del producto
-    var expensePriceInCents by remember { mutableLongStateOf(0L) }
+    //var expensePriceInCents by remember { mutableLongStateOf(0L) }
 
     // Manejo del expense TextField del precio del producto para mantener el cursor al final
     var expensePriceTextFieldValue by remember {
@@ -105,7 +102,7 @@ fun AddExpenseScreen(navController: NavController) {
     }
 
     // Inicializamos expenseAmountGivenInCents a partir del monto del producto
-    var expenseAmountGivenInCents by remember { mutableLongStateOf(0L) }
+    //var expenseAmountGivenInCents by remember { mutableLongStateOf(0L) }
 
     // Manejo del expense amount given TextField del precio del producto para mantener el cursor al final
     var expenseAmountGivenTextFieldValue by remember {
@@ -125,286 +122,233 @@ fun AddExpenseScreen(navController: NavController) {
     // Observar el estado de isLoading
     val isLoading by viewModel.isLoading.collectAsState()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Agregar Gasto") },
-                navigationIcon = {
-                    Icon(
-                        painter = painterResource(id = R.drawable.baseline_arrow_back_ios_new_24),
-                        contentDescription = "Regresar",
-                        modifier = Modifier
-                            .padding(horizontal = 16.dp)
-                            .clickable {
-                                navController.navigate(Screen.ExpensesListScreen.route) {
-                                    popUpTo(Screen.ExpensesListScreen.route) { inclusive = true }
-                                }
-                            }
-                    )
-                }
-            )
-        },
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = {
-                    if (concept.isBlank() || paymentMethod.isBlank() || description.isBlank() || expensePriceInCents <= 0 || expenseAmountGivenInCents <= 0) {
-                        errorMessage = "Todos los campos son obligatorios."
-                    } else if (!isLoading) {
-                        // Guardar gasto en Room y subir a Firebase
-                        viewModel.confirmExpense(
-                            paymentConcept = concept,
-                            paymentMethod = paymentMethod,
-                            description = description,
-                            amountExpense = expensePriceInCents / 100.0,
-                            amountGiven = expenseAmountGivenInCents / 100.0
-                        )
-                        // Limpiar campos después de guardar
-                        concept = ""
-                        paymentMethod = ""
-                        description = ""
-                        expensePriceInCents = 0L
-                        expenseAmountGivenInCents = 0L
-                    }
-                },
-                icon = {
-                    Icon(
-                        painter = painterResource(id = R.drawable.baseline_save_24),
-                        contentDescription = "Guardar gasto"
-                    )
-                },
-                text = { Text("Guardar Gasto") },
-                /*containerColor = if (!isLoading) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
-                contentColor = if (!isLoading) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant*/
-            )
-        },
-        content = { paddingValues ->
-            Column(
+    Column(
+        modifier = Modifier
+            //.padding(paddingValues)
+            .fillMaxSize()
+        //.padding(16.dp)
+    ) {
+        // Mostrar el indicador de carga si isLoading es true
+        if (isLoading) {
+            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+        } else {
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier
-                    .padding(paddingValues)
                     .fillMaxSize()
-                //.padding(16.dp)
+                    .weight(1f)
+                    .padding(end = 16.dp, start = 16.dp, top = 16.dp)
             ) {
-                // Mostrar el indicador de carga si isLoading es true
-                if (isLoading) {
-                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                } else {
-                    LazyColumn(
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .weight(1f)
-                            .padding(end = 16.dp, start = 16.dp, top = 16.dp)
+                item {
+                    ElevatedCard(
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        item {
-                            ElevatedCard(
+                        Column(
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                text = "Llena todos los campos para agregar un gasto.",
+                                style = MaterialTheme.typography.titleMedium,
                                 modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Column(
-                                    modifier = Modifier
-                                        .padding(16.dp)
-                                        .fillMaxWidth(),
-                                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    Text(
-                                        text = "Llena todos los campos para agregar un gasto.",
-                                        style = MaterialTheme.typography.titleMedium,
-                                        modifier = Modifier.fillMaxWidth()
-                                    )
+                            )
 
-                                    // Campo para el concepto del gasto
+                            // Campo para el concepto del gasto
 
-                                    ConceptoGastoField(
-                                        concepto = concept,
-                                        onConceptoChange = { concept = it },
-                                        conceptoFocusRequester = conceptFocusRequester,
-                                        onNext = { priceFocusRequester.requestFocus() }
-                                    )
+                            ConceptoGastoField(
+                                concepto = concept,
+                                onConceptoChange = { viewModel.concept.value = it },
+                                conceptoFocusRequester = conceptFocusRequester,
+                                onNext = { priceFocusRequester.requestFocus() }
+                            )
 
-                                    /*OutlinedTextField(
-                                        value = concept,
-                                        onValueChange = { concept = it },
-                                        label = { Text("Concepto del gasto") },
-                                        modifier = Modifier.fillMaxWidth(),
-                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                                        isError = concept.isBlank()
-                                    )*/
+                            /*OutlinedTextField(
+                                value = concept,
+                                onValueChange = { concept = it },
+                                label = { Text("Concepto del gasto") },
+                                modifier = Modifier.fillMaxWidth(),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                                isError = concept.isBlank()
+                            )*/
 
-                                    // Campo para el método de pago
+                            // Campo para el método de pago
 
-                                    val paymentOptions =
-                                        listOf("Tarjeta", "Efectivo", "Transferencia")
-                                    Column(modifier = Modifier.selectableGroup()) {
-                                        Text(
-                                            text = "Método de pago:",
-                                            //style = MaterialTheme.typography.titleSmall
+                            val paymentOptions =
+                                listOf("Tarjeta", "Efectivo", "Transferencia")
+                            Column(modifier = Modifier.selectableGroup()) {
+                                Text(
+                                    text = "Método de pago:",
+                                    //style = MaterialTheme.typography.titleSmall
+                                )
+                                paymentOptions.forEach { option ->
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(56.dp)
+                                            .selectable(
+                                                selected = (option == paymentMethod),
+                                                onClick = {
+                                                    viewModel.paymentMethod.value = option
+                                                },
+                                                role = Role.RadioButton
+                                            )
+                                            .padding(horizontal = 8.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        RadioButton(
+                                            selected = (option == paymentMethod),
+                                            onClick = null // recomendado para accesibilidad
                                         )
-                                        paymentOptions.forEach { option ->
-                                            Row(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .height(56.dp)
-                                                    .selectable(
-                                                        selected = (option == paymentMethod),
-                                                        onClick = { paymentMethod = option },
-                                                        role = Role.RadioButton
-                                                    )
-                                                    .padding(horizontal = 8.dp),
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                RadioButton(
-                                                    selected = (option == paymentMethod),
-                                                    onClick = null // recomendado para accesibilidad
-                                                )
-                                                Text(
-                                                    text = option,
-                                                    //style = MaterialTheme.typography.bodyLarge,
-                                                    modifier = Modifier.padding(start = 16.dp)
-                                                )
-                                            }
-                                        }
-                                    }
-                                    /*OutlinedTextField(
-                                        value = paymentMethod,
-                                        onValueChange = { paymentMethod = it },
-                                        label = { Text("Método de pago") },
-                                        modifier = Modifier.fillMaxWidth(),
-                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                                        isError = paymentMethod.isBlank()
-                                    )*/
-
-                                    // Campo para el monto del gasto
-
-                                    OutlinedTextField(
-                                        value = expensePriceTextFieldValue,
-                                        onValueChange = { newValue ->
-                                            val cleanInput = newValue.text.filter { it.isDigit() }
-                                            val newCents = cleanInput.toLongOrNull() ?: 0L
-                                            expensePriceInCents =
-                                                newCents.coerceAtMost(9999999L) // Límite: 99,999.99
-
-                                            val formatted = formatPrice(expensePriceInCents)
-                                            expensePriceTextFieldValue = TextFieldValue(
-                                                text = formatted,
-                                                selection = TextRange(formatted.length) // cursor al final
-                                            )
-                                        },
-                                        label = { Text("¿Cuál fue el costo del gasto?") },
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .focusRequester(priceFocusRequester),
-                                        //keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                        keyboardOptions = KeyboardOptions(
-                                            keyboardType = KeyboardType.Number,
-                                            imeAction = ImeAction.Next
-                                        ),
-                                        keyboardActions = KeyboardActions(
-                                            onNext = { amountFocusRequester.requestFocus() }
-                                        ),
-                                        singleLine = true,
-                                        isError = expensePriceInCents == 0L,
-                                        supportingText = {
-                                            Row(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                horizontalArrangement = Arrangement.End
-                                            ) {
-                                                Text("Máximo: $99,999.99")
-                                            }
-                                        }
-                                    )
-
-                                    // Campo para el monto pagado por el gasto
-
-                                    OutlinedTextField(
-                                        value = expenseAmountGivenTextFieldValue,
-                                        onValueChange = { newValue ->
-                                            val cleanInput = newValue.text.filter { it.isDigit() }
-                                            val newCents = cleanInput.toLongOrNull() ?: 0L
-                                            expenseAmountGivenInCents =
-                                                newCents.coerceAtMost(9999999L) // Límite: 99,999.99
-
-                                            val formatted = formatPrice(expenseAmountGivenInCents)
-                                            expenseAmountGivenTextFieldValue = TextFieldValue(
-                                                text = formatted,
-                                                selection = TextRange(formatted.length) // cursor al final
-                                            )
-                                        },
-                                        label = { Text("¿Cuál fue el monto que pagaste?") },
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .focusRequester(amountFocusRequester),
-                                        //keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                        keyboardOptions = KeyboardOptions(
-                                            keyboardType = KeyboardType.Number,
-                                            imeAction = ImeAction.Next
-                                        ),
-                                        keyboardActions = KeyboardActions(
-                                            onNext = { descriptionFocusRequester.requestFocus() }
-                                        ),
-                                        singleLine = true,
-                                        isError = expenseAmountGivenInCents == 0L,
-                                        supportingText = {
-                                            Row(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                horizontalArrangement = Arrangement.End
-                                            ) {
-                                                Text("Máximo: $99,999.99")
-                                            }
-                                        }
-                                    )
-
-                                    // Campo descripción del gasto
-
-                                    OutlinedTextField(
-                                        value = description,
-                                        onValueChange = {
-                                            if (isValidDescription(it)) {
-                                                description = it
-                                            }
-                                        },
-                                        label = { Text("Descripción") },
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .focusRequester(descriptionFocusRequester),
-                                        keyboardOptions = KeyboardOptions(
-                                            keyboardType = KeyboardType.Text,
-                                            imeAction = ImeAction.Done
-                                        ),
-                                        keyboardActions = KeyboardActions(
-                                            onDone = { focusManager.clearFocus() }
-                                        ),
-                                        isError = description.isBlank(),
-                                        //singleLine = true,
-                                        supportingText = {
-                                            Row(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                horizontalArrangement = Arrangement.End
-                                            ) {
-                                                Text("${description.length}/42")
-                                            }
-                                        }
-                                    )
-
-                                    // mensaje de error
-
-                                    if (errorMessage.isNotBlank()) {
                                         Text(
-                                            text = errorMessage,
-                                            color = MaterialTheme.colorScheme.error,
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            modifier = Modifier.align(Alignment.CenterHorizontally)
+                                            text = option,
+                                            //style = MaterialTheme.typography.bodyLarge,
+                                            modifier = Modifier.padding(start = 16.dp)
                                         )
                                     }
                                 }
                             }
-                        }
-                        item {
-                            Spacer(modifier = Modifier.height(72.dp))
+                            /*OutlinedTextField(
+                                value = paymentMethod,
+                                onValueChange = { paymentMethod = it },
+                                label = { Text("Método de pago") },
+                                modifier = Modifier.fillMaxWidth(),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                                isError = paymentMethod.isBlank()
+                            )*/
+
+                            // Campo para el monto del gasto
+
+                            OutlinedTextField(
+                                value = expensePriceTextFieldValue,
+                                onValueChange = { newValue ->
+                                    val cleanInput = newValue.text.filter { it.isDigit() }
+                                    val newCents = cleanInput.toLongOrNull() ?: 0L
+                                    viewModel.expensePriceInCents.longValue =
+                                        newCents.coerceAtMost(9999999L) // Límite: 99,999.99
+
+                                    val formatted = formatPrice(expensePriceInCents)
+                                    expensePriceTextFieldValue = TextFieldValue(
+                                        text = formatted,
+                                        selection = TextRange(formatted.length) // cursor al final
+                                    )
+                                },
+                                label = { Text("¿Cuál fue el costo del gasto?") },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .focusRequester(priceFocusRequester),
+                                //keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Number,
+                                    imeAction = ImeAction.Next
+                                ),
+                                keyboardActions = KeyboardActions(
+                                    onNext = { amountFocusRequester.requestFocus() }
+                                ),
+                                singleLine = true,
+                                isError = expensePriceInCents == 0L,
+                                supportingText = {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.End
+                                    ) {
+                                        Text("Máximo: $99,999.99")
+                                    }
+                                }
+                            )
+
+                            // Campo para el monto pagado por el gasto
+
+                            OutlinedTextField(
+                                value = expenseAmountGivenTextFieldValue,
+                                onValueChange = { newValue ->
+                                    val cleanInput = newValue.text.filter { it.isDigit() }
+                                    val newCents = cleanInput.toLongOrNull() ?: 0L
+                                    viewModel.expenseAmountGivenInCents.longValue =
+                                        newCents.coerceAtMost(9999999L) // Límite: 99,999.99
+
+                                    val formatted = formatPrice(expenseAmountGivenInCents)
+                                    expenseAmountGivenTextFieldValue = TextFieldValue(
+                                        text = formatted,
+                                        selection = TextRange(formatted.length) // cursor al final
+                                    )
+                                },
+                                label = { Text("¿Cuál fue el monto que pagaste?") },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .focusRequester(amountFocusRequester),
+                                //keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Number,
+                                    imeAction = ImeAction.Next
+                                ),
+                                keyboardActions = KeyboardActions(
+                                    onNext = { descriptionFocusRequester.requestFocus() }
+                                ),
+                                singleLine = true,
+                                isError = expenseAmountGivenInCents == 0L,
+                                supportingText = {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.End
+                                    ) {
+                                        Text("Máximo: $99,999.99")
+                                    }
+                                }
+                            )
+
+                            // Campo descripción del gasto
+
+                            OutlinedTextField(
+                                value = description,
+                                onValueChange = {
+                                    if (isValidDescription(it)) {
+                                        viewModel.description.value = it
+                                    }
+                                },
+                                label = { Text("Descripción") },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .focusRequester(descriptionFocusRequester),
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Text,
+                                    imeAction = ImeAction.Done
+                                ),
+                                keyboardActions = KeyboardActions(
+                                    onDone = { focusManager.clearFocus() }
+                                ),
+                                isError = description.isBlank(),
+                                //singleLine = true,
+                                supportingText = {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.End
+                                    ) {
+                                        Text("${description.length}/42")
+                                    }
+                                }
+                            )
+
+                            // mensaje de error
+
+                            if (errorMessage.isNotBlank()) {
+                                Text(
+                                    text = errorMessage,
+                                    color = MaterialTheme.colorScheme.error,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                                )
+                            }
                         }
                     }
+                }
+                item {
+                    Spacer(modifier = Modifier.height(72.dp))
                 }
             }
         }
-    )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

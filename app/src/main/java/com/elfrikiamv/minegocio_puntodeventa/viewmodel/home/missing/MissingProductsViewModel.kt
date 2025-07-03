@@ -4,6 +4,8 @@ package com.elfrikiamv.minegocio_puntodeventa.viewmodel.home.missing
 
 import android.app.Application
 import android.util.Log
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.elfrikiamv.minegocio_puntodeventa.database.AppDatabase
@@ -71,6 +73,13 @@ class MissingProductsViewModel(application: Application) : AndroidViewModel(appl
     // Guardar referencia al listener
     private var missingListener: ListenerRegistration? = null
 
+    val name = mutableStateOf("")
+    val quantity = mutableStateOf("")
+    val totalPrice = mutableStateOf("")
+    val description = mutableStateOf("")
+    val errorMessage = mutableStateOf("")
+    val productPriceInCents = mutableLongStateOf(0L)
+
     init {
         val userEmail = auth.currentUser?.email
         if (userEmail == null) {
@@ -80,6 +89,16 @@ class MissingProductsViewModel(application: Application) : AndroidViewModel(appl
             //loadMissingFromFirebase(userEmail)
             loadNextPage()
         }
+    }
+
+    // Función para limpiar los campos del formulario
+    fun clearMissingFields() {
+        name.value = ""
+        quantity.value = ""
+        totalPrice.value = ""
+        description.value = ""
+        errorMessage.value = ""
+        productPriceInCents.longValue = 0L
     }
 
     fun updateSearchQuery(query: String) {

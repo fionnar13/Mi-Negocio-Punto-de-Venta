@@ -3,6 +3,8 @@ package com.elfrikiamv.minegocio_puntodeventa.viewmodel.inventory
 // InventoryViewModel.kt
 
 import android.util.Log
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.elfrikiamv.minegocio_puntodeventa.model.inventory.ProductFirebase
@@ -63,6 +65,37 @@ class InventoryViewModel : ViewModel() {
     // Agregado para guardar referencia al listener
     private var inventoryListener: ListenerRegistration? = null
 
+    /*val barcodeDetails = mutableStateOf<String?>(null)
+
+    val navController = mutableStateOf<NavController?>(null)*/
+
+    // Estado del Bottom Sheet
+    val showBottomSheet = mutableStateOf(false)
+    //var showBottomSheet by remember { mutableStateOf(false) }
+
+    val productDetails = mutableStateOf<ProductFirebase?>(null)
+    val errorMessage = mutableStateOf("")
+
+    val id = mutableStateOf<String?>(null)
+    val name = mutableStateOf("")
+    val quantity = mutableStateOf("")
+    val barcode = mutableStateOf("")
+    /*val barcode =
+        mutableStateOf(
+            barcodeDetails.takeIf { !it.isNullOrEmpty() }
+                ?: navController.previousBackStackEntry?.savedStateHandle?.get<String>(
+                    "barcode"
+                ) ?: ""
+        )*/
+
+    val description = mutableStateOf("")
+
+    // Inicializamos priceInCents a partir de salePrice si ya tiene un valor válido
+    val salePriceInCents = mutableLongStateOf(0L)
+
+    // Inicializamos priceInCents a partir de salePrice si ya tiene un valor válido
+    val providerPriceInCents = mutableLongStateOf(0L)
+
     // Cargar los productos al iniciar el ViewModel
     init {
         _isLoading.value = true
@@ -75,6 +108,29 @@ class InventoryViewModel : ViewModel() {
             _isLoading.value = false
             startListeningToProducts(userEmail)
         }
+    }
+
+    // Función para limpiar los campos del formulario para guardar
+    fun clearAddProductSaveFields() {
+        id.value = null
+        barcode.value = ""
+        name.value = ""
+        quantity.value = ""
+        providerPriceInCents.longValue = 0L
+        salePriceInCents.longValue = 0L
+        description.value = ""
+        errorMessage.value = ""
+    }
+
+    // Función para limpiar los campos del formulario
+    fun clearAddProductFields() {
+        id.value = null
+        name.value = ""
+        quantity.value = ""
+        providerPriceInCents.longValue = 0L
+        salePriceInCents.longValue = 0L
+        description.value = ""
+        errorMessage.value = ""
     }
 
     // Función para cargar los productos desde Firestore

@@ -4,6 +4,8 @@ package com.elfrikiamv.minegocio_puntodeventa.viewmodel.home.expenses
 
 import android.app.Application
 import android.util.Log
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.elfrikiamv.minegocio_puntodeventa.database.AppDatabase
@@ -70,6 +72,14 @@ class ExpensesViewModel(application: Application) : AndroidViewModel(application
     // Guardar referencia al listener
     private var expensesListener: ListenerRegistration? = null
 
+    // Estados para formulario de gastos
+    val concept = mutableStateOf("")
+    val paymentMethod = mutableStateOf("")
+    val description = mutableStateOf("")
+    val expensePriceInCents = mutableLongStateOf(0L)
+    val expenseAmountGivenInCents = mutableLongStateOf(0L)
+    val errorMessage = mutableStateOf("")
+
     init {
         val userEmail = auth.currentUser?.email
         if (userEmail == null) {
@@ -79,6 +89,16 @@ class ExpensesViewModel(application: Application) : AndroidViewModel(application
             //loadExpensesFromFirebase(userEmail)
             loadNextPage()
         }
+    }
+
+    // Función para limpiar los campos del formulario
+    fun clearExpenseFields() {
+        concept.value = ""
+        paymentMethod.value = ""
+        description.value = ""
+        expensePriceInCents.longValue = 0L
+        expenseAmountGivenInCents.longValue = 0L
+        errorMessage.value = ""
     }
 
     fun updateSearchQuery(query: String) {
