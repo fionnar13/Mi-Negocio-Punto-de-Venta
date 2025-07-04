@@ -414,6 +414,12 @@ fun MainScreen() {
                             )
                         },
                         text = { Text("Añadir Producto") }
+                        //contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        //containerColor = MaterialTheme.colorScheme.primaryContainer
+
+                        /*containerColor = if (!isLoading) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                        contentColor = if (!isLoading) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant*/
+
                     )
                 }
 

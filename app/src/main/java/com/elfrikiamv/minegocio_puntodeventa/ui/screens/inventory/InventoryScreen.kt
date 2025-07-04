@@ -148,13 +148,15 @@ fun InventoryScreen(navController: NavHostController, viewModel: InventoryViewMo
                                 ) {
                                     Icon(
                                         painter = painterResource(id = R.drawable.baseline_arrow_back_ios_new_24),
-                                        contentDescription = "Volver"
+                                        contentDescription = "Volver",
+                                        tint = MaterialTheme.colorScheme.onPrimaryContainer
                                     )
                                 }
                             } else {
                                 Icon(
                                     painter = painterResource(id = R.drawable.baseline_search_24),
-                                    contentDescription = "Buscar"
+                                    contentDescription = "Buscar",
+                                    tint = MaterialTheme.colorScheme.onPrimaryContainer
                                 )
                             }
                         },
@@ -163,7 +165,8 @@ fun InventoryScreen(navController: NavHostController, viewModel: InventoryViewMo
                                 IconButton(onClick = { viewModel.updateSearchQuery("") }) {
                                     Icon(
                                         painter = painterResource(id = R.drawable.baseline_close_24),
-                                        contentDescription = "Borrar búsqueda"
+                                        contentDescription = "Borrar búsqueda",
+                                        tint = MaterialTheme.colorScheme.onPrimaryContainer
                                     )
                                 }
                             }
@@ -189,17 +192,23 @@ fun InventoryScreen(navController: NavHostController, viewModel: InventoryViewMo
 
                     if (filteredProducts.isEmpty() && !isLoading && searchQuery.isNotEmpty()) {
                         Column(
-                            modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.Center,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(16.dp),
+                            //verticalArrangement = Arrangement.Center,
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
                                 "No se encontraron coincidencias.",
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                                fontStyle = FontStyle.Italic,
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.alpha(0.8f)
                             )
                             Text(
                                 "):",
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                                fontStyle = FontStyle.Italic,
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.alpha(0.8f)
                             )
                         }
                     } else {
@@ -238,18 +247,39 @@ fun InventoryScreen(navController: NavHostController, viewModel: InventoryViewMo
                                 }
                             } else if (filteredProducts.isNotEmpty()) {
                                 item {
-                                    Text(
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            //.weight(1f)
+                                            .padding(bottom = 16.dp),
+                                        //.padding(end = 16.dp, start = 16.dp, top = 16.dp),
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        Text(
+                                            text = "No hay más productos disponibles.",
+                                            modifier = Modifier.alpha(0.8f), // Aplica opacidad del 80%,
+                                            fontStyle = FontStyle.Italic,
+                                            //textAlign = TextAlign.Center,
+                                            style = MaterialTheme.typography.bodyMedium
+                                        )
+                                        Text(
+                                            text = "D:",
+                                            modifier = Modifier.alpha(0.8f), // Aplica opacidad del 80%,
+                                            fontStyle = FontStyle.Italic,
+                                            //textAlign = TextAlign.Center,
+                                            style = MaterialTheme.typography.bodyMedium
+                                        )
+                                    }
+                                    /*Text(
                                         text = "No hay más productos disponibles.",
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .padding(bottom = 16.dp),
+                                            .padding(bottom = 16.dp)
+                                            .alpha(0.8f),
+                                        fontStyle = FontStyle.Italic,
                                         textAlign = TextAlign.Center,
-                                        style = MaterialTheme.typography.bodyMedium.copy(
-                                            color = MaterialTheme.colorScheme.onSurface.copy(
-                                                alpha = 0.8f
-                                            )
-                                        )
-                                    )
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )*/
                                 }
                             }
 
@@ -273,11 +303,15 @@ fun InventoryScreen(navController: NavHostController, viewModel: InventoryViewMo
             ) {
                 Text(
                     "No se encontraron coincidencias.",
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                    fontStyle = FontStyle.Italic,
+                    //style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.alpha(0.8f)
                 )
                 Text(
                     "):",
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                    fontStyle = FontStyle.Italic,
+                    //style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.alpha(0.8f)
                 )
             }
         } else if (filteredProducts.isNotEmpty() && !isLoading && searchQuery.isNotEmpty()) {
@@ -347,7 +381,8 @@ fun InventoryScreen(navController: NavHostController, viewModel: InventoryViewMo
                         ) {
                             Text(
                                 text = letter.toString(),
-                                style = MaterialTheme.typography.titleMedium
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         }
                     }
@@ -379,18 +414,41 @@ fun InventoryScreen(navController: NavHostController, viewModel: InventoryViewMo
                     }
                 } else if (products.isNotEmpty()) {
                     item {
-                        Text(
+
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                //.weight(1f)
+                                .padding(bottom = 16.dp),
+                                //.padding(end = 16.dp, start = 16.dp, top = 16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "No hay más productos disponibles.",
+                                modifier = Modifier.alpha(0.8f), // Aplica opacidad del 80%,
+                                fontStyle = FontStyle.Italic,
+                                //textAlign = TextAlign.Center,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Text(
+                                text = "D:",
+                                modifier = Modifier.alpha(0.8f), // Aplica opacidad del 80%,
+                                fontStyle = FontStyle.Italic,
+                                //textAlign = TextAlign.Center,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+
+                        /*Text(
                             text = "No hay más productos disponibles.",
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(bottom = 16.dp),
+                                .padding(bottom = 16.dp)
+                                .alpha(0.8f), // Aplica opacidad del 80%,
+                            fontStyle = FontStyle.Italic,
                             textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                color = MaterialTheme.colorScheme.onSurface.copy(
-                                    alpha = 0.8f
-                                )
-                            )
-                        )
+                            style = MaterialTheme.typography.bodyMedium
+                        )*/
                     }
                 }
 
@@ -627,7 +685,8 @@ fun ProductCard(product: ProductFirebase, onProductDetails: () -> Unit) {
                         Icon(
                             painter = painterResource(id = R.drawable.baseline_delete_24),
                             contentDescription = "Eliminar",
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(24.dp),
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     }
                 }
