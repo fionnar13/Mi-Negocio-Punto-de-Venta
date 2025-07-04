@@ -42,11 +42,16 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.elfrikiamv.minegocio_puntodeventa.R
 import com.elfrikiamv.minegocio_puntodeventa.navigation.Screen
-import com.elfrikiamv.minegocio_puntodeventa.viewmodel.inventory.InventoryViewModel
+import com.elfrikiamv.minegocio_puntodeventa.viewmodel.inventory.AddProductViewModel
+import com.elfrikiamv.minegocio_puntodeventa.viewmodel.inventory.CheckProductExistsViewModel
 import java.util.Locale
 
 @Composable
-fun AddProductScreen(navController: NavHostController, viewModel: InventoryViewModel) {
+fun AddProductScreen(
+    navController: NavHostController,
+    viewModel: AddProductViewModel,
+    checkProductExistsViewModel: CheckProductExistsViewModel
+) {
 
     //val viewModel: InventoryViewModel = viewModel()
     val context = LocalContext.current
@@ -59,30 +64,6 @@ fun AddProductScreen(navController: NavHostController, viewModel: InventoryViewM
     val barcode by viewModel.barcode
     val description by viewModel.description
     val errorMessage by viewModel.errorMessage
-    //val barcodeDetailsViewModel by viewModel.barcodeDetails
-    //val navControllerViewModel by viewModel.navController
-    /*var barcode by remember {
-        mutableStateOf(
-            barcodeDetails.takeIf { !it.isNullOrEmpty() }
-                ?: navController.previousBackStackEntry?.savedStateHandle?.get<String>(
-                    "barcode"
-                ) ?: ""
-        )
-    }*/
-
-    /*var id by remember { mutableStateOf<String?>(null) }
-    var name by remember { mutableStateOf("") }
-    var quantity by remember { mutableStateOf("") }
-    var barcode by remember {
-        mutableStateOf(
-            barcodeDetails.takeIf { !it.isNullOrEmpty() }
-                ?: navController.previousBackStackEntry?.savedStateHandle?.get<String>(
-                    "barcode"
-                ) ?: ""
-        )
-    }
-    var description by remember { mutableStateOf("") }
-    var errorMessage by remember { mutableStateOf("") }*/
 
     // Funciones de validación
     fun isValidName(input: String): Boolean {
@@ -159,7 +140,7 @@ fun AddProductScreen(navController: NavHostController, viewModel: InventoryViewM
     LaunchedEffect(currentBarcode) {
 
         if (currentBarcode.isNotBlank()) {
-            checkProductExists(viewModel, TAG, context)
+            checkProductExists(checkProductExistsViewModel, viewModel, TAG, context)
         }
         Log.d(TAG, "Código de barras recibido: $barcode")
         Log.d(TAG, "Código de barras recibido de detalles: barcodeDetails")
@@ -419,12 +400,13 @@ fun AddProductScreen(navController: NavHostController, viewModel: InventoryViewM
 
 fun checkProductExists(
     //currentBarcode: String,
-    viewModel: InventoryViewModel,
+    checkProductExistsViewModel: CheckProductExistsViewModel,
+    viewModel: AddProductViewModel,
     TAG: String,
     context: Context
 ) {
     try {
-        viewModel.checkProductExists(viewModel.barcode.value) { product ->
+        checkProductExistsViewModel.checkProductExists(viewModel.barcode.value) { product ->
             if (product != null) {
                 // Mostrar un Toast
                 Toast.makeText(

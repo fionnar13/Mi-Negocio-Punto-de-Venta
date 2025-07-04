@@ -35,15 +35,15 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
+import com.elfrikiamv.minegocio_puntodeventa.viewmodel.inventory.CheckProductExistsViewModel
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.inventory.EditProductViewModel
 import java.util.Locale
 
 @Composable
 fun EditProductScreen(
-    navController: NavHostController,
     barcodeDetails: String?,
-    viewModel: EditProductViewModel
+    viewModel: EditProductViewModel,
+    checkProductExistsViewModel: CheckProductExistsViewModel
 ) {
 
     //val viewModel: EditProductViewModel = viewModel()
@@ -157,7 +157,7 @@ fun EditProductScreen(
     LaunchedEffect(currentBarcode) {
 
         if (currentBarcode.isNotBlank()) {
-            checkProductExists(currentBarcode, viewModel, TAG, context)
+            checkProductExists(checkProductExistsViewModel, currentBarcode, viewModel, TAG, context)
         }
         Log.d(TAG, "Código de barras recibido: $barcode")
         Log.d(TAG, "Código de barras recibido de detalles: $barcodeDetails")
@@ -417,13 +417,14 @@ fun EditProductScreen(
 }
 
 fun checkProductExists(
+    checkProductExistsViewModel: CheckProductExistsViewModel,
     currentBarcode: String,
     viewModel: EditProductViewModel,
     TAG: String,
     context: Context
 ) {
     try {
-        viewModel.checkProductExists(currentBarcode) { product ->
+        checkProductExistsViewModel.checkProductExists(currentBarcode) { product ->
             if (product != null) {
                 // Mostrar un Toast
                 Toast.makeText(

@@ -12,7 +12,7 @@ import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import com.elfrikiamv.minegocio_puntodeventa.model.inventory.ProductFirebase
-import com.elfrikiamv.minegocio_puntodeventa.viewmodel.inventory.InventoryViewModel
+import com.elfrikiamv.minegocio_puntodeventa.viewmodel.inventory.CheckProductExistsViewModel
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.shopping.ShoppingViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -49,13 +49,13 @@ class ScanViewModel(application: Application) : AndroidViewModel(application) {
     // Manejar detección de código de barras
     fun onBarcodeDetected(
         barcode: String,
-        inventoryViewModel: InventoryViewModel
+        checkProductExistsViewModel: CheckProductExistsViewModel
     ) {
         val currentTime = System.currentTimeMillis()
         if (currentTime - lastScanTime >= 2000) {
             lastScanTime = currentTime
 
-            inventoryViewModel.checkProductExists(barcode) { product ->
+            checkProductExistsViewModel.checkProductExists(barcode) { product ->
                 if (product != null) {
                     _scannedProduct.value = product
                     //_screenColor.value = Color.Green

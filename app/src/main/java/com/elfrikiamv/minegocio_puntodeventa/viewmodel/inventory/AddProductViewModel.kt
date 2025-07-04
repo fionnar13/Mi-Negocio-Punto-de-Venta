@@ -1,6 +1,6 @@
 package com.elfrikiamv.minegocio_puntodeventa.viewmodel.inventory
 
-// EditProductViewModel.kt
+// AddProductViewModel.kt
 
 import android.util.Log
 import androidx.compose.runtime.mutableLongStateOf
@@ -13,11 +13,11 @@ import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
-class EditProductViewModel : ViewModel() {
+class AddProductViewModel : ViewModel() {
 
     // Constantes para las colecciones y documentos por defecto
     companion object {
-        private const val TAG = "EditProductViewModel"
+        private const val TAG = "AddProductViewModel"
         private const val DEFAULT_BUSINESS = "defaultBusiness"
         private const val DEFAULT_INVENTORIES = "defaultInventory"
     }
@@ -66,7 +66,7 @@ class EditProductViewModel : ViewModel() {
     }
 
     // Función para limpiar los campos del formulario para guardar
-    fun clearEditProductSaveFields() {
+    fun clearAddProductSaveFields() {
         id.value = null
         barcode.value = ""
         name.value = ""
@@ -78,7 +78,7 @@ class EditProductViewModel : ViewModel() {
     }
 
     // Función para limpiar los campos del formulario
-    fun clearEditProductFields() {
+    fun clearAddProductFields() {
         id.value = null
         name.value = ""
         quantity.value = ""
@@ -92,7 +92,7 @@ class EditProductViewModel : ViewModel() {
     override fun onCleared() {
         super.onCleared()
         inventoryListener?.remove()
-        clearEditProductSaveFields()
+        clearAddProductSaveFields()
         Log.d(TAG, "Listener de inventario eliminado en onCleared()")
     }
 

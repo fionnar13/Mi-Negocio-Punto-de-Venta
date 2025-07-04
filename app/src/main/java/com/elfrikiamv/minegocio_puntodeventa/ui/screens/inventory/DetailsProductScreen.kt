@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -28,12 +27,14 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import com.elfrikiamv.minegocio_puntodeventa.model.inventory.ProductFirebase
+import com.elfrikiamv.minegocio_puntodeventa.viewmodel.inventory.CheckProductExistsViewModel
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.inventory.InventoryViewModel
 
 @Composable
 fun DetailsProductScreen(
     barcode: String?,
-    viewModel: InventoryViewModel
+    viewModel: InventoryViewModel,
+    checkProductExistsViewModel: CheckProductExistsViewModel
 ) {
     //val viewModel: InventoryViewModel = viewModel()
     //var productDetails by remember { mutableStateOf<ProductFirebase?>(null) }
@@ -51,7 +52,7 @@ fun DetailsProductScreen(
 
         if (!barcode.isNullOrEmpty()) {
             try {
-                viewModel.checkProductExists(barcode) { product ->
+                checkProductExistsViewModel.checkProductExists(barcode) { product ->
                     viewModel.productDetails.value = product
                 }
                 Log.d(TAG, "Código de barras recibido: $barcode")

@@ -48,13 +48,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.elfrikiamv.minegocio_puntodeventa.R
 import com.elfrikiamv.minegocio_puntodeventa.model.inventory.ProductFirebase
 import com.elfrikiamv.minegocio_puntodeventa.navigation.Screen
+import com.elfrikiamv.minegocio_puntodeventa.viewmodel.inventory.CheckProductExistsViewModel
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.inventory.InventoryViewModel
 import kotlinx.coroutines.launch
 
@@ -420,7 +420,7 @@ fun InventoryScreen(navController: NavHostController, viewModel: InventoryViewMo
                                 .fillMaxWidth()
                                 //.weight(1f)
                                 .padding(bottom = 16.dp),
-                                //.padding(end = 16.dp, start = 16.dp, top = 16.dp),
+                            //.padding(end = 16.dp, start = 16.dp, top = 16.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
@@ -698,7 +698,7 @@ fun ProductCard(product: ProductFirebase, onProductDetails: () -> Unit) {
 @Composable
 fun deleteProduct(productId: String): () -> Unit {
 
-    val viewModel: InventoryViewModel = viewModel()
+    val viewModel: CheckProductExistsViewModel = viewModel()
     return {
         viewModel.deleteProduct(productId)
     }

@@ -3,7 +3,6 @@ package com.elfrikiamv.minegocio_puntodeventa.viewmodel.inventory
 // InventoryViewModel.kt
 
 import android.util.Log
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -65,36 +64,14 @@ class InventoryViewModel : ViewModel() {
     // Agregado para guardar referencia al listener
     private var inventoryListener: ListenerRegistration? = null
 
-    /*val barcodeDetails = mutableStateOf<String?>(null)
-
-    val navController = mutableStateOf<NavController?>(null)*/
-
     // Estado del Bottom Sheet
     val showBottomSheet = mutableStateOf(false)
-    //var showBottomSheet by remember { mutableStateOf(false) }
 
+    // Campo para los detalles del producto
     val productDetails = mutableStateOf<ProductFirebase?>(null)
+
+    // campo para el mensaje de error
     val errorMessage = mutableStateOf("")
-
-    val id = mutableStateOf<String?>(null)
-    val name = mutableStateOf("")
-    val quantity = mutableStateOf("")
-    val barcode = mutableStateOf("")
-    /*val barcode =
-        mutableStateOf(
-            barcodeDetails.takeIf { !it.isNullOrEmpty() }
-                ?: navController.previousBackStackEntry?.savedStateHandle?.get<String>(
-                    "barcode"
-                ) ?: ""
-        )*/
-
-    val description = mutableStateOf("")
-
-    // Inicializamos priceInCents a partir de salePrice si ya tiene un valor válido
-    val salePriceInCents = mutableLongStateOf(0L)
-
-    // Inicializamos priceInCents a partir de salePrice si ya tiene un valor válido
-    val providerPriceInCents = mutableLongStateOf(0L)
 
     // Cargar los productos al iniciar el ViewModel
     init {
@@ -108,29 +85,6 @@ class InventoryViewModel : ViewModel() {
             _isLoading.value = false
             startListeningToProducts(userEmail)
         }
-    }
-
-    // Función para limpiar los campos del formulario para guardar
-    fun clearAddProductSaveFields() {
-        id.value = null
-        barcode.value = ""
-        name.value = ""
-        quantity.value = ""
-        providerPriceInCents.longValue = 0L
-        salePriceInCents.longValue = 0L
-        description.value = ""
-        errorMessage.value = ""
-    }
-
-    // Función para limpiar los campos del formulario
-    fun clearAddProductFields() {
-        id.value = null
-        name.value = ""
-        quantity.value = ""
-        providerPriceInCents.longValue = 0L
-        salePriceInCents.longValue = 0L
-        description.value = ""
-        errorMessage.value = ""
     }
 
     // Función para cargar los productos desde Firestore
@@ -209,109 +163,6 @@ class InventoryViewModel : ViewModel() {
     fun updateSearchQuery(query: String) {
         _searchQuery.value = query
         resetVisibleSearchItemCount()
-    }
-
-    // Función para agregar un producto a Firestore
-    fun addOrUpdateProduct(
-        id: String?, // ID del producto (null para nuevos productos)
-        name: String,
-        quantity: Int,
-        barcode: String,
-        providerPrice: Double,
-        salePrice: Double,
-        description: String
-    ) {
-
-        _isLoading.value = true
-        val userEmail = auth.currentUser?.email ?: return
-
-        // Si no se proporciona un ID, generar uno nuevo
-        val productId = id ?: System.currentTimeMillis().toString()
-
-        val product = ProductFirebase(
-            id = productId,
-            name = name,
-            quantity = quantity,
-            barcode = barcode,
-            providerPrice = providerPrice,
-            salePrice = salePrice,
-            description = description
-        )
-
-        // Guardar o actualizar el producto en Firestore
-        db.collection("users")
-            .document(userEmail)
-            .collection("userMyBusinesses")
-            .document(DEFAULT_BUSINESS)
-            .collection("userMyInventories")
-            .document(DEFAULT_INVENTORIES)
-            .collection("userInventory")
-            .document(productId)
-            .set(product)
-            .addOnSuccessListener {
-                _isLoading.value = false
-            }
-            .addOnFailureListener {
-                Log.e(TAG, "Error al agregar o actualizar producto", it)
-                _isLoading.value = false
-            }
-
-    }
-
-    //verificar si el producto existe en Firestore
-    fun checkProductExists(barcode: String, callback: (ProductFirebase?) -> Unit) {
-
-        //_isLoading.value = true
-        val userEmail = auth.currentUser?.email ?: return
-
-        db.collection("users")
-            .document(userEmail)
-            .collection("userMyBusinesses")
-            .document(DEFAULT_BUSINESS)
-            .collection("userMyInventories")
-            .document(DEFAULT_INVENTORIES)
-            .collection("userInventory")
-            .whereEqualTo("barcode", barcode)
-            .get()
-            .addOnSuccessListener { documents ->
-                if (documents.isEmpty) {
-                    callback(null) // Producto no encontrado
-                    _isLoading.value = false
-                } else {
-                    _isLoading.value = true
-                    val product = documents.documents.first().toObject(ProductFirebase::class.java)
-                    callback(product)
-                    _isLoading.value = false
-                }
-            }
-            .addOnFailureListener {
-                callback(null) // En caso de error
-                _isLoading.value = false
-            }
-    }
-
-    fun deleteProduct(productId: String) {
-
-        _isLoading.value = true
-        val userEmail = auth.currentUser?.email ?: return
-
-        db.collection("users")
-            .document(userEmail)
-            .collection("userMyBusinesses")
-            .document(DEFAULT_BUSINESS)
-            .collection("userMyInventories")
-            .document(DEFAULT_INVENTORIES)
-            .collection("userInventory")
-            .document(productId)
-            .delete()
-            .addOnSuccessListener {
-                Log.d(TAG, "Producto eliminado con éxito: $productId")
-                _isLoading.value = false
-            }
-            .addOnFailureListener { e ->
-                Log.e(TAG, "Error al eliminar el producto: $productId", e)
-                _isLoading.value = false
-            }
     }
 
 }

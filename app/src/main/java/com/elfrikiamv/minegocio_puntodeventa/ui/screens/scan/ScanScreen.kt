@@ -44,7 +44,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.elfrikiamv.minegocio_puntodeventa.model.inventory.ProductFirebase
-import com.elfrikiamv.minegocio_puntodeventa.viewmodel.inventory.InventoryViewModel
+import com.elfrikiamv.minegocio_puntodeventa.viewmodel.inventory.CheckProductExistsViewModel
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.scan.ScanViewModel
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.shopping.ShoppingViewModel
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions
@@ -55,8 +55,8 @@ import kotlinx.coroutines.delay
 import java.util.concurrent.Executors
 
 @Composable
-fun ScanScreen() {
-    val viewModelInventory: InventoryViewModel = viewModel()
+fun ScanScreen(checkProductExistsViewModel: CheckProductExistsViewModel) {
+    //val viewModelInventory: InventoryViewModel = viewModel()
     val viewModelShopping: ShoppingViewModel = viewModel()
     val scanViewModel: ScanViewModel = viewModel()
     //val screenColor by scanViewModel.screenColor.collectAsState()
@@ -99,7 +99,7 @@ fun ScanScreen() {
             CameraPreview(
                 onBarcodeDetected = { barcode ->
                     // Manejar el código de barras detectado
-                    scanViewModel.onBarcodeDetected(barcode, viewModelInventory)
+                    scanViewModel.onBarcodeDetected(barcode, checkProductExistsViewModel)
                 },
                 onFocusTapped = { x, y ->
                     focusPoint = Offset(x, y)
