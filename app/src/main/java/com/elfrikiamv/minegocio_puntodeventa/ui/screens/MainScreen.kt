@@ -46,12 +46,14 @@ import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.outOfStockList.OutO
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory.AddProductScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory.DetailsInventoryScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory.DetailsProductScreen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory.EditProductScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory.InventoryScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory.ScanProductScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.scan.ScanScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.shopping.ShoppingScreen
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.home.expenses.ExpensesViewModel
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.home.missing.MissingProductsViewModel
+import com.elfrikiamv.minegocio_puntodeventa.viewmodel.inventory.EditProductViewModel
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.inventory.InventoryViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -60,6 +62,7 @@ fun MainScreen() {
     val navController = rememberNavController()
     val expensesViewModel: ExpensesViewModel = viewModel()
     val inventoryViewModel: InventoryViewModel = viewModel()
+    val editProductViewModel: EditProductViewModel = viewModel()
     val missingProductsViewModel: MissingProductsViewModel = viewModel()
 
     val items = listOf(
@@ -254,7 +257,7 @@ fun MainScreen() {
                     }
                 )
 
-                Screen.AddProduct.route + "?barcode={barcode}" -> TopAppBar(
+                Screen.AddProduct.route -> TopAppBar(
                     title = { Text("Añadir Producto") },
                     navigationIcon = {
                         Icon(
@@ -265,6 +268,25 @@ fun MainScreen() {
                                 .clickable {
                                     navController.navigate(Screen.Inventory.route) {
                                         popUpTo(Screen.Inventory.route) { inclusive = true }
+                                    }
+                                }
+                        )
+                    }
+                )
+
+                Screen.EditProduct.route + "?barcode={barcode}" -> TopAppBar(
+                    title = { Text("Editar Producto") },
+                    navigationIcon = {
+                        Icon(
+                            painter = painterResource(id = R.drawable.baseline_arrow_back_ios_new_24),
+                            contentDescription = "Regresar",
+                            modifier = Modifier
+                                .padding(horizontal = 16.dp)
+                                .clickable {
+                                    navController.navigate(Screen.DetailsProduct.route + "?barcode=${inventoryViewModel.productDetails.value!!.barcode}") {
+                                        popUpTo(Screen.DetailsProduct.route + "?barcode=${inventoryViewModel.productDetails.value!!.barcode}") {
+                                            inclusive = true
+                                        }
                                     }
                                 }
                         )
@@ -440,7 +462,8 @@ fun MainScreen() {
                                 inventoryViewModel.errorMessage.value =
                                     "Hubo un error al cargar los datos del producto."
                             } else if (!isLoading) {
-                                navController.navigate(Screen.AddProduct.route + "?barcode=${inventoryViewModel.productDetails.value!!.barcode}")
+                                navController.navigate(Screen.EditProduct.route + "?barcode=${inventoryViewModel.productDetails.value!!.barcode}")
+                                //navController.navigate(Screen.DetailsProduct.route + "?barcode=${editProductViewModel.barcode.value}")
                             }
                         },
                         icon = {
@@ -453,7 +476,7 @@ fun MainScreen() {
                     )
                 }
 
-                Screen.AddProduct.route + "?barcode={barcode}" -> {
+                Screen.AddProduct.route -> {
 
                     val isLoading by inventoryViewModel.isLoading.collectAsState()
                     val context = LocalContext.current
@@ -504,6 +527,59 @@ fun MainScreen() {
                         text = { Text("Guardar Producto") },
                     )
                 }
+
+                Screen.EditProduct.route + "?barcode={barcode}" -> {
+
+                    val isLoading by editProductViewModel.isLoading.collectAsState()
+                    val context = LocalContext.current
+
+                    ExtendedFloatingActionButton(
+                        onClick = {
+                            if (editProductViewModel.barcode.value.isBlank() ||
+                                editProductViewModel.name.value.isBlank() ||
+                                (editProductViewModel.quantity.value <= 0.toString() || editProductViewModel.quantity.value.isBlank()) ||
+                                editProductViewModel.providerPriceInCents.longValue <= 0 ||
+                                editProductViewModel.salePriceInCents.longValue <= 0 ||
+                                editProductViewModel.description.value.isBlank()
+                            ) {
+                                editProductViewModel.errorMessage.value =
+                                    "Todos los campos son obligatorios."
+                            } else if (!isLoading) {
+                                // Lógica para guardar el producto
+                                //val providerPriceValue = providerPrice.toDoubleOrNull() ?: 0.0
+                                //val salePriceValue = salePrice.toDoubleOrNull() ?: 0.0
+                                val quantityValue =
+                                    editProductViewModel.quantity.value.toIntOrNull() ?: 0
+
+                                editProductViewModel.addOrUpdateProduct(
+                                    id = editProductViewModel.id.value,
+                                    name = editProductViewModel.name.value,
+                                    quantity = quantityValue,
+                                    barcode = editProductViewModel.barcode.value,
+                                    //providerPrice = providerPriceValue,
+                                    //salePrice = salePriceValue,
+                                    providerPrice = editProductViewModel.providerPriceInCents.longValue / 100.0,
+                                    salePrice = editProductViewModel.salePriceInCents.longValue / 100.0,
+                                    description = editProductViewModel.description.value
+                                )
+                                // Limpiar campos después de guardar
+                                editProductViewModel.clearEditProductSaveFields()
+
+                                // Mostrar mensaje de éxito
+                                Toast.makeText(context, "Producto guardado", Toast.LENGTH_SHORT)
+                                    .show()
+                            }
+                        },
+                        icon = {
+                            Icon(
+                                painter = painterResource(id = R.drawable.baseline_save_24),
+                                contentDescription = "Guardar Producto"
+                            )
+                        },
+                        text = { Text("Guardar Producto") },
+                    )
+                }
+
                 else -> {}
             }
         },
@@ -523,7 +599,13 @@ fun MainScreen() {
                         inventoryViewModel
                     )
                 }
-                composable(
+                composable(Screen.AddProduct.route) {
+                    AddProductScreen(
+                        navController,
+                        inventoryViewModel
+                    )
+                }
+                /*composable(
                     route = Screen.AddProduct.route + "?barcode={barcode}",
                     arguments = listOf(navArgument("barcode") { type = NavType.StringType })
                 ) { backStackEntry ->
@@ -538,6 +620,23 @@ fun MainScreen() {
                         navController = navController,
                         barcodeDetails = barcode,
                         inventoryViewModel
+                    )
+                }*/
+                composable(
+                    route = Screen.EditProduct.route + "?barcode={barcode}",
+                    arguments = listOf(navArgument("barcode") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val barcode = backStackEntry.arguments?.getString("barcode")
+
+                    // Asigna el código al ViewModel antes de mostrar la pantalla
+                    LaunchedEffect(barcode) {
+                        editProductViewModel.barcode.value = barcode ?: ""
+                    }
+
+                    EditProductScreen(
+                        navController = navController,
+                        barcodeDetails = barcode,
+                        editProductViewModel
                     )
                 }
                 composable(Screen.ScanAddProduct.route) { ScanProductScreen(navController = navController) }

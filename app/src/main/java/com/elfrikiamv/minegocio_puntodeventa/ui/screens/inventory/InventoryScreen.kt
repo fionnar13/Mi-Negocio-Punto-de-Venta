@@ -532,10 +532,28 @@ fun ProductCard(product: ProductFirebase, onProductDetails: () -> Unit) {
                     }
 
 
+                    /*HorizontalDivider(
+                        modifier = Modifier.padding(bottom = 8.dp, top = 8.dp),
+                        thickness = 1.dp,
+                        color = MaterialTheme.colorScheme.primaryContainer
+                    )*/
+
+                    //eteee
                     HorizontalDivider(
                         modifier = Modifier.padding(bottom = 8.dp, top = 8.dp),
-                        thickness = 1.dp
+                        thickness = 1.dp,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
+                    /*HorizontalDivider(
+                        modifier = Modifier.padding(bottom = 8.dp, top = 8.dp),
+                        thickness = 1.dp,
+                        color = MaterialTheme.colorScheme.secondaryContainer
+                    )
+                    HorizontalDivider(
+                        modifier = Modifier.padding(bottom = 8.dp, top = 8.dp),
+                        thickness = 1.dp,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                    )*/
 
                     Row(
                         modifier = Modifier.fillMaxWidth()

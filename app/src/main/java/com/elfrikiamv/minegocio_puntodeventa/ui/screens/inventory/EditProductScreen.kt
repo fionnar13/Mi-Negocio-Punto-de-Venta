@@ -1,6 +1,6 @@
 package com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory
 
-// AddProductScreen.kt
+// EditProductScreen.kt
 
 import android.content.Context
 import android.util.Log
@@ -13,12 +13,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -34,21 +31,22 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.elfrikiamv.minegocio_puntodeventa.R
-import com.elfrikiamv.minegocio_puntodeventa.navigation.Screen
-import com.elfrikiamv.minegocio_puntodeventa.viewmodel.inventory.InventoryViewModel
+import com.elfrikiamv.minegocio_puntodeventa.viewmodel.inventory.EditProductViewModel
 import java.util.Locale
 
 @Composable
-fun AddProductScreen(navController: NavHostController, viewModel: InventoryViewModel) {
+fun EditProductScreen(
+    navController: NavHostController,
+    barcodeDetails: String?,
+    viewModel: EditProductViewModel
+) {
 
-    //val viewModel: InventoryViewModel = viewModel()
+    //val viewModel: EditProductViewModel = viewModel()
     val context = LocalContext.current
     val TAG = "AddProductScreen"
 
@@ -159,10 +157,10 @@ fun AddProductScreen(navController: NavHostController, viewModel: InventoryViewM
     LaunchedEffect(currentBarcode) {
 
         if (currentBarcode.isNotBlank()) {
-            checkProductExists(viewModel, TAG, context)
+            checkProductExists(currentBarcode, viewModel, TAG, context)
         }
         Log.d(TAG, "Código de barras recibido: $barcode")
-        Log.d(TAG, "Código de barras recibido de detalles: barcodeDetails")
+        Log.d(TAG, "Código de barras recibido de detalles: $barcodeDetails")
     }
 
     Column(
@@ -194,7 +192,7 @@ fun AddProductScreen(navController: NavHostController, viewModel: InventoryViewM
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Text(
-                                text = "Llena todos los campos para agregar el producto al inventario.",
+                                text = "Llena todos los campos para editar el producto al inventario.",
                                 style = MaterialTheme.typography.titleMedium,
                                 modifier = Modifier.fillMaxWidth()
                             )
@@ -205,6 +203,7 @@ fun AddProductScreen(navController: NavHostController, viewModel: InventoryViewM
                             ) {
                                 OutlinedTextField(
                                     value = barcode,
+                                    enabled = false,
                                     onValueChange = { newValue ->
                                         if (isValidBarcode(newValue)) {
                                             // Esto disparará LaunchedEffect automáticamente
@@ -229,7 +228,7 @@ fun AddProductScreen(navController: NavHostController, viewModel: InventoryViewM
                                         }
                                     }
                                 )
-                                IconButton(
+                                /*IconButton(
                                     onClick = {
                                         // Lógica para abrir la cámara o navegar a una pantalla de escaneo
                                         navController.navigate(Screen.ScanAddProduct.route)
@@ -242,7 +241,7 @@ fun AddProductScreen(navController: NavHostController, viewModel: InventoryViewM
                                         contentDescription = "Abrir cámara",
                                         modifier = Modifier.size(24.dp) // Tamaño del ícono
                                     )
-                                }
+                                }*/
                             }
 
                             // Campo Nombre del Producto
@@ -418,13 +417,13 @@ fun AddProductScreen(navController: NavHostController, viewModel: InventoryViewM
 }
 
 fun checkProductExists(
-    //currentBarcode: String,
-    viewModel: InventoryViewModel,
+    currentBarcode: String,
+    viewModel: EditProductViewModel,
     TAG: String,
     context: Context
 ) {
     try {
-        viewModel.checkProductExists(viewModel.barcode.value) { product ->
+        viewModel.checkProductExists(currentBarcode) { product ->
             if (product != null) {
                 // Mostrar un Toast
                 Toast.makeText(
@@ -440,7 +439,7 @@ fun checkProductExists(
                 viewModel.salePriceInCents.longValue = (product.salePrice * 100.00).toLong()
                 viewModel.description.value = product.description
             } else {
-                viewModel.clearAddProductFields()
+                viewModel.clearEditProductFields()
             }
         }
     } catch (e: Exception) {
