@@ -623,9 +623,9 @@ fun MainScreen() {
                     val barcode = backStackEntry.arguments?.getString("barcode")
 
                     // Asigna el código al ViewModel antes de mostrar la pantalla
-                    LaunchedEffect(barcode) {
+                    /*LaunchedEffect(barcode) {
                         editProductViewModel.barcode.value = barcode ?: ""
-                    }
+                    }*/
 
                     EditProductScreen(
                         barcodeDetails = barcode,

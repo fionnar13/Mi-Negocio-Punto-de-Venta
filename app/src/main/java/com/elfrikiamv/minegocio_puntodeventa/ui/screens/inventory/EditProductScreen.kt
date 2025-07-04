@@ -26,7 +26,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -57,30 +56,6 @@ fun EditProductScreen(
     val barcode by viewModel.barcode
     val description by viewModel.description
     val errorMessage by viewModel.errorMessage
-    //val barcodeDetailsViewModel by viewModel.barcodeDetails
-    //val navControllerViewModel by viewModel.navController
-    /*var barcode by remember {
-        mutableStateOf(
-            barcodeDetails.takeIf { !it.isNullOrEmpty() }
-                ?: navController.previousBackStackEntry?.savedStateHandle?.get<String>(
-                    "barcode"
-                ) ?: ""
-        )
-    }*/
-
-    /*var id by remember { mutableStateOf<String?>(null) }
-    var name by remember { mutableStateOf("") }
-    var quantity by remember { mutableStateOf("") }
-    var barcode by remember {
-        mutableStateOf(
-            barcodeDetails.takeIf { !it.isNullOrEmpty() }
-                ?: navController.previousBackStackEntry?.savedStateHandle?.get<String>(
-                    "barcode"
-                ) ?: ""
-        )
-    }
-    var description by remember { mutableStateOf("") }
-    var errorMessage by remember { mutableStateOf("") }*/
 
     // Funciones de validación
     fun isValidName(input: String): Boolean {
@@ -97,11 +72,9 @@ fun EditProductScreen(
 
     // Inicializamos priceInCents a partir de salePrice si ya tiene un valor válido
     val salePriceInCents by viewModel.salePriceInCents
-    //var salePriceInCents by remember { mutableLongStateOf(0L) }
 
     // Inicializamos priceInCents a partir de salePrice si ya tiene un valor válido
     val providerPriceInCents by viewModel.providerPriceInCents
-    //var providerPriceInCents by remember { mutableLongStateOf(0L) }
 
     // Función para formatear el precio en centavos a un string con formato 0.00
     fun formatPrice(cents: Long): String {
@@ -115,9 +88,6 @@ fun EditProductScreen(
     // Observar el estado de isLoading
     val isLoading by viewModel.isLoading.collectAsState()
 
-    // Verificación automática cuando el código de barras cambia
-    val currentBarcode by rememberUpdatedState(barcode) // Evitar problemas de estado obsoleto
-
     // Manejo del TextField para mantener el cursor al final  Precio
     var salePriceTextFieldValue by remember {
         mutableStateOf(
@@ -127,10 +97,6 @@ fun EditProductScreen(
             )
         )
     }
-
-    /*LaunchedEffect(viewModel) {
-        viewModel.clearAddProductFields()
-    }*/
 
     // Sincronizar cuando priceInCents cambia externamente (ej. al escanear código)
     LaunchedEffect(salePriceInCents) {
@@ -154,13 +120,19 @@ fun EditProductScreen(
         providerPriceTextFieldValue = TextFieldValue(formatted, TextRange(formatted.length))
     }
 
-    LaunchedEffect(currentBarcode) {
+    LaunchedEffect(barcodeDetails) {
 
-        if (currentBarcode.isNotBlank()) {
-            checkProductExists(checkProductExistsViewModel, currentBarcode, viewModel, TAG, context)
+        if (!barcodeDetails.isNullOrBlank()) {
+
+            viewModel.barcode.value = barcodeDetails
+            checkProductExists(checkProductExistsViewModel, barcodeDetails, viewModel, TAG, context)
+            Log.d(TAG, "Código de barras recibido de detalles: $barcodeDetails")
+            Log.d(TAG, "Código de barras recibido: $barcode")
+        } else {
+
+            viewModel.clearEditProductSaveFields()
+            Log.e(TAG, "Código de barras nulo o vacío")
         }
-        Log.d(TAG, "Código de barras recibido: $barcode")
-        Log.d(TAG, "Código de barras recibido de detalles: $barcodeDetails")
     }
 
     Column(
@@ -210,10 +182,6 @@ fun EditProductScreen(
                                             viewModel.barcode.value = newValue
                                         }
                                     },
-                                    /*onValueChange = { newValue ->
-                                        // Esto disparará LaunchedEffect automáticamente
-                                        barcode = newValue
-                                    },*/
                                     label = { Text("Código de barras") },
                                     modifier = Modifier
                                         .weight(1f) // Ajusta el ancho para que ocupe el espacio restante
@@ -228,20 +196,6 @@ fun EditProductScreen(
                                         }
                                     }
                                 )
-                                /*IconButton(
-                                    onClick = {
-                                        // Lógica para abrir la cámara o navegar a una pantalla de escaneo
-                                        navController.navigate(Screen.ScanAddProduct.route)
-                                    },
-                                    //modifier = Modifier.size(48.dp) // Tamaño del ícono
-                                    modifier = Modifier.align(Alignment.CenterVertically)
-                                ) {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.baseline_camera_alt_24), // Usa un ícono de cámara
-                                        contentDescription = "Abrir cámara",
-                                        modifier = Modifier.size(24.dp) // Tamaño del ícono
-                                    )
-                                }*/
                             }
 
                             // Campo Nombre del Producto
@@ -264,13 +218,6 @@ fun EditProductScreen(
                                     }
                                 }
                             )
-                            /*OutlinedTextField(
-                                value = name,
-                                onValueChange = { name = it },
-                                label = { Text("Nombre del producto") },
-                                modifier = Modifier.fillMaxWidth(),
-                                isError = name.isBlank()
-                            )*/
 
                             // Campo Cantidad
                             OutlinedTextField(
@@ -325,29 +272,7 @@ fun EditProductScreen(
                                 }
                             )
 
-                            /*OutlinedTextField(
-                                value = providerPrice,
-                                onValueChange = {
-                                    if (isValidPrice(it)) {
-                                        providerPrice = it
-                                    }
-                                },
-                                label = { Text("Precio proveedor") },
-                                modifier = Modifier.fillMaxWidth(),
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                isError = providerPrice.isBlank(),
-                                supportingText = {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.End
-                                    ) {
-                                        Text("${providerPrice.length}/xd")
-                                    }
-                                }
-                            )*/
-
                             // Campo Precio de Venta
-
                             OutlinedTextField(
                                 value = salePriceTextFieldValue,
                                 onValueChange = { newValue ->
@@ -418,13 +343,13 @@ fun EditProductScreen(
 
 fun checkProductExists(
     checkProductExistsViewModel: CheckProductExistsViewModel,
-    currentBarcode: String,
+    barcodeDetails: String,
     viewModel: EditProductViewModel,
     TAG: String,
     context: Context
 ) {
     try {
-        checkProductExistsViewModel.checkProductExists(currentBarcode) { product ->
+        checkProductExistsViewModel.checkProductExists(barcodeDetails) { product ->
             if (product != null) {
                 // Mostrar un Toast
                 Toast.makeText(
