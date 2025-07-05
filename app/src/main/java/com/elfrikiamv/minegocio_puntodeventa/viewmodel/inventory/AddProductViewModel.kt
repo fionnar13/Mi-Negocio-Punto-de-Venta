@@ -32,11 +32,18 @@ class AddProductViewModel : ViewModel() {
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
+    // Nuevo campo para el estado de carga
+    val productFound = MutableStateFlow(true)
+    val isProductFound: StateFlow<Boolean> = productFound
+
     // Agregado para guardar referencia al listener
     private var inventoryListener: ListenerRegistration? = null
 
     // Mensaje de error
     val errorMessage = mutableStateOf("")
+
+    // Mensaje de producto encontrado
+    val isProductFoundMessage = mutableStateOf("")
 
     // Campos del formulario
     val id = mutableStateOf<String?>(null)

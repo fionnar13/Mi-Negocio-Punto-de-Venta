@@ -64,6 +64,7 @@ fun AddProductScreen(
     val barcode by viewModel.barcode
     val description by viewModel.description
     val errorMessage by viewModel.errorMessage
+    val isProductFoundMessage by viewModel.isProductFoundMessage
 
     // Funciones de validación
     fun isValidName(input: String): Boolean {
@@ -97,6 +98,8 @@ fun AddProductScreen(
 
     // Observar el estado de isLoading
     val isLoading by viewModel.isLoading.collectAsState()
+
+    val isProductFound by viewModel.isProductFound.collectAsState()
 
     // Verificación automática cuando el código de barras cambia
     val currentBarcode by rememberUpdatedState(barcode) // Evitar problemas de estado obsoleto
@@ -174,6 +177,22 @@ fun AddProductScreen(
                                 .fillMaxWidth(),
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
+                            if (errorMessage.isNotBlank()) {
+                                Text(
+                                    text = errorMessage,
+                                    color = MaterialTheme.colorScheme.error,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                                )
+                            }
+                            if (isProductFoundMessage.isNotBlank()) {
+                                Text(
+                                    text = isProductFoundMessage,
+                                    color = MaterialTheme.colorScheme.error,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                                )
+                            }
                             Text(
                                 text = "Llena todos los campos para agregar el producto al inventario.",
                                 style = MaterialTheme.typography.titleMedium,
@@ -229,6 +248,7 @@ fun AddProductScreen(
                             // Campo Nombre del Producto
                             OutlinedTextField(
                                 value = name,
+                                enabled = isProductFound,
                                 onValueChange = {
                                     if (isValidName(it)) {
                                         viewModel.name.value = it
@@ -246,17 +266,11 @@ fun AddProductScreen(
                                     }
                                 }
                             )
-                            /*OutlinedTextField(
-                                value = name,
-                                onValueChange = { name = it },
-                                label = { Text("Nombre del producto") },
-                                modifier = Modifier.fillMaxWidth(),
-                                isError = name.isBlank()
-                            )*/
 
                             // Campo Cantidad
                             OutlinedTextField(
                                 value = quantity,
+                                enabled = isProductFound,
                                 onValueChange = {
                                     if (isValidQuantity(it)) {
                                         viewModel.quantity.value = it
@@ -278,9 +292,9 @@ fun AddProductScreen(
                             )
 
                             // Campo Precio Proveedor
-
                             OutlinedTextField(
                                 value = providerPriceTextFieldValue,
+                                enabled = isProductFound,
                                 onValueChange = { newValue ->
                                     val cleanInput = newValue.text.filter { it.isDigit() }
                                     val newCents = cleanInput.toLongOrNull() ?: 0L
@@ -307,31 +321,10 @@ fun AddProductScreen(
                                 }
                             )
 
-                            /*OutlinedTextField(
-                                value = providerPrice,
-                                onValueChange = {
-                                    if (isValidPrice(it)) {
-                                        providerPrice = it
-                                    }
-                                },
-                                label = { Text("Precio proveedor") },
-                                modifier = Modifier.fillMaxWidth(),
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                isError = providerPrice.isBlank(),
-                                supportingText = {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.End
-                                    ) {
-                                        Text("${providerPrice.length}/xd")
-                                    }
-                                }
-                            )*/
-
                             // Campo Precio de Venta
-
                             OutlinedTextField(
                                 value = salePriceTextFieldValue,
+                                enabled = isProductFound,
                                 onValueChange = { newValue ->
                                     val cleanInput = newValue.text.filter { it.isDigit() }
                                     val newCents = cleanInput.toLongOrNull() ?: 0L
@@ -361,6 +354,7 @@ fun AddProductScreen(
                             // Campo Descripción
                             OutlinedTextField(
                                 value = description,
+                                enabled = isProductFound,
                                 onValueChange = {
                                     if (isValidDescription(it)) {
                                         viewModel.description.value = it
@@ -378,15 +372,6 @@ fun AddProductScreen(
                                     }
                                 }
                             )
-
-                            if (errorMessage.isNotBlank()) {
-                                Text(
-                                    text = errorMessage,
-                                    color = MaterialTheme.colorScheme.error,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                                )
-                            }
                         }
                     }
                 }
@@ -408,6 +393,9 @@ fun checkProductExists(
     try {
         checkProductExistsViewModel.checkProductExists(viewModel.barcode.value) { product ->
             if (product != null) {
+
+                viewModel.productFound.value = false
+                viewModel.isProductFoundMessage.value = "Este producto ya existe."
                 // Mostrar un Toast
                 Toast.makeText(
                     context,
@@ -422,6 +410,8 @@ fun checkProductExists(
                 viewModel.salePriceInCents.longValue = (product.salePrice * 100.00).toLong()
                 viewModel.description.value = product.description
             } else {
+                viewModel.productFound.value = true
+                viewModel.isProductFoundMessage.value = ""
                 viewModel.clearAddProductFields()
             }
         }

@@ -14,7 +14,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -503,29 +502,37 @@ fun MainScreen() {
                                 addProductViewModel.errorMessage.value =
                                     "Todos los campos son obligatorios."
                             } else if (!isLoading) {
-                                // Lógica para guardar el producto
-                                //val providerPriceValue = providerPrice.toDoubleOrNull() ?: 0.0
-                                //val salePriceValue = salePrice.toDoubleOrNull() ?: 0.0
-                                val quantityValue =
-                                    addProductViewModel.quantity.value.toIntOrNull() ?: 0
+                                if (!addProductViewModel.isProductFound.value) {
+                                    Toast.makeText(
+                                        context,
+                                        "El producto ya existe.",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                } else {
+                                    // Lógica para guardar el producto
+                                    val quantityValue =
+                                        addProductViewModel.quantity.value.toIntOrNull() ?: 0
 
-                                addProductViewModel.addOrUpdateProduct(
-                                    id = addProductViewModel.id.value,
-                                    name = addProductViewModel.name.value,
-                                    quantity = quantityValue,
-                                    barcode = addProductViewModel.barcode.value,
-                                    //providerPrice = providerPriceValue,
-                                    //salePrice = salePriceValue,
-                                    providerPrice = addProductViewModel.providerPriceInCents.longValue / 100.0,
-                                    salePrice = addProductViewModel.salePriceInCents.longValue / 100.0,
-                                    description = addProductViewModel.description.value
-                                )
-                                // Limpiar campos después de guardar
-                                addProductViewModel.clearAddProductSaveFields()
+                                    addProductViewModel.addOrUpdateProduct(
+                                        id = addProductViewModel.id.value,
+                                        name = addProductViewModel.name.value,
+                                        quantity = quantityValue,
+                                        barcode = addProductViewModel.barcode.value,
+                                        providerPrice = addProductViewModel.providerPriceInCents.longValue / 100.0,
+                                        salePrice = addProductViewModel.salePriceInCents.longValue / 100.0,
+                                        description = addProductViewModel.description.value
+                                    )
+                                    // Limpiar campos después de guardar
+                                    addProductViewModel.clearAddProductSaveFields()
 
-                                // Mostrar mensaje de éxito
-                                Toast.makeText(context, "Producto guardado", Toast.LENGTH_SHORT)
-                                    .show()
+                                    // Mostrar mensaje de éxito
+                                    Toast.makeText(
+                                        context,
+                                        "Producto guardado.",
+                                        Toast.LENGTH_SHORT
+                                    )
+                                        .show()
+                                }
                             }
                         },
                         icon = {
