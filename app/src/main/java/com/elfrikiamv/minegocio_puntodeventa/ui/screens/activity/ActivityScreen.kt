@@ -205,10 +205,6 @@ fun ActivityScreen(navController: NavController) {
                                 }
                             }
 
-                            /*items(searchResults) { exp ->
-                                ExpensesDetailsCard(exp)
-                            }*/
-
                             item {
                                 Spacer(modifier = Modifier.height(72.dp))
                             }
@@ -259,9 +255,6 @@ fun ActivityScreen(navController: NavController) {
                         navController.navigate(Screen.DetailsTicket.route + "?ticketId=${ticket.ticketId}")
                     }
                 }
-                /*items(searchResults) { exp ->
-                    ExpensesDetailsCard(exp)
-                }*/
 
                 item {
                     Spacer(modifier = Modifier.height(72.dp))

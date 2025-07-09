@@ -35,6 +35,7 @@ import com.elfrikiamv.minegocio_puntodeventa.ui.screens.activity.DetailsTicketSc
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.HomeScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.bestSellersList.BestSellersScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.expensesList.AddExpenseScreen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.expensesList.DetailsExpenseScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.expensesList.ExpensesListScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.expensesList.onAddExpense
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.lowInventoryList.LowInventoryScreen
@@ -114,6 +115,25 @@ fun MainScreen() {
                                 .clickable {
                                     navController.navigate(Screen.Main.route) {
                                         popUpTo(Screen.Main.route) { inclusive = true }
+                                    }
+                                }
+                        )
+                    }
+                )
+
+                Screen.DetailsExpense.route + "?expenseId={expenseId}" -> TopAppBar(
+                    title = { Text("Detalles del gasto") },
+                    navigationIcon = {
+                        Icon(
+                            painter = painterResource(id = R.drawable.baseline_arrow_back_ios_new_24),
+                            contentDescription = "Regresar",
+                            modifier = Modifier
+                                .padding(horizontal = 16.dp)
+                                .clickable {
+                                    navController.navigate(Screen.ExpensesListScreen.route) {
+                                        popUpTo(Screen.ExpensesListScreen.route) {
+                                            inclusive = true
+                                        }
                                     }
                                 }
                         )
@@ -352,6 +372,26 @@ fun MainScreen() {
                         text = { Text("Agregar gasto") }
                     )
                 }
+                Screen.DetailsExpense.route + "?expenseId={expenseId}" -> {
+                    val context = LocalContext.current
+                    ExtendedFloatingActionButton(
+                        onClick = {
+                            // Lógica para borrar un gasto
+                            Toast.makeText(
+                                context,
+                                "Borrado con éxito.",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        },
+                        icon = {
+                            Icon(
+                                painter = painterResource(id = R.drawable.baseline_delete_24),
+                                contentDescription = "Borrar gasto"
+                            )
+                        },
+                        text = { Text("Borrar gasto") }
+                    )
+                }
 
                 Screen.MissingListProducts.route -> {
                     ExtendedFloatingActionButton(
@@ -502,6 +542,9 @@ fun MainScreen() {
                                 addProductViewModel.errorMessage.value =
                                     "Todos los campos son obligatorios."
                             } else if (!isLoading) {
+
+                                addProductViewModel.errorMessage.value = ""
+
                                 if (!addProductViewModel.isProductFound.value) {
                                     Toast.makeText(
                                         context,
@@ -627,13 +670,8 @@ fun MainScreen() {
                     route = Screen.EditProduct.route + "?barcode={barcode}",
                     arguments = listOf(navArgument("barcode") { type = NavType.StringType })
                 ) { backStackEntry ->
+
                     val barcode = backStackEntry.arguments?.getString("barcode")
-
-                    // Asigna el código al ViewModel antes de mostrar la pantalla
-                    /*LaunchedEffect(barcode) {
-                        editProductViewModel.barcode.value = barcode ?: ""
-                    }*/
-
                     EditProductScreen(
                         barcodeDetails = barcode,
                         editProductViewModel,
@@ -645,6 +683,7 @@ fun MainScreen() {
                     route = Screen.DetailsProduct.route + "?barcode={barcode}",
                     arguments = listOf(navArgument("barcode") { type = NavType.StringType })
                 ) { backStackEntry ->
+
                     val barcode = backStackEntry.arguments?.getString("barcode")
                     DetailsProductScreen(
                         barcode = barcode,
@@ -657,6 +696,7 @@ fun MainScreen() {
                     route = Screen.DetailsTicket.route + "?ticketId={ticketId}",
                     arguments = listOf(navArgument("ticketId") { type = NavType.StringType })
                 ) { backStackEntry ->
+
                     val ticketId = backStackEntry.arguments?.getString("ticketId")
                     DetailsTicketScreen(ticketId = ticketId)
                 }
@@ -664,7 +704,15 @@ fun MainScreen() {
                 composable(Screen.LowInventoryProducts.route) { LowInventoryScreen() }
                 composable(Screen.OutOfStockProducts.route) { OutOfStockScreen() }
                 composable(Screen.MissingListProducts.route) { MissingListScreen() }
-                composable(Screen.ExpensesListScreen.route) { ExpensesListScreen() }
+                composable(Screen.ExpensesListScreen.route) { ExpensesListScreen(navController) }
+                composable(
+                    route = Screen.DetailsExpense.route + "?expenseId={expenseId}",
+                    arguments = listOf(navArgument("expenseId") { type = NavType.StringType })
+                ) { backStackEntry ->
+
+                    val expenseId = backStackEntry.arguments?.getString("expenseId")
+                    DetailsExpenseScreen(expenseId = expenseId, expensesViewModel)
+                }
                 composable(Screen.AddExpense.route) { AddExpenseScreen(expensesViewModel) }
                 composable(Screen.AddMissing.route) { AddMissingScreen(missingProductsViewModel) }
             }

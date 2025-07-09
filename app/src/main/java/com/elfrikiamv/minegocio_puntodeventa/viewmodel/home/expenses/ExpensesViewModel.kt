@@ -80,6 +80,9 @@ class ExpensesViewModel(application: Application) : AndroidViewModel(application
     val expenseAmountGivenInCents = mutableLongStateOf(0L)
     val errorMessage = mutableStateOf("")
 
+    // Campo para los detalles del gasto
+    val expenseDetails = mutableStateOf<ExpenseFirebase?>(null)
+
     init {
         val userEmail = auth.currentUser?.email
         if (userEmail == null) {
@@ -89,6 +92,40 @@ class ExpensesViewModel(application: Application) : AndroidViewModel(application
             //loadExpensesFromFirebase(userEmail)
             loadNextPage()
         }
+    }
+
+    // verificar si el gasto existe en Firestore
+    fun checkExpenseExists(expenseId: String, callback: (ExpenseFirebase?) -> Unit) {
+
+        _isLoading.value = true // Mostrar indicador de carga
+        val userEmail = auth.currentUser?.email ?: return
+
+        db.collection("users")
+            .document(userEmail)
+            .collection("userMyBusinesses")
+            .document(DEFAULT_BUSINESS)
+            .collection("userMyExpenses")
+            .document(DEFAULT_EXPENSES)
+            .collection("userExpenses")
+
+            //.collection("tickets")
+            .whereEqualTo("expenseId", expenseId)
+            .get()
+            .addOnSuccessListener { documents ->
+                if (documents.isEmpty) {
+                    callback(null) // Producto no encontrado
+                    _isLoading.value = false // Ocultar indicador de carga
+                } else {
+                    val fetchedExpense =
+                        documents.documents.first().toObject(ExpenseFirebase::class.java)
+                    callback(fetchedExpense)
+                    _isLoading.value = false // Ocultar indicador de carga
+                }
+            }
+            .addOnFailureListener {
+                callback(null) // En caso de error
+                _isLoading.value = false // Ocultar indicador de carga
+            }
     }
 
     // Función para limpiar los campos del formulario

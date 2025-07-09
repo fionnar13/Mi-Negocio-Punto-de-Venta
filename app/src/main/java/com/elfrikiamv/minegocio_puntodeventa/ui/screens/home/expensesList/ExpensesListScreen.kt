@@ -10,6 +10,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -50,6 +51,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import com.elfrikiamv.minegocio_puntodeventa.R
 import com.elfrikiamv.minegocio_puntodeventa.model.home.expenses.ExpenseFirebase
 import com.elfrikiamv.minegocio_puntodeventa.navigation.Screen
@@ -57,7 +59,7 @@ import com.elfrikiamv.minegocio_puntodeventa.viewmodel.home.expenses.ExpensesVie
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-fun ExpensesListScreen() {
+fun ExpensesListScreen(navController: NavHostController) {
 
     val viewModel: ExpensesViewModel = viewModel()
 
@@ -203,8 +205,10 @@ fun ExpensesListScreen() {
                                 .padding(end = 16.dp, start = 16.dp, top = 16.dp)
                         ) {
                             // Resultados de la búsqueda en su propio LazyColumn dentro del SearchBar
-                            items(searchResults) { exp ->
-                                ExpensesDetailsCard(exp)
+                            items(searchResults) { expense ->
+                                ExpensesDetailsCard(expense = expense) {
+                                    navController.navigate(Screen.DetailsExpense.route + "?expenseId=${expense.expenseId}")
+                                }
                             }
 
                             item {
@@ -252,8 +256,10 @@ fun ExpensesListScreen() {
                     .padding(end = 16.dp, start = 16.dp, top = 16.dp)
             ) {
                 // Resultados de la búsqueda en su propio LazyColumn
-                items(searchResults) { exp ->
-                    ExpensesDetailsCard(exp)
+                items(searchResults) { expense ->
+                    ExpensesDetailsCard(expense = expense) {
+                        navController.navigate(Screen.DetailsExpense.route + "?expenseId=${expense.expenseId}")
+                    }
                 }
 
                 item {
@@ -292,12 +298,15 @@ fun ExpensesListScreen() {
                             )
                         }
                     }
-                    items(gr.expenses) { exp ->
+                    items(gr.expenses) { expense ->
                         Log.d(
                             "ExpensesDetailsScreen",
-                            "Renderizando gasto: ${exp.expenseId}"
+                            "Renderizando gasto: ${expense.expenseId}"
                         )
-                        ExpensesDetailsCard(exp)
+
+                        ExpensesDetailsCard(expense = expense) {
+                            navController.navigate(Screen.DetailsExpense.route + "?expenseId=${expense.expenseId}")
+                        }
                     }
                 }
                 // AnimatedVisibility: indicador de carga al final de la lista
@@ -343,12 +352,12 @@ fun ExpensesListScreen() {
 }
 
 @Composable
-fun ExpensesDetailsCard(expenses: ExpenseFirebase) {
+fun ExpensesDetailsCard(expense: ExpenseFirebase, onExpenseDetails: () -> Unit) {
 
     ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
-        //.clickable { onExpenseDetails() }
+            .clickable { onExpenseDetails() }
     ) {
         Column(
             modifier = Modifier
@@ -365,7 +374,7 @@ fun ExpensesDetailsCard(expenses: ExpenseFirebase) {
                 ) {
                     Text(text = "Gasto realizado")
                     Spacer(modifier = Modifier.height(3.dp))
-                    Text(text = "id. ${expenses.expenseId}")
+                    Text(text = "id. ${expense.expenseId}")
                 }
 
                 Column {
@@ -373,7 +382,7 @@ fun ExpensesDetailsCard(expenses: ExpenseFirebase) {
                         modifier = Modifier.align(Alignment.End)
                     ) {
                         Text(
-                            text = expenses.date,
+                            text = expense.date,
                             modifier = Modifier.align(Alignment.CenterVertically)
                         )
                         Spacer(modifier = Modifier.width(3.dp))
@@ -389,7 +398,7 @@ fun ExpensesDetailsCard(expenses: ExpenseFirebase) {
                     ) {
 
                         Text(
-                            text = expenses.time,
+                            text = expense.time,
                             modifier = Modifier.align(Alignment.CenterVertically)
                         )
                         Spacer(modifier = Modifier.width(3.dp))
@@ -421,12 +430,12 @@ fun ExpensesDetailsCard(expenses: ExpenseFirebase) {
                     )
                     Spacer(modifier = Modifier.width(3.dp))
                     Text(
-                        text = expenses.paymentMethod,
+                        text = expense.paymentMethod,
                         modifier = Modifier.align(Alignment.CenterVertically)
                     )
                 }
                 Text(
-                    text = "Total: $${expenses.amountExpense}",
+                    text = "Total: $${expense.amountExpense}",
                     modifier = Modifier.align(Alignment.CenterVertically)
                 )
             }

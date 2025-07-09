@@ -92,7 +92,7 @@ fun InventoryScreen(navController: NavHostController, viewModel: InventoryViewMo
             .collect { layoutInfo ->
                 val totalItems = layoutInfo.totalItemsCount
                 val lastVisibleItem = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-                if (lastVisibleItem >= visibleItemCount - 4 && visibleItemCount < totalItems) {
+                if (lastVisibleItem >= visibleItemCount - 1 && visibleItemCount < totalItems) {
                     viewModel.loadMoreItems(totalItems)
                 }
             }
@@ -224,7 +224,7 @@ fun InventoryScreen(navController: NavHostController, viewModel: InventoryViewMo
 
                             items(productsToShow) { product ->
                                 Log.d(
-                                    "InventoryScreen",
+                                    "InventoryScreenSearch",
                                     "Renderizando producto: ${product.name}"
                                 )
                                 ProductCard(product = product) {
