@@ -55,11 +55,11 @@ class InventoryViewModel : ViewModel() {
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
-    private val _visibleItemCount = MutableStateFlow(50)
+    /*private val _visibleItemCount = MutableStateFlow(50)
     val visibleItemCount: StateFlow<Int> = _visibleItemCount
 
     private val _visibleSearchItemCount = MutableStateFlow(50)
-    val visibleSearchItemCount: StateFlow<Int> = _visibleSearchItemCount
+    val visibleSearchItemCount: StateFlow<Int> = _visibleSearchItemCount*/
 
     // Agregado para guardar referencia al listener
     private var inventoryListener: ListenerRegistration? = null
@@ -100,31 +100,16 @@ class InventoryViewModel : ViewModel() {
             .collection("userInventory")
             .addSnapshotListener { snapshot, e ->
                 if (e != null || snapshot == null) {
-                    Log.e(TAG, "Error al escuchar cambios en inventario: ${e?.message}")
+                    Log.e(TAG, "Error al escuchar inventario: ${e?.message}")
                     _isLoading.value = false
                     return@addSnapshotListener
                 }
 
-                // Convertir StateFlow actual en Map mutable para modificar por cambio incremental
-                val currentProducts = _products.value.associateBy { it.id }.toMutableMap()
-
-                // Procesar cambios incrementales
-                for (change in snapshot.documentChanges) {
-                    val product = change.document.toObject(ProductFirebase::class.java)
-                        .copy(id = change.document.id)
-                    when (change.type) {
-                        DocumentChange.Type.ADDED, DocumentChange.Type.MODIFIED -> {
-                            currentProducts[product.id] = product
-                        }
-
-                        DocumentChange.Type.REMOVED -> {
-                            currentProducts.remove(product.id)
-                        }
-                    }
+                val updatedProducts = snapshot.documents.mapNotNull { doc ->
+                    doc.toObject(ProductFirebase::class.java)?.copy(id = doc.id)
                 }
 
-                // Actualizar el StateFlow ordenado alfabéticamente
-                _products.value = currentProducts.values.sortedBy { it.name.lowercase() }
+                _products.value = updatedProducts.sortedBy { it.name.lowercase() }
                 _isLoading.value = false
             }
     }
@@ -143,7 +128,7 @@ class InventoryViewModel : ViewModel() {
             }.toSortedMap()
         }.stateIn(viewModelScope, SharingStarted.Lazily, emptyMap())
 
-    fun loadMoreItems(totalItems: Int) {
+    /*fun loadMoreItems(totalItems: Int) {
         if (_visibleItemCount.value < totalItems) {
             _visibleItemCount.value = (_visibleItemCount.value + 50).coerceAtMost(totalItems)
         }
@@ -158,11 +143,11 @@ class InventoryViewModel : ViewModel() {
 
     private fun resetVisibleSearchItemCount() {
         _visibleSearchItemCount.value = 50
-    }
+    }*/
 
     fun updateSearchQuery(query: String) {
         _searchQuery.value = query
-        resetVisibleSearchItemCount()
+        //resetVisibleSearchItemCount()
     }
 
 }

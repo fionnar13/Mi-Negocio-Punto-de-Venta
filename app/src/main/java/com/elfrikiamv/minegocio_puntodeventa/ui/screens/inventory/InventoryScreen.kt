@@ -19,8 +19,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -35,14 +33,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -80,14 +76,14 @@ fun InventoryScreen(navController: NavHostController, viewModel: InventoryViewMo
     var isSearchActive by remember { mutableStateOf(false) }
     val grouped by viewModel.groupedProducts.collectAsState()
 
-    val listState = rememberLazyListState()
+    /*val listState = rememberLazyListState()
     val visibleItemCount by viewModel.visibleItemCount.collectAsState()
 
     val searchListState = rememberLazyListState()
-    val visibleSearchCount by viewModel.visibleSearchItemCount.collectAsState()
+    val visibleSearchCount by viewModel.visibleSearchItemCount.collectAsState()*/
 
     // Detectar scroll para cargar más items
-    LaunchedEffect(listState, products.size) {
+    /*LaunchedEffect(listState, products.size) {
         snapshotFlow { listState.layoutInfo }
             .collect { layoutInfo ->
                 val totalItems = layoutInfo.totalItemsCount
@@ -107,7 +103,7 @@ fun InventoryScreen(navController: NavHostController, viewModel: InventoryViewMo
                     viewModel.loadMoreSearchItems(filteredProducts.size)
                 }
             }
-    }
+    }*/
 
 
     Column(
@@ -125,7 +121,7 @@ fun InventoryScreen(navController: NavHostController, viewModel: InventoryViewMo
                 .fillMaxWidth()
         ) {
 
-            //val onActiveChange: (Boolean) -> Unit = { isSearchActive = it }
+           // val onActiveChange: (Boolean) -> Unit = { isSearchActive = it }
             val onActiveChange: (Boolean) -> Unit = {
                 isSearchActive = it
                 if (!it) viewModel.updateSearchQuery("")
@@ -213,16 +209,13 @@ fun InventoryScreen(navController: NavHostController, viewModel: InventoryViewMo
                         }
                     } else {
                         LazyColumn(
-                            state = searchListState,
                             verticalArrangement = Arrangement.spacedBy(16.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .weight(1f)
                                 .padding(end = 16.dp, start = 16.dp, top = 16.dp)
                         ) {
-                            val productsToShow = filteredProducts.take(visibleSearchCount)
-
-                            items(productsToShow) { product ->
+                            items(filteredProducts) { product ->
                                 Log.d(
                                     "InventoryScreenSearch",
                                     "Renderizando producto: ${product.name}"
@@ -230,56 +223,6 @@ fun InventoryScreen(navController: NavHostController, viewModel: InventoryViewMo
                                 ProductCard(product = product) {
                                     isSearchActive = false
                                     navController.navigate(Screen.DetailsProduct.route + "?barcode=${product.barcode}")
-                                }
-                            }
-
-                            if (visibleSearchCount < filteredProducts.size) {
-                                // Mientras no se muestre todo, mostramos indicador de carga para scroll infinito
-                                item {
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(16.dp),
-                                        horizontalArrangement = Arrangement.Center
-                                    ) {
-                                        CircularProgressIndicator()
-                                    }
-                                }
-                            } else if (filteredProducts.isNotEmpty()) {
-                                item {
-                                    Column(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            //.weight(1f)
-                                            .padding(bottom = 16.dp),
-                                        //.padding(end = 16.dp, start = 16.dp, top = 16.dp),
-                                        horizontalAlignment = Alignment.CenterHorizontally
-                                    ) {
-                                        Text(
-                                            text = "No hay más productos disponibles.",
-                                            modifier = Modifier.alpha(0.8f), // Aplica opacidad del 80%,
-                                            fontStyle = FontStyle.Italic,
-                                            //textAlign = TextAlign.Center,
-                                            style = MaterialTheme.typography.bodyMedium
-                                        )
-                                        Text(
-                                            text = "D:",
-                                            modifier = Modifier.alpha(0.8f), // Aplica opacidad del 80%,
-                                            fontStyle = FontStyle.Italic,
-                                            //textAlign = TextAlign.Center,
-                                            style = MaterialTheme.typography.bodyMedium
-                                        )
-                                    }
-                                    /*Text(
-                                        text = "No hay más productos disponibles.",
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(bottom = 16.dp)
-                                            .alpha(0.8f),
-                                        fontStyle = FontStyle.Italic,
-                                        textAlign = TextAlign.Center,
-                                        style = MaterialTheme.typography.bodyMedium
-                                    )*/
                                 }
                             }
 
@@ -359,14 +302,14 @@ fun InventoryScreen(navController: NavHostController, viewModel: InventoryViewMo
             }
         } else {
             LazyColumn(
-                state = listState,
+                //state = listState,
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
                     .padding(end = 16.dp, start = 16.dp, top = 16.dp)
             ) {
-                var displayedCount = 0
+                /*var displayedCount = 0
 
                 grouped.forEach { (letter, productsForLetter) ->
                     val remaining = visibleItemCount - displayedCount
@@ -439,7 +382,7 @@ fun InventoryScreen(navController: NavHostController, viewModel: InventoryViewMo
                             )
                         }
 
-                        /*Text(
+                        *//*Text(
                             text = "No hay más productos disponibles.",
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -448,10 +391,35 @@ fun InventoryScreen(navController: NavHostController, viewModel: InventoryViewMo
                             fontStyle = FontStyle.Italic,
                             textAlign = TextAlign.Center,
                             style = MaterialTheme.typography.bodyMedium
+                        )*//*
+                    }
+                }*/
+                grouped.forEach { (letter, productsForLetter) ->
+                    stickyHeader {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(MaterialTheme.colorScheme.background)
+                                .padding(start = 16.dp)
+                        ) {
+                            Text(
+                                text = letter.toString(),
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                        /*Text(
+                            text = letter.toString(),
+                            style = MaterialTheme.typography.titleMedium
                         )*/
                     }
+                    items(productsForLetter) { product ->
+                        Log.d("InventoryScreen", "Renderizando producto: ${product.name}")
+                        ProductCard(product = product) {
+                            navController.navigate(Screen.DetailsProduct.route + "?barcode=${product.barcode}")
+                        }
+                    }
                 }
-
                 item {
                     Spacer(modifier = Modifier.height(56.dp))
                 }
@@ -520,7 +488,7 @@ fun InventoryScreen(navController: NavHostController, viewModel: InventoryViewMo
     }
 }
 
-@Composable
+/*@Composable
 fun SearchResults(products: List<ProductFirebase>, onResultClick: (ProductFirebase) -> Unit) {
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -535,7 +503,7 @@ fun SearchResults(products: List<ProductFirebase>, onResultClick: (ProductFireba
             Spacer(modifier = Modifier.height(56.dp))
         }
     }
-}
+}*/
 
 @Composable
 fun ProductCard(product: ProductFirebase, onProductDetails: () -> Unit) {
