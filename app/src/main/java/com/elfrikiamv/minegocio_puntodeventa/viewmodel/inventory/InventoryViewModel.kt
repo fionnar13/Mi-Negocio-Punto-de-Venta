@@ -42,13 +42,7 @@ class InventoryViewModel : ViewModel() {
 
     val filteredProducts: StateFlow<List<ProductFirebase>> = _searchQuery
         .combine(_products) { query, products ->
-            val result = if (query.isBlank()) products
-            else products.filter {
-                it.name.contains(query, ignoreCase = true) ||
-                        it.barcode.contains(query, ignoreCase = true)
-            }
-            // Ordenar también los resultados filtrados
-            result.sortedBy { it.name.lowercase() }
+            filterAndSortProducts(products, query)
         }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     // Nuevo campo para el estado de carga
@@ -144,6 +138,21 @@ class InventoryViewModel : ViewModel() {
     private fun resetVisibleSearchItemCount() {
         _visibleSearchItemCount.value = 50
     }*/
+
+    private fun filterAndSortProducts(
+        products: List<ProductFirebase>,
+        query: String
+    ): List<ProductFirebase> {
+        val filteredList = if (query.isBlank()) {
+            products
+        } else {
+            products.filter { product ->
+                product.name.contains(query, ignoreCase = true) ||
+                        product.barcode.contains(query, ignoreCase = true)
+            }
+        }
+        return filteredList.sortedBy { it.name.lowercase() }
+    }
 
     fun updateSearchQuery(query: String) {
         _searchQuery.value = query
