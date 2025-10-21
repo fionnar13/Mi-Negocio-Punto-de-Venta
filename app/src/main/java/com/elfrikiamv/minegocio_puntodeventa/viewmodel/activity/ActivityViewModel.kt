@@ -57,6 +57,10 @@ class ActivityViewModel(application: Application) : AndroidViewModel(application
     private val _searchResults = MutableStateFlow<List<TicketFirebase>>(emptyList())
     val searchResults = _searchResults.asStateFlow()
 
+    // StateFlow para el switch de todos los tickets
+    private val _showAllTickets = MutableStateFlow(false)
+    val showAllTickets = _showAllTickets.asStateFlow()
+
     // Listener de búsqueda activo
     private var searchListener: ListenerRegistration? = null
 
@@ -106,38 +110,56 @@ class ActivityViewModel(application: Application) : AndroidViewModel(application
             .collection("userTickets")
     }
 
+    fun onShowAllTicketsChange(showAll: Boolean) {
+        if (_showAllTickets.value == showAll) return // Evitar recargas innecesarias
+        _showAllTickets.value = showAll
+        auth.currentUser?.email?.let {
+            listenForTickets(it)
+        }
+    }
+
     private fun listenForTickets(userEmail: String) {
         _isLoading.value = true
+        ticketsListener?.remove() // Cancelar el listener anterior
+        allTicketsMap.clear() // Limpiar el mapa de tickets
+        _groupedTickets.value =
+            emptyList() // Limpiar la lista de tickets para la actualización de la UI
 
-        ticketsListener = getTicketsRef(userEmail)
+
+        var query: Query = getTicketsRef(userEmail)
             .orderBy("date", Query.Direction.DESCENDING)
             .orderBy("time", Query.Direction.DESCENDING)
-            .whereGreaterThanOrEqualTo("timestamp", monthStart)
-            .whereLessThan("timestamp", monthEnd)
-            .addSnapshotListener { snapshot, error ->
-                if (error != null || snapshot == null) {
-                    Log.e(TAG, "Error escuchando tickets: $error")
-                    _isLoading.value = false
-                    return@addSnapshotListener
-                }
 
-                for (change in snapshot.documentChanges) {
-                    val ticketId = change.document.id
-                    when (change.type) {
-                        DocumentChange.Type.ADDED, DocumentChange.Type.MODIFIED -> {
-                            val ticket = change.document.toObject(TicketFirebase::class.java)
-                                .copy(ticketId = ticketId)
-                            allTicketsMap[ticketId] = ticket
-                        }
+        // Solo aplicar el filtro de fecha si no se quieren mostrar todos los tickets
+        if (!_showAllTickets.value) {
+            query = query.whereGreaterThanOrEqualTo("timestamp", monthStart)
+                .whereLessThan("timestamp", monthEnd)
+        }
 
-                        DocumentChange.Type.REMOVED -> {
-                            allTicketsMap.remove(ticketId)
-                        }
+        ticketsListener = query.addSnapshotListener { snapshot, error ->
+            if (error != null || snapshot == null) {
+                Log.e(TAG, "Error escuchando tickets: $error")
+                _isLoading.value = false
+                return@addSnapshotListener
+            }
+
+            for (change in snapshot.documentChanges) {
+                val ticketId = change.document.id
+                when (change.type) {
+                    DocumentChange.Type.ADDED, DocumentChange.Type.MODIFIED -> {
+                        val ticket = change.document.toObject(TicketFirebase::class.java)
+                            .copy(ticketId = ticketId)
+                        allTicketsMap[ticketId] = ticket
+                    }
+
+                    DocumentChange.Type.REMOVED -> {
+                        allTicketsMap.remove(ticketId)
                     }
                 }
-                _groupedTickets.value = groupTicketsByYearAndMonth(allTicketsMap.values.toList())
-                _isLoading.value = false
             }
+            _groupedTickets.value = groupTicketsByYearAndMonth(allTicketsMap.values.toList())
+            _isLoading.value = false
+        }
     }
 
     // Actualizar el query de búsqueda
@@ -179,7 +201,9 @@ class ActivityViewModel(application: Application) : AndroidViewModel(application
                 snapshot?.documentChanges?.forEach { change ->
                     val ticket = change.document.toObject(TicketFirebase::class.java)
                     when (change.type) {
-                        DocumentChange.Type.ADDED, DocumentChange.Type.MODIFIED -> combinedResults[ticket.ticketId] = ticket
+                        DocumentChange.Type.ADDED, DocumentChange.Type.MODIFIED -> combinedResults[ticket.ticketId] =
+                            ticket
+
                         DocumentChange.Type.REMOVED -> combinedResults.remove(ticket.ticketId)
                     }
                 }
@@ -199,7 +223,9 @@ class ActivityViewModel(application: Application) : AndroidViewModel(application
                 snapshot?.documentChanges?.forEach { change ->
                     val ticket = change.document.toObject(TicketFirebase::class.java)
                     when (change.type) {
-                        DocumentChange.Type.ADDED, DocumentChange.Type.MODIFIED -> combinedResults[ticket.ticketId] = ticket
+                        DocumentChange.Type.ADDED, DocumentChange.Type.MODIFIED -> combinedResults[ticket.ticketId] =
+                            ticket
+
                         DocumentChange.Type.REMOVED -> combinedResults.remove(ticket.ticketId)
                     }
                 }

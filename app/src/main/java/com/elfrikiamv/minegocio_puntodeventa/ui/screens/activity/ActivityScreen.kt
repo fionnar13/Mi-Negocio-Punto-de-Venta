@@ -28,6 +28,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -59,6 +60,8 @@ fun ActivityScreen(navController: NavController) {
     // Observar búsqueda y resultados en tiempo real
     val searchQuery by viewModel.searchQuery.collectAsState()
     val searchResults by viewModel.searchResults.collectAsState()
+
+    val showAllTickets by viewModel.showAllTickets.collectAsState()
 
     var isSearchActive by remember { mutableStateOf(false) }
 
@@ -185,6 +188,29 @@ fun ActivityScreen(navController: NavController) {
                     }
                 },
             )
+        }
+
+        if (searchResults.isEmpty() && searchQuery.isEmpty()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(end = 16.dp, start = 16.dp, top = 16.dp),
+                horizontalAlignment = Alignment.End
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = if (showAllTickets) "Mostrar tickets del mes." else "Mostrar todos los tickets.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                    Switch(
+                        checked = showAllTickets,
+                        onCheckedChange = { viewModel.onShowAllTicketsChange(it) }
+                    )
+                }
+            }
         }
 
         if (searchResults.isEmpty() && !isLoading && searchQuery.isNotEmpty()) {
