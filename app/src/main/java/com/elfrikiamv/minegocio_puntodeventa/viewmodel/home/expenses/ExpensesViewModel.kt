@@ -15,12 +15,11 @@ import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentChange
-import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -33,7 +32,6 @@ class ExpensesViewModel(application: Application) : AndroidViewModel(application
         private const val TAG = "ExpensesDetailsViewModel"
         private const val DEFAULT_BUSINESS = "defaultBusiness"
         private const val DEFAULT_EXPENSES = "defaultExpenses"
-        private const val PAGE_SIZE = 420
     }
 
     // Instancias de Room
@@ -45,32 +43,31 @@ class ExpensesViewModel(application: Application) : AndroidViewModel(application
 
     // StateFlow para los expenses agrupados por año y mes
     private val _groupedExpenses = MutableStateFlow<List<GroupedExpenses>>(emptyList())
-    val groupedExpenses: StateFlow<List<GroupedExpenses>> = _groupedExpenses
+    val groupedExpenses = _groupedExpenses.asStateFlow()
 
     // Nuevo campo para el estado de carga
     private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading
-
-    // Estados de Firebase
-    private var lastSnapshot: DocumentSnapshot? = null
-    private var endReached = false
-
-    val isEndReached: Boolean
-        get() = endReached
+    val isLoading = _isLoading.asStateFlow()
 
     // Estado para query de búsqueda
     private val _searchQuery = MutableStateFlow("")
-    val searchQuery: StateFlow<String> = _searchQuery
+    val searchQuery = _searchQuery.asStateFlow()
 
     // Estado para resultados de búsqueda
     private val _searchResults = MutableStateFlow<List<ExpenseFirebase>>(emptyList())
-    val searchResults: StateFlow<List<ExpenseFirebase>> = _searchResults
+    val searchResults = _searchResults.asStateFlow()
 
     // Listener de búsqueda activo
     private var searchListener: ListenerRegistration? = null
 
     // Guardar referencia al listener
     private var expensesListener: ListenerRegistration? = null
+
+    // Mapa de expenses
+    private val allExpensesMap = mutableMapOf<String, ExpenseFirebase>()
+
+    private val monthStart: Timestamp
+    private val monthEnd: Timestamp
 
     // Estados para formulario de gastos
     val concept = mutableStateOf("")
@@ -84,14 +81,74 @@ class ExpensesViewModel(application: Application) : AndroidViewModel(application
     val expenseDetails = mutableStateOf<ExpenseFirebase?>(null)
 
     init {
+        _isLoading.value = true
+
+        val calendar = Calendar.getInstance().apply {
+            set(Calendar.DAY_OF_MONTH, 1)
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        monthStart = Timestamp(calendar.time)
+
+        calendar.add(Calendar.MONTH, 1)
+        monthEnd = Timestamp(calendar.time)
+
         val userEmail = auth.currentUser?.email
         if (userEmail == null) {
             Log.e(TAG, "Usuario no autenticado. No se pueden cargar los datos.")
+            _isLoading.value = false
         } else {
             Log.d(TAG, "Usuario autenticado: $userEmail")
             //loadExpensesFromFirebase(userEmail)
-            loadNextPage()
+            _isLoading.value = false
+            listenForExpenses(userEmail)
         }
+    }
+
+    private fun getExpensesRef(userEmail: String): CollectionReference {
+        return db.collection("users")
+            .document(userEmail)
+            .collection("userMyBusinesses")
+            .document(DEFAULT_BUSINESS)
+            .collection("userMyExpenses")
+            .document(DEFAULT_EXPENSES)
+            .collection("userExpenses")
+    }
+
+    private fun listenForExpenses(userEmail: String) {
+        _isLoading.value = true
+
+        expensesListener = getExpensesRef(userEmail)
+            .orderBy("date", Query.Direction.DESCENDING)
+            .orderBy("time", Query.Direction.DESCENDING)
+            .whereGreaterThanOrEqualTo("timestamp", monthStart)
+            .whereLessThan("timestamp", monthEnd)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null || snapshot == null) {
+                    Log.e(TAG, "Error escuchando mis gastos: $error")
+                    _isLoading.value = false
+                    return@addSnapshotListener
+                }
+
+                for (change in snapshot.documentChanges) {
+                    val expenseId = change.document.id
+                    when (change.type) {
+                        DocumentChange.Type.ADDED, DocumentChange.Type.MODIFIED -> {
+                            val expense = change.document.toObject(ExpenseFirebase::class.java)
+                                .copy(expenseId = expenseId)
+                            allExpensesMap[expenseId] = expense
+                        }
+
+                        DocumentChange.Type.REMOVED -> {
+                            allExpensesMap.remove(expenseId)
+                        }
+                    }
+                }
+                _groupedExpenses.value = groupExpensesByYearAndMonth(allExpensesMap.values.toList())
+                _isLoading.value = false
+            }
     }
 
     // verificar si el gasto existe en Firestore
@@ -100,15 +157,7 @@ class ExpensesViewModel(application: Application) : AndroidViewModel(application
         _isLoading.value = true // Mostrar indicador de carga
         val userEmail = auth.currentUser?.email ?: return
 
-        db.collection("users")
-            .document(userEmail)
-            .collection("userMyBusinesses")
-            .document(DEFAULT_BUSINESS)
-            .collection("userMyExpenses")
-            .document(DEFAULT_EXPENSES)
-            .collection("userExpenses")
-
-            //.collection("tickets")
+        getExpensesRef(userEmail)
             .whereEqualTo("expenseId", expenseId)
             .get()
             .addOnSuccessListener { documents ->
@@ -140,50 +189,39 @@ class ExpensesViewModel(application: Application) : AndroidViewModel(application
 
     fun updateSearchQuery(query: String) {
         _searchQuery.value = query
-
-        if (query.isBlank()) {
+        if (query.isNotBlank()) {
+            searchExpenses(query)
+        } else {
+            // Cancelar listener de búsqueda si la consulta está vacía
+            searchListener?.remove()
             _searchResults.value = emptyList()
-            return
+            _isLoading.value = false
         }
-
-        searchExpensesByIdOrDate(query)
     }
 
-    private fun searchExpensesByIdOrDate(query: String) {
+    private fun searchExpenses(query: String) {
         val userEmail = auth.currentUser?.email ?: return
         _isLoading.value = true
 
-        val expensesRef = getExpensesRef(userEmail)
-
-        // Cancelar listeners anteriores para evitar fugas y llamadas duplicadas
         searchListener?.remove()
 
-        // Mapa mutable para mantener los resultados combinados sin duplicados
+        val expensesRef = getExpensesRef(userEmail)
         val combinedResults = mutableMapOf<String, ExpenseFirebase>()
 
-        // Función para actualizar el StateFlow cuando ambos listeners hayan cargado al menos una vez
-        fun updateResults() {
+        fun updateUiWithResults() {
             _searchResults.value = combinedResults.values.toList()
-            _isLoading.value = false
         }
 
-        // Flag para saber si ya recibimos datos al menos una vez en cada listener
-        var expenseIdReady = false
-        var dateReady = false
-
-        // Listener para búsqueda por expenseId con prefijo (rango Unicode)
         val expenseIdListener = expensesRef
             .whereGreaterThanOrEqualTo("expenseId", query)
             .whereLessThanOrEqualTo("expenseId", query + '\uf8ff')
             .addSnapshotListener { snapshot, error ->
+                _isLoading.value = false
                 if (error != null) {
                     Log.e(TAG, "Error buscando por expenseId: $error")
-                    _searchResults.value = emptyList()
-                    _isLoading.value = false
                     return@addSnapshotListener
                 }
 
-                // Procesar los cambios incrementales para mantener combinedResults actualizado
                 snapshot?.documentChanges?.forEach { change ->
                     val expense = change.document.toObject(ExpenseFirebase::class.java)
                     when (change.type) {
@@ -193,26 +231,19 @@ class ExpensesViewModel(application: Application) : AndroidViewModel(application
                         DocumentChange.Type.REMOVED -> combinedResults.remove(expense.expenseId)
                     }
                 }
-
-                expenseIdReady = true
-                if (expenseIdReady && dateReady) {
-                    updateResults()
-                }
+                updateUiWithResults()
             }
 
-        // Listener para búsqueda por date con prefijo (rango Unicode)
         val dateListener = expensesRef
             .whereGreaterThanOrEqualTo("date", query)
             .whereLessThanOrEqualTo("date", query + '\uf8ff')
             .addSnapshotListener { snapshot, error ->
+                _isLoading.value = false
                 if (error != null) {
                     Log.e(TAG, "Error buscando por date: $error")
-                    _searchResults.value = emptyList()
-                    _isLoading.value = false
                     return@addSnapshotListener
                 }
 
-                // Procesar los cambios incrementales para mantener combinedResults actualizado
                 snapshot?.documentChanges?.forEach { change ->
                     val expense = change.document.toObject(ExpenseFirebase::class.java)
                     when (change.type) {
@@ -222,102 +253,15 @@ class ExpensesViewModel(application: Application) : AndroidViewModel(application
                         DocumentChange.Type.REMOVED -> combinedResults.remove(expense.expenseId)
                     }
                 }
-
-                dateReady = true
-                if (expenseIdReady && dateReady) {
-                    updateResults()
-                }
+                updateUiWithResults()
             }
 
-        // Guardar la referencia combinada para cancelar ambos listeners juntos
         searchListener = object : ListenerRegistration {
             override fun remove() {
                 expenseIdListener.remove()
                 dateListener.remove()
             }
         }
-    }
-
-
-    fun loadNextPage() {
-        val userEmail = auth.currentUser?.email ?: return
-        if (_isLoading.value || endReached) return
-
-        _isLoading.value = true
-
-        var query = getExpensesRef(userEmail)
-            .orderBy("date", Query.Direction.DESCENDING)
-            .orderBy("time", Query.Direction.DESCENDING)
-            .limit(PAGE_SIZE.toLong())
-
-        lastSnapshot?.let { query = query.startAfter(it) }
-
-        query.get().addOnSuccessListener { snap ->
-            val list = snap.documents.mapNotNull { it.toObject(ExpenseFirebase::class.java) }
-            if (list.size < PAGE_SIZE) endReached = true
-            lastSnapshot = snap.documents.lastOrNull()
-
-            val combined = _groupedExpenses.value.flatMap { it.expenses } + list
-            _groupedExpenses.value = groupExpensesByYearAndMonth(combined)
-
-            _isLoading.value = false
-
-            // Cuando termina carga inicial, activa realtime listener una sola vez
-            if (expensesListener == null) {
-                startRealtimeUpdates()
-            }
-
-        }.addOnFailureListener {
-            Log.e(TAG, "Error cargando gastos: $it")
-            _isLoading.value = false
-        }
-    }
-
-    private fun startRealtimeUpdates() {
-        val userEmail = auth.currentUser?.email ?: return
-        expensesListener = getExpensesRef(userEmail)
-            .addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    Log.e(TAG, "Error en realtime listener: $error")
-                    return@addSnapshotListener
-                }
-
-                snapshot?.let {
-                    // Obtener gastos actuales como Map
-                    val currentExpenses = _groupedExpenses.value.flatMap { it.expenses }
-                        .associateBy { it.expenseId }
-                        .toMutableMap()
-
-                    // Procesar cada cambio en documentos
-                    for (change in it.documentChanges) {
-                        val expense = change.document.toObject(ExpenseFirebase::class.java)
-                        when (change.type) {
-                            DocumentChange.Type.ADDED, DocumentChange.Type.MODIFIED -> {
-                                currentExpenses[expense.expenseId] = expense
-                            }
-
-                            DocumentChange.Type.REMOVED -> {
-                                currentExpenses.remove(expense.expenseId)
-                            }
-                        }
-                    }
-
-                    // Volver a agrupar y emitir el nuevo listado actualizado
-                    val mergedExpenses = currentExpenses.values.toList()
-                    _groupedExpenses.value = groupExpensesByYearAndMonth(mergedExpenses)
-                }
-            }
-    }
-
-
-    private fun getExpensesRef(userEmail: String): CollectionReference {
-        return db.collection("users")
-            .document(userEmail)
-            .collection("userMyBusinesses")
-            .document(DEFAULT_BUSINESS)
-            .collection("userMyExpenses")
-            .document(DEFAULT_EXPENSES)
-            .collection("userExpenses")
     }
 
     data class GroupedExpenses(

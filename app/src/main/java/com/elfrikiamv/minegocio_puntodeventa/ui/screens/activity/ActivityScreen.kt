@@ -3,11 +3,6 @@ package com.elfrikiamv.minegocio_puntodeventa.ui.screens.activity
 // ActivityScreen.kt
 
 import android.util.Log
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -24,8 +19,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -37,17 +30,16 @@ import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -64,27 +56,11 @@ fun ActivityScreen(navController: NavController) {
     val grouped by viewModel.groupedTickets.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
-    // Estado para controlar posición del scroll
-    val listState = rememberLazyListState()
-
     // Observar búsqueda y resultados en tiempo real
     val searchQuery by viewModel.searchQuery.collectAsState()
     val searchResults by viewModel.searchResults.collectAsState()
 
-    //val searchListState = rememberLazyListState()
-
     var isSearchActive by remember { mutableStateOf(false) }
-
-    LaunchedEffect(listState) {
-        snapshotFlow { listState.layoutInfo }
-            .collect { layoutInfo ->
-                val totalItems = layoutInfo.totalItemsCount
-                val lastVisibleItem = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-                if (lastVisibleItem >= totalItems - 4 && !isLoading && !viewModel.isEndReached) {
-                    viewModel.loadNextPage()
-                }
-            }
-    }
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -97,8 +73,6 @@ fun ActivityScreen(navController: NavController) {
         Column(
             modifier = Modifier.fillMaxWidth()
         ) {
-
-            /*val onActiveChange: (Boolean) -> Unit = { isSearchActive = it }*/
             val onActiveChange: (Boolean) -> Unit = {
                 isSearchActive = it
                 if (!it) viewModel.updateSearchQuery("")
@@ -121,13 +95,15 @@ fun ActivityScreen(navController: NavController) {
                                 ) {
                                     Icon(
                                         painter = painterResource(id = R.drawable.baseline_arrow_back_ios_new_24),
-                                        contentDescription = "Volver"
+                                        contentDescription = "Volver",
+                                        tint = MaterialTheme.colorScheme.onPrimaryContainer
                                     )
                                 }
                             } else {
                                 Icon(
                                     painter = painterResource(id = R.drawable.baseline_search_24),
-                                    contentDescription = "Buscar"
+                                    contentDescription = "Buscar",
+                                    tint = MaterialTheme.colorScheme.onPrimaryContainer
                                 )
                             }
                         },
@@ -136,7 +112,8 @@ fun ActivityScreen(navController: NavController) {
                                 IconButton(onClick = { viewModel.updateSearchQuery("") }) {
                                     Icon(
                                         painter = painterResource(id = R.drawable.baseline_close_24),
-                                        contentDescription = "Borrar búsqueda"
+                                        contentDescription = "Borrar búsqueda",
+                                        tint = MaterialTheme.colorScheme.onPrimaryContainer
                                     )
                                 }
                             }
@@ -147,26 +124,17 @@ fun ActivityScreen(navController: NavController) {
                 },
                 expanded = isSearchActive,
                 onExpandedChange = onActiveChange,
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally),
-                //.fillMaxWidth(),
-                //.padding(horizontal = 16.dp),
+                modifier = Modifier.align(Alignment.CenterHorizontally),
                 shape = SearchBarDefaults.inputFieldShape,
                 colors = SearchBarDefaults.colors(),
                 tonalElevation = SearchBarDefaults.TonalElevation,
                 shadowElevation = SearchBarDefaults.ShadowElevation,
-                //windowInsets = SearchBarDefaults.windowInsets,
                 windowInsets = WindowInsets(0.dp),
                 content = {
-
-                    if (isLoading) {
-                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                    }
 
                     if (searchQuery.isEmpty() && !isLoading) {
                         Column(
                             modifier = Modifier.fillMaxSize(),
-                            //verticalArrangement = Arrangement.Center,
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
@@ -176,22 +144,26 @@ fun ActivityScreen(navController: NavController) {
                         }
                     } else if (searchResults.isEmpty() && searchQuery.isNotEmpty() && !isLoading) {
                         Column(
-                            modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.Center,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(16.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                "No se encontraron coincidencias",
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                                "No se encontraron coincidencias.",
+                                fontStyle = FontStyle.Italic,
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.alpha(0.8f)
                             )
                             Text(
                                 "):",
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                                fontStyle = FontStyle.Italic,
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.alpha(0.8f)
                             )
                         }
                     } else {
                         LazyColumn(
-                            //state = searchListState,
                             verticalArrangement = Arrangement.spacedBy(16.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -201,12 +173,13 @@ fun ActivityScreen(navController: NavController) {
                             // Resultados de la búsqueda en su propio LazyColumn dentro del SearchBar
                             items(searchResults) { ticket ->
                                 TicketCard(ticket = ticket) {
+                                    isSearchActive = false
                                     navController.navigate(Screen.DetailsTicket.route + "?ticketId=${ticket.ticketId}")
                                 }
                             }
 
                             item {
-                                Spacer(modifier = Modifier.height(72.dp))
+                                Spacer(modifier = Modifier.height(16.dp))
                             }
                         }
                     }
@@ -218,31 +191,30 @@ fun ActivityScreen(navController: NavController) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    //.weight(1f)
                     .padding(end = 16.dp, start = 16.dp, top = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
                     "No se encontraron coincidencias.",
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                    fontStyle = FontStyle.Italic,
+                    modifier = Modifier.alpha(0.8f)
                 )
                 Text(
                     "):",
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                    fontStyle = FontStyle.Italic,
+                    modifier = Modifier.alpha(0.8f)
                 )
             }
         } else if (searchResults.isNotEmpty() && !isLoading && searchQuery.isNotEmpty()) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    //.weight(1f)
                     .padding(end = 16.dp, start = 16.dp, top = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text("Resultados de la búsqueda:")
             }
             LazyColumn(
-                //state = searchListState,
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -257,7 +229,7 @@ fun ActivityScreen(navController: NavController) {
                 }
 
                 item {
-                    Spacer(modifier = Modifier.height(72.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
             }
         } else if (grouped.isEmpty() && !isLoading) {
@@ -266,12 +238,17 @@ fun ActivityScreen(navController: NavController) {
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("No hay tickets disponibles.")
-                Text("):")
+                Text(
+                    "No se han registrado tickets en este mes.",
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                )
+                Text(
+                    "):",
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                )
             }
         } else {
             LazyColumn(
-                state = listState,
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier
                     .fillMaxSize()
@@ -288,7 +265,8 @@ fun ActivityScreen(navController: NavController) {
                         ) {
                             Text(
                                 text = "${gr.month} - ${gr.year}",
-                                style = MaterialTheme.typography.titleMedium
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         }
                     }
@@ -302,39 +280,8 @@ fun ActivityScreen(navController: NavController) {
                         }
                     }
                 }
-                // Indicador de carga al final
                 item {
-                    AnimatedVisibility(
-                        visible = isLoading,
-                        enter = fadeIn() + slideInVertically { it / 2 },
-                        exit = fadeOut() + slideOutVertically { it / 2 }
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(8.dp),
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            CircularProgressIndicator()
-                        }
-                    }
-                }
-                // Mensaje de fin de lista
-                item {
-                    if (!isLoading && viewModel.isEndReached) {
-                        Text(
-                            text = "No hay más tickets disponibles.",
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 16.dp),
-                            textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                color = MaterialTheme.colorScheme.onSurface.copy(
-                                    alpha = 0.8f
-                                )
-                            )
-                        )
-                    }
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
             }
         }
@@ -348,7 +295,6 @@ fun TicketCard(ticket: TicketFirebase, onTicketDetails: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onTicketDetails() }
-        //.padding(vertical = 8.dp)
     ) {
         Column(
             modifier = Modifier
@@ -404,7 +350,8 @@ fun TicketCard(ticket: TicketFirebase, onTicketDetails: () -> Unit) {
 
             HorizontalDivider(
                 modifier = Modifier.padding(bottom = 8.dp, top = 8.dp),
-                thickness = 1.dp
+                thickness = 1.dp,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
             )
 
             Row(

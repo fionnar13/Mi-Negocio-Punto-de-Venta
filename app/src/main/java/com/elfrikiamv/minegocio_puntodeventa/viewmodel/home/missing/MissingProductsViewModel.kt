@@ -9,8 +9,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.elfrikiamv.minegocio_puntodeventa.database.AppDatabase
+import com.elfrikiamv.minegocio_puntodeventa.model.home.expenses.ExpenseFirebase
 import com.elfrikiamv.minegocio_puntodeventa.model.home.missing.MissingProductEntity
 import com.elfrikiamv.minegocio_puntodeventa.model.home.missing.MissingProductFirebase
+import com.elfrikiamv.minegocio_puntodeventa.viewmodel.home.expenses.ExpensesViewModel
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentChange
@@ -20,10 +23,12 @@ import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import kotlin.collections.set
 
 class MissingProductsViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -31,7 +36,6 @@ class MissingProductsViewModel(application: Application) : AndroidViewModel(appl
         private const val TAG = "MissingListViewModel"
         private const val DEFAULT_BUSINESS = "defaultBusiness"
         private const val DEFAULT_MISSING = "defaultMissing"
-        private const val PAGE_SIZE = 420
     }
 
     private val missingDao = AppDatabase.getDatabase(application).missingProductDao()
@@ -40,38 +44,33 @@ class MissingProductsViewModel(application: Application) : AndroidViewModel(appl
     private val auth = FirebaseAuth.getInstance()
     private val db = FirebaseFirestore.getInstance()
 
-    // MutableStateFlow para almacenar la lista de faltantes
-    /*private val _missingList = MutableStateFlow<List<MissingProductFirebase>>(emptyList())
-    val missingList: StateFlow<List<MissingProductFirebase>> = _missingList*/
-
     // StateFlow para los missing agrupados por año y mes
     private val _groupedMissing = MutableStateFlow<List<GroupedMissing>>(emptyList())
-    val groupedMissing: StateFlow<List<GroupedMissing>> = _groupedMissing
+    val groupedMissing = _groupedMissing.asStateFlow()
 
     // Nuevo campo para el estado de carga
     private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading
-
-    // Estados de Firebase
-    private var lastSnapshot: DocumentSnapshot? = null
-    private var endReached = false
-
-    val isEndReached: Boolean
-        get() = endReached
+    val isLoading = _isLoading.asStateFlow()
 
     // Estado para query de búsqueda
     private val _searchQuery = MutableStateFlow("")
-    val searchQuery: StateFlow<String> = _searchQuery
+    val searchQuery = _searchQuery.asStateFlow()
 
     // Estado para resultados de búsqueda
     private val _searchResults = MutableStateFlow<List<MissingProductFirebase>>(emptyList())
-    val searchResults: StateFlow<List<MissingProductFirebase>> = _searchResults
+    val searchResults = _searchResults.asStateFlow()
 
     // Listener de búsqueda activo
     private var searchListener: ListenerRegistration? = null
 
     // Guardar referencia al listener
     private var missingListener: ListenerRegistration? = null
+
+    // Mapa de faltantes
+    private val allMissingMap = mutableMapOf<String, MissingProductFirebase>()
+
+    private val monthStart: Timestamp
+    private val monthEnd: Timestamp
 
     val name = mutableStateOf("")
     val quantity = mutableStateOf("")
@@ -81,14 +80,73 @@ class MissingProductsViewModel(application: Application) : AndroidViewModel(appl
     val productPriceInCents = mutableLongStateOf(0L)
 
     init {
+        _isLoading.value = true
+
+        val calendar = Calendar.getInstance().apply {
+            set(Calendar.DAY_OF_MONTH, 1)
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        monthStart = Timestamp(calendar.time)
+
+        calendar.add(Calendar.MONTH, 1)
+        monthEnd = Timestamp(calendar.time)
+
         val userEmail = auth.currentUser?.email
         if (userEmail == null) {
             Log.e(TAG, "Usuario no autenticado. No se pueden cargar los datos.")
+            _isLoading.value = false
         } else {
             Log.d(TAG, "Usuario autenticado: $userEmail")
-            //loadMissingFromFirebase(userEmail)
-            loadNextPage()
+            _isLoading.value = false
+            listenForMissing(userEmail)
         }
+    }
+
+    private fun getMissingRef(userEmail: String): CollectionReference {
+        return db.collection("users")
+            .document(userEmail)
+            .collection("userMyBusinesses")
+            .document(DEFAULT_BUSINESS)
+            .collection("userMyMissing")
+            .document(DEFAULT_MISSING)
+            .collection("userMissing")
+    }
+
+    private fun listenForMissing(userEmail: String) {
+        _isLoading.value = true
+
+        missingListener = getMissingRef(userEmail)
+            .orderBy("date", Query.Direction.DESCENDING)
+            .orderBy("time", Query.Direction.DESCENDING)
+            .whereGreaterThanOrEqualTo("timestamp", monthStart)
+            .whereLessThan("timestamp", monthEnd)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null || snapshot == null) {
+                    Log.e(TAG, "Error escuchando mis faltantes: $error")
+                    _isLoading.value = false
+                    return@addSnapshotListener
+                }
+
+                for (change in snapshot.documentChanges) {
+                    val missingId = change.document.id
+                    when (change.type) {
+                        DocumentChange.Type.ADDED, DocumentChange.Type.MODIFIED -> {
+                            val missing = change.document.toObject(MissingProductFirebase::class.java)
+                                .copy(missingId = missingId)
+                            allMissingMap[missingId] = missing
+                        }
+
+                        DocumentChange.Type.REMOVED -> {
+                            allMissingMap.remove(missingId)
+                        }
+                    }
+                }
+                _groupedMissing.value = groupMissingByYearAndMonth(allMissingMap.values.toList())
+                _isLoading.value = false
+            }
     }
 
     // Función para limpiar los campos del formulario
@@ -103,50 +161,39 @@ class MissingProductsViewModel(application: Application) : AndroidViewModel(appl
 
     fun updateSearchQuery(query: String) {
         _searchQuery.value = query
-
-        if (query.isBlank()) {
+        if (query.isNotBlank()) {
+            searchMissing(query)
+        } else {
+            // Cancelar listener de búsqueda si la consulta está vacía
+            searchListener?.remove()
             _searchResults.value = emptyList()
-            return
+            _isLoading.value = false
         }
-
-        searchMissingProductsByIdOrDate(query)
     }
 
-    private fun searchMissingProductsByIdOrDate(query: String) {
+    private fun searchMissing(query: String) {
         val userEmail = auth.currentUser?.email ?: return
         _isLoading.value = true
 
-        val missingRef = getMissingRef(userEmail)
-
-        // Cancelar listeners anteriores para evitar fugas y llamadas duplicadas
         searchListener?.remove()
 
-        // Mapa mutable para mantener los resultados combinados sin duplicados
+        val missingRef = getMissingRef(userEmail)
         val combinedResults = mutableMapOf<String, MissingProductFirebase>()
 
-        // Función para actualizar el StateFlow cuando ambos listeners hayan cargado al menos una vez
-        fun updateResults() {
+        fun updateUiWithResults() {
             _searchResults.value = combinedResults.values.toList()
-            _isLoading.value = false
         }
 
-        // Flag para saber si ya recibimos datos al menos una vez en cada listener
-        var missingIdReady = false
-        var dateReady = false
-
-        // Listener para búsqueda por missingId con prefijo (rango Unicode)
         val missingIdListener = missingRef
             .whereGreaterThanOrEqualTo("missingId", query)
             .whereLessThanOrEqualTo("missingId", query + '\uf8ff')
             .addSnapshotListener { snapshot, error ->
+                _isLoading.value = false
                 if (error != null) {
                     Log.e(TAG, "Error buscando por missingId: $error")
-                    _searchResults.value = emptyList()
-                    _isLoading.value = false
                     return@addSnapshotListener
                 }
 
-                // Procesar los cambios incrementales para mantener combinedResults actualizado
                 snapshot?.documentChanges?.forEach { change ->
                     val missing = change.document.toObject(MissingProductFirebase::class.java)
                     when (change.type) {
@@ -156,26 +203,19 @@ class MissingProductsViewModel(application: Application) : AndroidViewModel(appl
                         DocumentChange.Type.REMOVED -> combinedResults.remove(missing.missingId)
                     }
                 }
-
-                missingIdReady = true
-                if (missingIdReady && dateReady) {
-                    updateResults()
-                }
+                updateUiWithResults()
             }
 
-        // Listener para búsqueda por date con prefijo (rango Unicode)
         val dateListener = missingRef
             .whereGreaterThanOrEqualTo("date", query)
             .whereLessThanOrEqualTo("date", query + '\uf8ff')
             .addSnapshotListener { snapshot, error ->
+                _isLoading.value = false
                 if (error != null) {
                     Log.e(TAG, "Error buscando por date: $error")
-                    _searchResults.value = emptyList()
-                    _isLoading.value = false
                     return@addSnapshotListener
                 }
 
-                // Procesar los cambios incrementales para mantener combinedResults actualizado
                 snapshot?.documentChanges?.forEach { change ->
                     val missing = change.document.toObject(MissingProductFirebase::class.java)
                     when (change.type) {
@@ -185,102 +225,15 @@ class MissingProductsViewModel(application: Application) : AndroidViewModel(appl
                         DocumentChange.Type.REMOVED -> combinedResults.remove(missing.missingId)
                     }
                 }
-
-                dateReady = true
-                if (missingIdReady && dateReady) {
-                    updateResults()
-                }
+                updateUiWithResults()
             }
 
-        // Guardar la referencia combinada para cancelar ambos listeners juntos
         searchListener = object : ListenerRegistration {
             override fun remove() {
                 missingIdListener.remove()
                 dateListener.remove()
             }
         }
-    }
-
-    // Función para cargar la lista de faltantes desde Firebase
-    fun loadNextPage() {
-        val userEmail = auth.currentUser?.email ?: return
-        if (_isLoading.value || endReached) return
-
-        _isLoading.value = true
-
-        var query = getMissingRef(userEmail)
-            .orderBy("date", Query.Direction.DESCENDING)
-            .orderBy("time", Query.Direction.DESCENDING)
-            .limit(PAGE_SIZE.toLong())
-
-        lastSnapshot?.let { query = query.startAfter(it) }
-
-        query.get().addOnSuccessListener { snap ->
-            val list = snap.documents.mapNotNull { it.toObject(MissingProductFirebase::class.java) }
-            if (list.size < PAGE_SIZE) endReached = true
-            lastSnapshot = snap.documents.lastOrNull()
-
-            val combined = _groupedMissing.value.flatMap { it.missing } + list
-            _groupedMissing.value = groupMissingByYearAndMonth(combined)
-
-            _isLoading.value = false
-
-            // Cuando termina carga inicial, activa realtime listener una sola vez
-            if (missingListener == null) {
-                startRealtimeUpdates()
-            }
-
-        }.addOnFailureListener {
-            Log.e(TAG, "Error cargando gastos: $it")
-            _isLoading.value = false
-        }
-    }
-
-    private fun startRealtimeUpdates() {
-        val userEmail = auth.currentUser?.email ?: return
-        missingListener = getMissingRef(userEmail)
-            .addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    Log.e(TAG, "Error en realtime listener: $error")
-                    return@addSnapshotListener
-                }
-
-                snapshot?.let {
-                    // Obtener gastos actuales como Map
-                    val currentMissing = _groupedMissing.value.flatMap { it.missing }
-                        .associateBy { it.missingId }
-                        .toMutableMap()
-
-                    // Procesar cada cambio en documentos
-                    for (change in it.documentChanges) {
-                        val missing = change.document.toObject(MissingProductFirebase::class.java)
-                        when (change.type) {
-                            DocumentChange.Type.ADDED, DocumentChange.Type.MODIFIED -> {
-                                currentMissing[missing.missingId] = missing
-                            }
-
-                            DocumentChange.Type.REMOVED -> {
-                                currentMissing.remove(missing.missingId)
-                            }
-                        }
-                    }
-
-                    // Volver a agrupar y emitir el nuevo listado actualizado
-                    val mergedMissing = currentMissing.values.toList()
-                    _groupedMissing.value = groupMissingByYearAndMonth(mergedMissing)
-                }
-            }
-    }
-
-
-    private fun getMissingRef(userEmail: String): CollectionReference {
-        return db.collection("users")
-            .document(userEmail)
-            .collection("userMyBusinesses")
-            .document(DEFAULT_BUSINESS)
-            .collection("userMyMissing")
-            .document(DEFAULT_MISSING)
-            .collection("userMissing")
     }
 
     // Clase para agrupar los faltantes por año y mes

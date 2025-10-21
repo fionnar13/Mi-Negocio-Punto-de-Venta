@@ -9,10 +9,10 @@ import android.util.Log
 import androidx.core.content.FileProvider
 import androidx.lifecycle.AndroidViewModel
 import com.elfrikiamv.minegocio_puntodeventa.model.shopping.TicketFirebase
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentChange
-import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
@@ -23,7 +23,7 @@ import com.tom_roush.pdfbox.pdmodel.PDPageContentStream
 import com.tom_roush.pdfbox.pdmodel.common.PDRectangle
 import com.tom_roush.pdfbox.pdmodel.font.PDType1Font
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -36,7 +36,6 @@ class ActivityViewModel(application: Application) : AndroidViewModel(application
         private const val TAG = "ActivityViewModel"
         private const val DEFAULT_BUSINESS = "defaultBusiness"
         private const val DEFAULT_TICKETS = "defaultTickets"
-        private const val PAGE_SIZE = 420
     }
 
     private val auth = FirebaseAuth.getInstance() // Instancia de Firebase Auth
@@ -44,26 +43,19 @@ class ActivityViewModel(application: Application) : AndroidViewModel(application
 
     // StateFlow para los tickets agrupados por año y mes
     private val _groupedTickets = MutableStateFlow<List<GroupedTickets>>(emptyList())
-    val groupedTickets: StateFlow<List<GroupedTickets>> = _groupedTickets
+    val groupedTickets = _groupedTickets.asStateFlow()
 
     // campo para el estado de carga
     private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading
-
-    // Estados de Firebase
-    private var lastSnapshot: DocumentSnapshot? = null
-    private var endReached = false
-
-    val isEndReached: Boolean
-        get() = endReached
+    val isLoading = _isLoading.asStateFlow()
 
     // Estado para query de búsqueda
     private val _searchQuery = MutableStateFlow("")
-    val searchQuery: StateFlow<String> = _searchQuery
+    val searchQuery = _searchQuery.asStateFlow()
 
     // Estado para resultados de búsqueda
     private val _searchResults = MutableStateFlow<List<TicketFirebase>>(emptyList())
-    val searchResults: StateFlow<List<TicketFirebase>> = _searchResults
+    val searchResults = _searchResults.asStateFlow()
 
     // Listener de búsqueda activo
     private var searchListener: ListenerRegistration? = null
@@ -71,187 +63,38 @@ class ActivityViewModel(application: Application) : AndroidViewModel(application
     // Guardar referencia al listener
     private var ticketsListener: ListenerRegistration? = null
 
+    // Mapa de tickets
+    private val allTicketsMap = mutableMapOf<String, TicketFirebase>()
+
+    private val monthStart: Timestamp
+    private val monthEnd: Timestamp
+
+    // Cargar los tickets del mes actual al iniciar el ViewModel
     init {
+        _isLoading.value = true
+
+        val calendar = Calendar.getInstance().apply {
+            set(Calendar.DAY_OF_MONTH, 1)
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        monthStart = Timestamp(calendar.time)
+
+        calendar.add(Calendar.MONTH, 1)
+        monthEnd = Timestamp(calendar.time)
+
         val userEmail = auth.currentUser?.email
         if (userEmail == null) {
             Log.e(TAG, "Usuario no autenticado. No se pueden cargar los datos.")
+            _isLoading.value = false
         } else {
             Log.d(TAG, "Usuario autenticado: $userEmail")
-            loadNextPage()
-        }
-    }
-
-    fun updateSearchQuery(query: String) {
-        _searchQuery.value = query
-
-        if (query.isBlank()) {
-            _searchResults.value = emptyList()
-            return
-        }
-
-        searchTicketByIdOrDate(query)
-    }
-
-    private fun searchTicketByIdOrDate(query: String) {
-        val userEmail = auth.currentUser?.email ?: return
-        _isLoading.value = true
-
-        val ticketsRef = getTicketsRef(userEmail)
-
-        // Cancelar listeners anteriores para evitar fugas y llamadas duplicadas
-        searchListener?.remove()
-
-        // Mapa mutable para mantener los resultados combinados sin duplicados
-        val combinedResults = mutableMapOf<String, TicketFirebase>()
-
-        // Función para actualizar el StateFlow cuando ambos listeners hayan cargado al menos una vez
-        fun updateResults() {
-            _searchResults.value = combinedResults.values.toList()
             _isLoading.value = false
-        }
-
-        // Flag para saber si ya recibimos datos al menos una vez en cada listener
-        var ticketIdReady = false
-        var dateReady = false
-
-        // Listener para búsqueda por ticketId con prefijo (rango Unicode)
-        val ticketIdListener = ticketsRef
-            .whereGreaterThanOrEqualTo("ticketId", query)
-            .whereLessThanOrEqualTo("ticketId", query + '\uf8ff')
-            .addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    Log.e(TAG, "Error buscando por ticketId: $error")
-                    _searchResults.value = emptyList()
-                    _isLoading.value = false
-                    return@addSnapshotListener
-                }
-
-                // Procesar los cambios incrementales para mantener combinedResults actualizado
-                snapshot?.documentChanges?.forEach { change ->
-                    val ticket = change.document.toObject(TicketFirebase::class.java)
-                    when (change.type) {
-                        DocumentChange.Type.ADDED, DocumentChange.Type.MODIFIED -> combinedResults[ticket.ticketId] =
-                            ticket
-
-                        DocumentChange.Type.REMOVED -> combinedResults.remove(ticket.ticketId)
-                    }
-                }
-
-                ticketIdReady = true
-                if (ticketIdReady && dateReady) {
-                    updateResults()
-                }
-            }
-
-        // Listener para búsqueda por date con prefijo (rango Unicode)
-        val dateListener = ticketsRef
-            .whereGreaterThanOrEqualTo("date", query)
-            .whereLessThanOrEqualTo("date", query + '\uf8ff')
-            .addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    Log.e(TAG, "Error buscando por date: $error")
-                    _searchResults.value = emptyList()
-                    _isLoading.value = false
-                    return@addSnapshotListener
-                }
-
-                // Procesar los cambios incrementales para mantener combinedResults actualizado
-                snapshot?.documentChanges?.forEach { change ->
-                    val ticket = change.document.toObject(TicketFirebase::class.java)
-                    when (change.type) {
-                        DocumentChange.Type.ADDED, DocumentChange.Type.MODIFIED -> combinedResults[ticket.ticketId] =
-                            ticket
-
-                        DocumentChange.Type.REMOVED -> combinedResults.remove(ticket.ticketId)
-                    }
-                }
-
-                dateReady = true
-                if (ticketIdReady && dateReady) {
-                    updateResults()
-                }
-            }
-
-        // Guardar la referencia combinada para cancelar ambos listeners juntos
-        searchListener = object : ListenerRegistration {
-            override fun remove() {
-                ticketIdListener.remove()
-                dateListener.remove()
-            }
+            listenForTickets(userEmail)
         }
     }
-
-    // Paginación mejorada: carga siguiente página desde Firestore
-    fun loadNextPage() {
-        val userEmail = auth.currentUser?.email ?: return
-        if (_isLoading.value || endReached) return
-
-        _isLoading.value = true
-
-        var query = getTicketsRef(userEmail)
-            .orderBy("date", Query.Direction.DESCENDING)
-            .orderBy("time", Query.Direction.DESCENDING)
-            .limit(PAGE_SIZE.toLong())
-
-        lastSnapshot?.let { query = query.startAfter(it) }
-
-        query.get().addOnSuccessListener { snap ->
-            val list = snap.documents.mapNotNull { it.toObject(TicketFirebase::class.java) }
-            if (list.size < PAGE_SIZE) endReached = true
-            lastSnapshot = snap.documents.lastOrNull()
-
-            val combined = _groupedTickets.value.flatMap { it.tickets } + list
-            _groupedTickets.value = groupTicketsByYearAndMonth(combined)
-
-            _isLoading.value = false
-
-            // Cuando termina carga inicial, activa realtime listener una sola vez
-            if (ticketsListener == null) {
-                startRealtimeUpdates()
-            }
-
-        }.addOnFailureListener {
-            Log.e(TAG, "Error cargando gastos: $it")
-            _isLoading.value = false
-        }
-    }
-
-    private fun startRealtimeUpdates() {
-        val userEmail = auth.currentUser?.email ?: return
-        ticketsListener = getTicketsRef(userEmail)
-            .addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    Log.e(TAG, "Error en realtime listener: $error")
-                    return@addSnapshotListener
-                }
-
-                snapshot?.let {
-                    // Obtener gastos actuales como Map
-                    val currentTickets = _groupedTickets.value.flatMap { it.tickets }
-                        .associateBy { it.ticketId }
-                        .toMutableMap()
-
-                    // Procesar cada cambio en documentos
-                    for (change in it.documentChanges) {
-                        val ticket = change.document.toObject(TicketFirebase::class.java)
-                        when (change.type) {
-                            DocumentChange.Type.ADDED, DocumentChange.Type.MODIFIED -> {
-                                currentTickets[ticket.ticketId] = ticket
-                            }
-
-                            DocumentChange.Type.REMOVED -> {
-                                currentTickets.remove(ticket.ticketId)
-                            }
-                        }
-                    }
-
-                    // Volver a agrupar y emitir el nuevo listado actualizado
-                    val mergedTickets = currentTickets.values.toList()
-                    _groupedTickets.value = groupTicketsByYearAndMonth(mergedTickets)
-                }
-            }
-    }
-
 
     private fun getTicketsRef(userEmail: String): CollectionReference {
         return db.collection("users")
@@ -261,6 +104,114 @@ class ActivityViewModel(application: Application) : AndroidViewModel(application
             .collection("userMyTickets")
             .document(DEFAULT_TICKETS)
             .collection("userTickets")
+    }
+
+    private fun listenForTickets(userEmail: String) {
+        _isLoading.value = true
+
+        ticketsListener = getTicketsRef(userEmail)
+            .orderBy("date", Query.Direction.DESCENDING)
+            .orderBy("time", Query.Direction.DESCENDING)
+            .whereGreaterThanOrEqualTo("timestamp", monthStart)
+            .whereLessThan("timestamp", monthEnd)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null || snapshot == null) {
+                    Log.e(TAG, "Error escuchando tickets: $error")
+                    _isLoading.value = false
+                    return@addSnapshotListener
+                }
+
+                for (change in snapshot.documentChanges) {
+                    val ticketId = change.document.id
+                    when (change.type) {
+                        DocumentChange.Type.ADDED, DocumentChange.Type.MODIFIED -> {
+                            val ticket = change.document.toObject(TicketFirebase::class.java)
+                                .copy(ticketId = ticketId)
+                            allTicketsMap[ticketId] = ticket
+                        }
+
+                        DocumentChange.Type.REMOVED -> {
+                            allTicketsMap.remove(ticketId)
+                        }
+                    }
+                }
+                _groupedTickets.value = groupTicketsByYearAndMonth(allTicketsMap.values.toList())
+                _isLoading.value = false
+            }
+    }
+
+    // Actualizar el query de búsqueda
+    fun updateSearchQuery(query: String) {
+        _searchQuery.value = query
+        if (query.isNotBlank()) {
+            searchTickets(query)
+        } else {
+            // Cancelar listener de búsqueda si la consulta está vacía
+            searchListener?.remove()
+            _searchResults.value = emptyList()
+            _isLoading.value = false
+        }
+    }
+
+    private fun searchTickets(query: String) {
+        val userEmail = auth.currentUser?.email ?: return
+        _isLoading.value = true
+
+        searchListener?.remove()
+
+        val ticketsRef = getTicketsRef(userEmail)
+        val combinedResults = mutableMapOf<String, TicketFirebase>()
+
+        fun updateUiWithResults() {
+            _searchResults.value = combinedResults.values.toList()
+        }
+
+        val ticketIdListener = ticketsRef
+            .whereGreaterThanOrEqualTo("ticketId", query)
+            .whereLessThanOrEqualTo("ticketId", query + '\uf8ff')
+            .addSnapshotListener { snapshot, error ->
+                _isLoading.value = false
+                if (error != null) {
+                    Log.e(TAG, "Error buscando por ticketId: $error")
+                    return@addSnapshotListener
+                }
+
+                snapshot?.documentChanges?.forEach { change ->
+                    val ticket = change.document.toObject(TicketFirebase::class.java)
+                    when (change.type) {
+                        DocumentChange.Type.ADDED, DocumentChange.Type.MODIFIED -> combinedResults[ticket.ticketId] = ticket
+                        DocumentChange.Type.REMOVED -> combinedResults.remove(ticket.ticketId)
+                    }
+                }
+                updateUiWithResults()
+            }
+
+        val dateListener = ticketsRef
+            .whereGreaterThanOrEqualTo("date", query)
+            .whereLessThanOrEqualTo("date", query + '\uf8ff')
+            .addSnapshotListener { snapshot, error ->
+                _isLoading.value = false
+                if (error != null) {
+                    Log.e(TAG, "Error buscando por date: $error")
+                    return@addSnapshotListener
+                }
+
+                snapshot?.documentChanges?.forEach { change ->
+                    val ticket = change.document.toObject(TicketFirebase::class.java)
+                    when (change.type) {
+                        DocumentChange.Type.ADDED, DocumentChange.Type.MODIFIED -> combinedResults[ticket.ticketId] = ticket
+                        DocumentChange.Type.REMOVED -> combinedResults.remove(ticket.ticketId)
+                    }
+                }
+                updateUiWithResults()
+            }
+
+        searchListener = object : ListenerRegistration {
+            override fun remove() {
+                ticketIdListener.remove()
+                dateListener.remove()
+            }
+        }
     }
 
     // Agrupación y ordenación
@@ -302,35 +253,25 @@ class ActivityViewModel(application: Application) : AndroidViewModel(application
 
     //verificar si el ticket existe en Firestore
     fun checkTicketExists(ticketId: String, callback: (TicketFirebase?) -> Unit) {
-
-        _isLoading.value = true // Mostrar indicador de carga
+        _isLoading.value = true
         val userEmail = auth.currentUser?.email ?: return
 
-        db.collection("users")
-            .document(userEmail)
-            .collection("userMyBusinesses")
-            .document(DEFAULT_BUSINESS)
-            .collection("userMyTickets")
-            .document(DEFAULT_TICKETS)
-            .collection("userTickets")
-
-            //.collection("tickets")
+        getTicketsRef(userEmail)
             .whereEqualTo("ticketId", ticketId)
             .get()
             .addOnSuccessListener { documents ->
                 if (documents.isEmpty) {
-                    callback(null) // Producto no encontrado
-                    _isLoading.value = false // Ocultar indicador de carga
+                    callback(null)
                 } else {
                     val fetchedTicket =
                         documents.documents.first().toObject(TicketFirebase::class.java)
                     callback(fetchedTicket)
-                    _isLoading.value = false // Ocultar indicador de carga
                 }
+                _isLoading.value = false
             }
             .addOnFailureListener {
-                callback(null) // En caso de error
-                _isLoading.value = false // Ocultar indicador de carga
+                callback(null)
+                _isLoading.value = false
             }
     }
 

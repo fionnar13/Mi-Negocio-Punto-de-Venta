@@ -182,9 +182,9 @@ fun InventoryScreen(navController: NavHostController, viewModel: InventoryViewMo
                 windowInsets = WindowInsets(0.dp),
                 content = {
 
-                    if (isLoading) {
+                    /*if (isLoading) {
                         LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                    }
+                    }*/
 
                     if (filteredProducts.isEmpty() && !isLoading && searchQuery.isNotEmpty()) {
                         Column(

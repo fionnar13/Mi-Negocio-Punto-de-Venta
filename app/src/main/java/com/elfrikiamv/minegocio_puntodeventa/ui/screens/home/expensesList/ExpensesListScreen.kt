@@ -46,7 +46,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -68,28 +70,11 @@ fun ExpensesListScreen(navController: NavHostController) {
     // Observar el estado de isLoading
     val isLoading by viewModel.isLoading.collectAsState()
 
-    // Estado para controlar posición del scroll
-    val listState = rememberLazyListState()
-
     // Observar búsqueda y resultados en tiempo real
     val searchQuery by viewModel.searchQuery.collectAsState()
     val searchResults by viewModel.searchResults.collectAsState()
 
-    //val searchListState = rememberLazyListState()
-
     var isSearchActive by remember { mutableStateOf(false) }
-
-    // Cargar siguiente página al acercarse al final del scroll
-    LaunchedEffect(listState) {
-        snapshotFlow { listState.layoutInfo }
-            .collect { layoutInfo ->
-                val totalItems = layoutInfo.totalItemsCount
-                val lastVisibleItem = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-                if (lastVisibleItem >= totalItems - 4 && !isLoading && !viewModel.isEndReached) {
-                    viewModel.loadNextPage()
-                }
-            }
-    }
 
     // Contenido de la pantalla que muestra ExpensesDetailsScreen
     Column(
@@ -106,8 +91,6 @@ fun ExpensesListScreen(navController: NavHostController) {
             modifier = Modifier
                 .fillMaxWidth()
         ) {
-
-            /*val onActiveChange: (Boolean) -> Unit = { isSearchActive = it }*/
             val onActiveChange: (Boolean) -> Unit = {
                 isSearchActive = it
                 if (!it) viewModel.updateSearchQuery("")
@@ -130,13 +113,15 @@ fun ExpensesListScreen(navController: NavHostController) {
                                 ) {
                                     Icon(
                                         painter = painterResource(id = R.drawable.baseline_arrow_back_ios_new_24),
-                                        contentDescription = "Volver"
+                                        contentDescription = "Volver",
+                                        tint = MaterialTheme.colorScheme.onPrimaryContainer
                                     )
                                 }
                             } else {
                                 Icon(
                                     painter = painterResource(id = R.drawable.baseline_search_24),
-                                    contentDescription = "Buscar"
+                                    contentDescription = "Buscar",
+                                    tint = MaterialTheme.colorScheme.onPrimaryContainer
                                 )
                             }
                         },
@@ -145,7 +130,8 @@ fun ExpensesListScreen(navController: NavHostController) {
                                 IconButton(onClick = { viewModel.updateSearchQuery("") }) {
                                     Icon(
                                         painter = painterResource(id = R.drawable.baseline_close_24),
-                                        contentDescription = "Borrar búsqueda"
+                                        contentDescription = "Borrar búsqueda",
+                                        tint = MaterialTheme.colorScheme.onPrimaryContainer
                                     )
                                 }
                             }
@@ -161,18 +147,12 @@ fun ExpensesListScreen(navController: NavHostController) {
                 colors = SearchBarDefaults.colors(),
                 tonalElevation = SearchBarDefaults.TonalElevation,
                 shadowElevation = SearchBarDefaults.ShadowElevation,
-                //windowInsets = SearchBarDefaults.windowInsets,
                 windowInsets = WindowInsets(0.dp),
                 content = {
-
-                    if (isLoading) {
-                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                    }
 
                     if (searchQuery.isEmpty() && !isLoading) {
                         Column(
                             modifier = Modifier.fillMaxSize(),
-                            //verticalArrangement = Arrangement.Center,
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
@@ -182,22 +162,26 @@ fun ExpensesListScreen(navController: NavHostController) {
                         }
                     } else if (searchResults.isEmpty() && searchQuery.isNotEmpty() && !isLoading) {
                         Column(
-                            modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.Center,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(16.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                "No se encontraron coincidencias",
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                                "No se encontraron coincidencias.",
+                                fontStyle = FontStyle.Italic,
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.alpha(0.8f)
                             )
                             Text(
                                 "):",
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                                fontStyle = FontStyle.Italic,
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.alpha(0.8f)
                             )
                         }
                     } else {
                         LazyColumn(
-                            //state = searchListState,
                             verticalArrangement = Arrangement.spacedBy(16.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -207,6 +191,7 @@ fun ExpensesListScreen(navController: NavHostController) {
                             // Resultados de la búsqueda en su propio LazyColumn dentro del SearchBar
                             items(searchResults) { expense ->
                                 ExpensesDetailsCard(expense = expense) {
+                                    isSearchActive = false
                                     navController.navigate(Screen.DetailsExpense.route + "?expenseId=${expense.expenseId}")
                                 }
                             }
@@ -224,31 +209,30 @@ fun ExpensesListScreen(navController: NavHostController) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    //.weight(1f)
                     .padding(end = 16.dp, start = 16.dp, top = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
                     "No se encontraron coincidencias.",
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                    fontStyle = FontStyle.Italic,
+                    modifier = Modifier.alpha(0.8f)
                 )
                 Text(
                     "):",
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                    fontStyle = FontStyle.Italic,
+                    modifier = Modifier.alpha(0.8f)
                 )
             }
         } else if (searchResults.isNotEmpty() && !isLoading && searchQuery.isNotEmpty()) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    //.weight(1f)
                     .padding(end = 16.dp, start = 16.dp, top = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text("Resultados de la búsqueda:")
             }
             LazyColumn(
-                //state = searchListState,
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -272,12 +256,17 @@ fun ExpensesListScreen(navController: NavHostController) {
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("No hay gastos disponibles.")
-                Text("):")
+                Text(
+                    "No se han registrado gastos en este mes.",
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                )
+                Text(
+                    "):",
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                )
             }
         } else {
             LazyColumn(
-                state = listState,
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier
                     .fillMaxSize()
@@ -294,7 +283,8 @@ fun ExpensesListScreen(navController: NavHostController) {
                         ) {
                             Text(
                                 text = "${gr.month} - ${gr.year}",
-                                style = MaterialTheme.typography.titleMedium
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         }
                     }
@@ -307,40 +297,6 @@ fun ExpensesListScreen(navController: NavHostController) {
                         ExpensesDetailsCard(expense = expense) {
                             navController.navigate(Screen.DetailsExpense.route + "?expenseId=${expense.expenseId}")
                         }
-                    }
-                }
-                // AnimatedVisibility: indicador de carga al final de la lista
-                item {
-                    AnimatedVisibility(
-                        visible = isLoading,
-                        enter = fadeIn() + slideInVertically { it / 2 },
-                        exit = fadeOut() + slideOutVertically { it / 2 }
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(8.dp),
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            CircularProgressIndicator()
-                        }
-                    }
-                }
-                // Mensaje de fin de lista
-                item {
-                    if (!isLoading && viewModel.isEndReached) {
-                        Text(
-                            text = "No hay más gastos disponibles.",
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 16.dp),
-                            textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                color = MaterialTheme.colorScheme.onSurface.copy(
-                                    alpha = 0.8f
-                                )
-                            )
-                        )
                     }
                 }
                 item {
@@ -413,7 +369,8 @@ fun ExpensesDetailsCard(expense: ExpenseFirebase, onExpenseDetails: () -> Unit) 
 
             HorizontalDivider(
                 modifier = Modifier.padding(bottom = 8.dp, top = 8.dp),
-                thickness = 1.dp
+                thickness = 1.dp,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
             )
 
             Row(
