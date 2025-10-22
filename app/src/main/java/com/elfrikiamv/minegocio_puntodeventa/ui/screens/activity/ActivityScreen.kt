@@ -61,6 +61,7 @@ fun ActivityScreen(navController: NavController) {
     val searchQuery by viewModel.searchQuery.collectAsState()
     val searchResults by viewModel.searchResults.collectAsState()
 
+    // Observar si se deben mostrar todos los tickets o solo los del mes
     val showAllTickets by viewModel.showAllTickets.collectAsState()
 
     var isSearchActive by remember { mutableStateOf(false) }
@@ -279,7 +280,7 @@ fun ActivityScreen(navController: NavController) {
                 modifier = Modifier
                     .fillMaxSize()
                     .weight(1f)
-                    .padding(end = 16.dp, start = 16.dp, top = 16.dp)
+                    .padding(end = 16.dp, start = 16.dp, top = 0.dp)
             ) {
                 grouped.forEach { gr ->
                     stickyHeader {

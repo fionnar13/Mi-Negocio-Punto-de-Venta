@@ -9,26 +9,21 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.elfrikiamv.minegocio_puntodeventa.database.AppDatabase
-import com.elfrikiamv.minegocio_puntodeventa.model.home.expenses.ExpenseFirebase
 import com.elfrikiamv.minegocio_puntodeventa.model.home.missing.MissingProductEntity
 import com.elfrikiamv.minegocio_puntodeventa.model.home.missing.MissingProductFirebase
-import com.elfrikiamv.minegocio_puntodeventa.viewmodel.home.expenses.ExpensesViewModel
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentChange
-import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
-import kotlin.collections.set
 
 class MissingProductsViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -79,6 +74,10 @@ class MissingProductsViewModel(application: Application) : AndroidViewModel(appl
     val errorMessage = mutableStateOf("")
     val productPriceInCents = mutableLongStateOf(0L)
 
+    // Estado para mostrar todos los faltantes
+    private val _showAllMissing = MutableStateFlow(false)
+    val showAllMissing = _showAllMissing.asStateFlow()
+
     init {
         _isLoading.value = true
 
@@ -115,38 +114,53 @@ class MissingProductsViewModel(application: Application) : AndroidViewModel(appl
             .collection("userMissing")
     }
 
+    fun onShowAllMissingChange(showAll: Boolean) {
+        if (_showAllMissing.value == showAll) return // Evitar recargas innecesarias
+        _showAllMissing.value = showAll
+        auth.currentUser?.email?.let {
+            listenForMissing(it)
+        }
+    }
+
     private fun listenForMissing(userEmail: String) {
         _isLoading.value = true
+        missingListener?.remove()
+        allMissingMap.clear()
+        _groupedMissing.value = emptyList()
 
-        missingListener = getMissingRef(userEmail)
+        var query: Query = getMissingRef(userEmail)
             .orderBy("date", Query.Direction.DESCENDING)
             .orderBy("time", Query.Direction.DESCENDING)
-            .whereGreaterThanOrEqualTo("timestamp", monthStart)
-            .whereLessThan("timestamp", monthEnd)
-            .addSnapshotListener { snapshot, error ->
-                if (error != null || snapshot == null) {
-                    Log.e(TAG, "Error escuchando mis faltantes: $error")
-                    _isLoading.value = false
-                    return@addSnapshotListener
-                }
 
-                for (change in snapshot.documentChanges) {
-                    val missingId = change.document.id
-                    when (change.type) {
-                        DocumentChange.Type.ADDED, DocumentChange.Type.MODIFIED -> {
-                            val missing = change.document.toObject(MissingProductFirebase::class.java)
-                                .copy(missingId = missingId)
-                            allMissingMap[missingId] = missing
-                        }
+        if (!_showAllMissing.value) {
+            query = query.whereGreaterThanOrEqualTo("timestamp", monthStart)
+                .whereLessThan("timestamp", monthEnd)
+        }
 
-                        DocumentChange.Type.REMOVED -> {
-                            allMissingMap.remove(missingId)
-                        }
+        missingListener = query.addSnapshotListener { snapshot, error ->
+            if (error != null || snapshot == null) {
+                Log.e(TAG, "Error escuchando mis faltantes: $error")
+                _isLoading.value = false
+                return@addSnapshotListener
+            }
+
+            for (change in snapshot.documentChanges) {
+                val missingId = change.document.id
+                when (change.type) {
+                    DocumentChange.Type.ADDED, DocumentChange.Type.MODIFIED -> {
+                        val missing = change.document.toObject(MissingProductFirebase::class.java)
+                            .copy(missingId = missingId)
+                        allMissingMap[missingId] = missing
+                    }
+
+                    DocumentChange.Type.REMOVED -> {
+                        allMissingMap.remove(missingId)
                     }
                 }
-                _groupedMissing.value = groupMissingByYearAndMonth(allMissingMap.values.toList())
-                _isLoading.value = false
             }
+            _groupedMissing.value = groupMissingByYearAndMonth(allMissingMap.values.toList())
+            _isLoading.value = false
+        }
     }
 
     // Función para limpiar los campos del formulario

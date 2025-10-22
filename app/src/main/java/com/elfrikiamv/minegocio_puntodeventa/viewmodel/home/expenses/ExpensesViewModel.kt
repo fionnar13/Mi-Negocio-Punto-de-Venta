@@ -77,6 +77,10 @@ class ExpensesViewModel(application: Application) : AndroidViewModel(application
     val expenseAmountGivenInCents = mutableLongStateOf(0L)
     val errorMessage = mutableStateOf("")
 
+    // StateFlow para el switch de todos los gastos
+    private val _showAllExpenses = MutableStateFlow(false)
+    val showAllExpenses = _showAllExpenses.asStateFlow()
+
     // Campo para los detalles del gasto
     val expenseDetails = mutableStateOf<ExpenseFirebase?>(null)
 
@@ -117,38 +121,53 @@ class ExpensesViewModel(application: Application) : AndroidViewModel(application
             .collection("userExpenses")
     }
 
+    fun onShowAllExpensesChange(showAll: Boolean) {
+        if (_showAllExpenses.value == showAll) return // Evitar recargas innecesarias
+        _showAllExpenses.value = showAll
+        auth.currentUser?.email?.let {
+            listenForExpenses(it)
+        }
+    }
+
     private fun listenForExpenses(userEmail: String) {
         _isLoading.value = true
+        expensesListener?.remove()
+        allExpensesMap.clear()
+        _groupedExpenses.value = emptyList()
 
-        expensesListener = getExpensesRef(userEmail)
+        var query: Query = getExpensesRef(userEmail)
             .orderBy("date", Query.Direction.DESCENDING)
             .orderBy("time", Query.Direction.DESCENDING)
-            .whereGreaterThanOrEqualTo("timestamp", monthStart)
-            .whereLessThan("timestamp", monthEnd)
-            .addSnapshotListener { snapshot, error ->
-                if (error != null || snapshot == null) {
-                    Log.e(TAG, "Error escuchando mis gastos: $error")
-                    _isLoading.value = false
-                    return@addSnapshotListener
-                }
 
-                for (change in snapshot.documentChanges) {
-                    val expenseId = change.document.id
-                    when (change.type) {
-                        DocumentChange.Type.ADDED, DocumentChange.Type.MODIFIED -> {
-                            val expense = change.document.toObject(ExpenseFirebase::class.java)
-                                .copy(expenseId = expenseId)
-                            allExpensesMap[expenseId] = expense
-                        }
+        if (!_showAllExpenses.value) {
+            query = query.whereGreaterThanOrEqualTo("timestamp", monthStart)
+                .whereLessThan("timestamp", monthEnd)
+        }
 
-                        DocumentChange.Type.REMOVED -> {
-                            allExpensesMap.remove(expenseId)
-                        }
+        expensesListener = query.addSnapshotListener { snapshot, error ->
+            if (error != null || snapshot == null) {
+                Log.e(TAG, "Error escuchando mis gastos: $error")
+                _isLoading.value = false
+                return@addSnapshotListener
+            }
+
+            for (change in snapshot.documentChanges) {
+                val expenseId = change.document.id
+                when (change.type) {
+                    DocumentChange.Type.ADDED, DocumentChange.Type.MODIFIED -> {
+                        val expense = change.document.toObject(ExpenseFirebase::class.java)
+                            .copy(expenseId = expenseId)
+                        allExpensesMap[expenseId] = expense
+                    }
+
+                    DocumentChange.Type.REMOVED -> {
+                        allExpensesMap.remove(expenseId)
                     }
                 }
-                _groupedExpenses.value = groupExpensesByYearAndMonth(allExpensesMap.values.toList())
-                _isLoading.value = false
             }
+            _groupedExpenses.value = groupExpensesByYearAndMonth(allExpensesMap.values.toList())
+            _isLoading.value = false
+        }
     }
 
     // verificar si el gasto existe en Firestore

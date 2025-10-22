@@ -3,11 +3,6 @@ package com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.expensesList
 // ExpensesListScreen.kt
 
 import android.util.Log
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -24,8 +19,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -35,21 +28,19 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -73,6 +64,8 @@ fun ExpensesListScreen(navController: NavHostController) {
     // Observar búsqueda y resultados en tiempo real
     val searchQuery by viewModel.searchQuery.collectAsState()
     val searchResults by viewModel.searchResults.collectAsState()
+
+    val showAllExpenses by viewModel.showAllExpenses.collectAsState()
 
     var isSearchActive by remember { mutableStateOf(false) }
 
@@ -205,6 +198,29 @@ fun ExpensesListScreen(navController: NavHostController) {
             )
         }
 
+        if (searchResults.isEmpty() && searchQuery.isEmpty()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(end = 16.dp, start = 16.dp, top = 16.dp),
+                horizontalAlignment = Alignment.End
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = if (showAllExpenses) "Mostrar gastos del mes." else "Mostrar todos los gastos.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                    Switch(
+                        checked = showAllExpenses,
+                        onCheckedChange = { viewModel.onShowAllExpensesChange(it) }
+                    )
+                }
+            }
+        }
+
         if (searchResults.isEmpty() && !isLoading && searchQuery.isNotEmpty()) {
             Column(
                 modifier = Modifier
@@ -271,7 +287,7 @@ fun ExpensesListScreen(navController: NavHostController) {
                 modifier = Modifier
                     .fillMaxSize()
                     .weight(1f)
-                    .padding(end = 16.dp, start = 16.dp, top = 16.dp)
+                    .padding(end = 16.dp, start = 16.dp, top = 0.dp)
             ) {
                 grouped.forEach { gr ->
                     stickyHeader {
