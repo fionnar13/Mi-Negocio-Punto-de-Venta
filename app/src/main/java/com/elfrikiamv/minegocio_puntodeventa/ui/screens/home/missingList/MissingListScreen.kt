@@ -79,8 +79,7 @@ fun MissingListScreen() {
         }
 
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
+            modifier = Modifier.fillMaxWidth()
         ) {
             val onActiveChange: (Boolean) -> Unit = {
                 isSearchActive = it
@@ -182,7 +181,7 @@ fun MissingListScreen() {
                             // Resultados de la búsqueda en su propio LazyColumn dentro del SearchBar
 
                             items(searchResults) { missing ->
-                                isSearchActive = false
+                                //isSearchActive = false
                                 MissingProductCard(missing)
                             }
 

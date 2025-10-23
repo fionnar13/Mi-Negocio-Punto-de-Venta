@@ -4,7 +4,6 @@ package com.elfrikiamv.minegocio_puntodeventa.ui.screens.shopping
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -23,6 +22,7 @@ import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -65,125 +65,130 @@ fun ShoppingScreen() {
     } ?: 0f
 
     Column(
-        modifier = Modifier
-            //.padding(paddingValues)
-            .fillMaxSize()
-            .padding(16.dp)
+        modifier = Modifier.fillMaxSize()
     ) {
-        // Tarjeta de resumen del ticket
-        ElevatedCard(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp)
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = "Resumen del ticket",
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Productos totales: $totalProducts",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Total de la compra: $${"%.2f".format(totalPurchase)}",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Cambio de la compra: $${"%.2f".format(change)}",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = amountReceived,
-                    onValueChange = { amountReceived = it },
-                    label = { Text("Cantidad de pago recibida:") },
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    isError = amountReceived.isBlank() || amountReceived.toFloatOrNull()
-                        ?.let { it < totalPurchase } == true
-                )
-            }
-        }
 
-        // Divider entre los botones y la lista de productos
-        HorizontalDivider(
-            modifier = Modifier.padding(bottom = 16.dp),
-            thickness = 1.dp
-        )
+        if (isLoading) {
 
-        // Lista de productos en el ticket
-        if (products.isEmpty()) {
-            Box(
+            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+        } else if (products.isEmpty()) {
+
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f), // Ocupa espacio para mantener el diseño consistente
-                contentAlignment = Alignment.Center
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    "No hay productos en el ticket ):",
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                    "No hay productos en el carrito, por favor escanee un producto.",
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
                 )
             }
         } else {
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                //contentPadding = PaddingValues(vertical = 8.dp),
+
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f)
+                //.padding(end = 16.dp, start = 16.dp, top = 16.dp)
             ) {
-                items(products) { product ->
-                    ProductTicket(
-                        product = product,
-                        onIncreaseQuantity = { viewModel.increaseCartProductQuantity(product.barcode) },
-                        onDecreaseQuantity = { viewModel.decreaseCartProductQuantity(product.barcode) },
-                        onDelete = { viewModel.deleteCartProduct(product.barcode) }
-                    )
-                }
-            }
 
-            // Botón para confirmar el ticket
-            Button(
-                //onClick = { showEmailDialog = true },
-                onClick = {
-                    if (amountReceived.toFloatOrNull()
-                            ?.let { it >= totalPurchase } == true
-                    ) {
-                        isLoading = true // Activar animación de carga
-
-                        // Llamar al AlertDialog para ingresar el correo electrónico
-                        showEmailDialog = true
-
-                        //amountReceived = "" // Limpiar el campo de cantidad de pago
-
-                        isLoading = false // Desactivar animación de carga
-
-                        Toast.makeText(context, "Ticket guardado", Toast.LENGTH_SHORT)
-                            .show()
-                    } else {
-                        Toast.makeText(
-                            context,
-                            "El pago recibido debe ser mayor o igual al total de la compra.",
-                            Toast.LENGTH_LONG
-                        ).show()
+                // Tarjeta de resumen del ticket
+                ElevatedCard(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = "Resumen del ticket"
+                        )
+                        Text(
+                            text = "Productos totales: $totalProducts"
+                        )
+                        Text(
+                            text = "Total de la compra: $${"%.2f".format(totalPurchase)}"
+                        )
+                        Text(
+                            text = "Cambio de la compra: $${"%.2f".format(change)}"
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedTextField(
+                            value = amountReceived,
+                            onValueChange = { amountReceived = it },
+                            label = { Text("Cantidad de pago recibida:") },
+                            modifier = Modifier.fillMaxWidth(),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            isError = amountReceived.isBlank() || amountReceived.toFloatOrNull()
+                                ?.let { it < totalPurchase } == true
+                        )
                     }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 4.dp)
-            ) {
-                if (isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                        color = MaterialTheme.colorScheme.inversePrimary
-                    )
-                } else {
-                    Text("Confirmar Ticket")
                 }
+
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    thickness = 1.dp,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    //contentPadding = PaddingValues(vertical = 8.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .padding(16.dp)
+                ) {
+                    items(products) { product ->
+                        ProductTicket(
+                            product = product,
+                            onIncreaseQuantity = { viewModel.increaseCartProductQuantity(product.barcode) },
+                            onDecreaseQuantity = { viewModel.decreaseCartProductQuantity(product.barcode) },
+                            onDelete = { viewModel.deleteCartProduct(product.barcode) }
+                        )
+                    }
+                }
+
+                // Botón para confirmar el ticket
+                Button(
+                    //onClick = { showEmailDialog = true },
+                    onClick = {
+                        if (amountReceived.toFloatOrNull()
+                                ?.let { it >= totalPurchase } == true
+                        ) {
+                            isLoading = true // Activar animación de carga
+
+                            // Llamar al AlertDialog para ingresar el correo electrónico
+                            showEmailDialog = true
+
+                            //amountReceived = "" // Limpiar el campo de cantidad de pago
+
+                            isLoading = false // Desactivar animación de carga
+
+                            Toast.makeText(context, "Ticket guardado", Toast.LENGTH_SHORT)
+                                .show()
+                        } else {
+                            Toast.makeText(
+                                context,
+                                "El pago recibido debe ser mayor o igual al total de la compra.",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp)
+                ) {
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = MaterialTheme.colorScheme.inversePrimary
+                        )
+                    } else {
+                        Text("Confirmar Ticket")
+                    }
+                }
+
             }
         }
     }
@@ -272,7 +277,7 @@ fun ProductTicket(
                         .fillMaxWidth()
                         .align(Alignment.CenterVertically)
                 ) {
-                    Text("Producto: ${product.name}", style = MaterialTheme.typography.titleMedium)
+                    Text("Producto: ${product.name}")
                     Text("Cantidad: ${product.quantity}")
                     Text("Precio Unitario: $${product.salePrice}")
                     Text("SubTotal: $${subTotal}")
@@ -315,9 +320,10 @@ fun ProductTicket(
                         //contentPadding = PaddingValues(12.dp)
                     ) {
                         Icon(
-                            painter = painterResource(id = R.drawable.baseline_delete_24), // Usa un ícono de cámara
+                            painter = painterResource(id = R.drawable.baseline_delete_24),
                             contentDescription = "Eliminar",
-                            modifier = Modifier.size(24.dp) // Tamaño del ícono
+                            modifier = Modifier.size(24.dp),
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     }
                 }
