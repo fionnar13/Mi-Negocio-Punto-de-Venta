@@ -280,7 +280,7 @@ fun MainScreen() {
                     }
                 )
 
-                Screen.AddProduct.route -> TopAppBar(
+                Screen.AddProduct.route + "?barcode={barcode}" -> TopAppBar(
                     title = { Text("Añadir Producto") },
                     navigationIcon = {
                         Icon(
@@ -372,6 +372,7 @@ fun MainScreen() {
                         text = { Text("Agregar gasto") }
                     )
                 }
+
                 Screen.DetailsExpense.route + "?expenseId={expenseId}" -> {
                     val context = LocalContext.current
                     ExtendedFloatingActionButton(
@@ -525,7 +526,7 @@ fun MainScreen() {
                     )
                 }
 
-                Screen.AddProduct.route -> {
+                Screen.AddProduct.route + "?barcode={barcode}" -> {
 
                     val isLoading by addProductViewModel.isLoading.collectAsState()
                     val context = LocalContext.current
@@ -659,8 +660,14 @@ fun MainScreen() {
                         inventoryViewModel
                     )
                 }
-                composable(Screen.AddProduct.route) {
+                composable(
+                    route = Screen.AddProduct.route + "?barcode={barcode}",
+                    arguments = listOf(navArgument("barcode") { type = NavType.StringType })
+                ) { backStackEntry ->
+
+                    val barcode = backStackEntry.arguments?.getString("barcode")
                     AddProductScreen(
+                        barcodeRoute = barcode,
                         navController,
                         addProductViewModel,
                         checkProductExistsViewModel

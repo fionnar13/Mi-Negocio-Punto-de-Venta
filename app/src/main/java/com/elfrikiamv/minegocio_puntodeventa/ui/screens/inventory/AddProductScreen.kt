@@ -48,6 +48,7 @@ import java.util.Locale
 
 @Composable
 fun AddProductScreen(
+    barcodeRoute: String?,
     navController: NavHostController,
     viewModel: AddProductViewModel,
     checkProductExistsViewModel: CheckProductExistsViewModel
@@ -140,13 +141,20 @@ fun AddProductScreen(
         providerPriceTextFieldValue = TextFieldValue(formatted, TextRange(formatted.length))
     }
 
-    LaunchedEffect(currentBarcode) {
+    // se ejecuta para establecer el valor inicial del escáner.
+    LaunchedEffect(barcodeRoute) {
+        if (!barcodeRoute.isNullOrBlank() && viewModel.barcode.value != barcodeRoute) {
+            viewModel.barcode.value = barcodeRoute
+            Log.d(TAG, "Código de barras establecido desde el escaner: $barcodeRoute")
+        }
+    }
 
+    // reacciona cada vez que el código de barras en el ViewModel cambia (por escaneo o por teclado).
+    LaunchedEffect(currentBarcode) {
         if (currentBarcode.isNotBlank()) {
             checkProductExists(checkProductExistsViewModel, viewModel, TAG, context)
+            Log.d(TAG, "Verificando existencia del producto con código: $currentBarcode")
         }
-        Log.d(TAG, "Código de barras recibido: $barcode")
-        Log.d(TAG, "Código de barras recibido de detalles: barcodeDetails")
     }
 
     Column(
