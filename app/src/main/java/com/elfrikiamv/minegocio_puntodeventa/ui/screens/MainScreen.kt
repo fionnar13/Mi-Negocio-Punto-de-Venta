@@ -57,6 +57,7 @@ import com.elfrikiamv.minegocio_puntodeventa.viewmodel.inventory.AddProductViewM
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.inventory.CheckProductExistsViewModel
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.inventory.EditProductViewModel
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.inventory.InventoryViewModel
+import com.elfrikiamv.minegocio_puntodeventa.viewmodel.shopping.ShoppingViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,6 +69,8 @@ fun MainScreen() {
     val addProductViewModel: AddProductViewModel = viewModel()
     val checkProductExistsViewModel: CheckProductExistsViewModel = viewModel()
     val missingProductsViewModel: MissingProductsViewModel = viewModel()
+    val shoppingViewModel: ShoppingViewModel = viewModel()
+    val context = LocalContext.current
 
     val items = listOf(
         NavigationItem("Inicio", Screen.Main.route, painterResource(R.drawable.baseline_store_24)),
@@ -79,7 +82,7 @@ fun MainScreen() {
         NavigationItem(
             "Escanear",
             Screen.ScanProduct.route,
-            painterResource(R.drawable.baseline_qr_code_scanner_24)
+            painterResource(R.drawable.outline_barcode_scanner_24)
         ),
         NavigationItem(
             "Carrito",
@@ -374,7 +377,6 @@ fun MainScreen() {
                 }
 
                 Screen.DetailsExpense.route + "?expenseId={expenseId}" -> {
-                    val context = LocalContext.current
                     ExtendedFloatingActionButton(
                         onClick = {
                             // Lógica para borrar un gasto
@@ -467,6 +469,67 @@ fun MainScreen() {
                     )
                 }
 
+                Screen.Shopping.route -> {
+                    val isLoading by shoppingViewModel.isLoading.collectAsState()
+                    //val cartProducts by shoppingViewModel.cartProducts.collectAsState()
+                    ExtendedFloatingActionButton(
+                        onClick = {
+                            shoppingViewModel.onConfirmPurchaseClicked(
+                                onSuccess = { message ->
+                                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                                },
+                                onError = { errorMessage ->
+                                    Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
+                                }
+                            )
+                        },
+                        icon = {
+                            Icon(
+                                painter = painterResource(id = R.drawable.outline_check_24),
+                                contentDescription = "Confirmar compra"
+                            )
+                        },
+                        text = { Text(if (isLoading) "Procesando..." else "Confirmar compra") },
+                        // Cambia el color para deshabilitar visualmente el botón mientras carga
+                        //containerColor = if (isLoading) androidx.tv.material3.MaterialTheme.colorScheme.surfaceVariant else androidx.tv.material3.MaterialTheme.colorScheme.primary,
+                        //contentColor = if (isLoading) androidx.tv.material3.MaterialTheme.colorScheme.onSurfaceVariant else androidx.tv.material3.MaterialTheme.colorScheme.onPrimary
+                    )
+                }
+
+                /*Screen.Shopping.route -> {
+
+                    val isLoading by shoppingViewModel.isLoading.collectAsState()
+                    ExtendedFloatingActionButton(
+                        onClick = {
+                            if (isLoading) {
+                                Toast.makeText(context, "Ya se está cargando", Toast.LENGTH_SHORT)
+                                    .show()
+                                return@ExtendedFloatingActionButton
+                            } else if (shoppingViewModel.amountReceived.value.toFloatOrNull()
+                                    ?.let { it >= shoppingViewModel.totalPurchase.value } == true
+                            ) {
+
+                                shoppingViewModel.showEmailDialog.value = true
+                                Toast.makeText(context, "Ticket guardado", Toast.LENGTH_SHORT)
+                                    .show()
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    "El pago recibido debe ser mayor o igual al total de la compra.",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                        },
+                        icon = {
+                            Icon(
+                                painter = painterResource(id = R.drawable.outline_check_24),
+                                contentDescription = "confirmar compra"
+                            )
+                        },
+                        text = { Text("confirmar compra") }
+                    )
+                }*/
+
                 Screen.AddMissing.route -> {
 
                     val isLoading by missingProductsViewModel.isLoading.collectAsState()
@@ -529,7 +592,6 @@ fun MainScreen() {
                 Screen.AddProduct.route + "?barcode={barcode}" -> {
 
                     val isLoading by addProductViewModel.isLoading.collectAsState()
-                    val context = LocalContext.current
 
                     ExtendedFloatingActionButton(
                         onClick = {
@@ -592,7 +654,6 @@ fun MainScreen() {
                 Screen.EditProduct.route + "?barcode={barcode}" -> {
 
                     val isLoading by editProductViewModel.isLoading.collectAsState()
-                    val context = LocalContext.current
 
                     ExtendedFloatingActionButton(
                         onClick = {

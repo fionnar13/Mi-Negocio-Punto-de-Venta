@@ -17,7 +17,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -41,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.elfrikiamv.minegocio_puntodeventa.R
 import com.elfrikiamv.minegocio_puntodeventa.model.inventory.ProductFirebase
+import com.elfrikiamv.minegocio_puntodeventa.viewmodel.inventory.AddProductViewModel
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.shopping.ShoppingViewModel
 
 @Composable
@@ -48,16 +48,23 @@ fun ShoppingScreen() {
     val viewModel: ShoppingViewModel = viewModel() // Obtenemos el ViewModel
     val products by viewModel.cartProducts.collectAsState() // Observamos el estado del carrito
 
-    var amountReceived by remember { mutableStateOf("") } // Cantidad de pago recibida
-    var isLoading by remember { mutableStateOf(false) } // Estado de carga para el botón
+    //var amountReceived by remember { mutableStateOf("") } // Cantidad de pago recibida
+    val amountReceived by viewModel.amountReceived
+    //var isLoading by remember { mutableStateOf(false) } // Estado de carga para el botón
     val context = LocalContext.current
 
-    var showEmailDialog by remember { mutableStateOf(false) }
+    //var showEmailDialog by remember { mutableStateOf(false) }
     var email by remember { mutableStateOf("") }
 
     // Calcular el total de productos y el total de la compra
     val totalProducts = products.sumOf { it.quantity }
-    val totalPurchase = products.sumOf { it.quantity * it.salePrice }
+    //val totalPurchase = products.sumOf { it.quantity * it.salePrice }
+    val totalPurchase by viewModel.totalPurchase.collectAsState()
+
+    val showEmailDialog by viewModel.showEmailDialog
+
+    // Observar el estado de isLoading
+    val isLoading by viewModel.isLoading.collectAsState()
 
     // Calcular el cambio (si el amountReceived es válido y mayor o igual al total de la compra)
     val change = amountReceived.toFloatOrNull()?.let { received ->
@@ -90,14 +97,14 @@ fun ShoppingScreen() {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                //.padding(end = 16.dp, start = 16.dp, top = 16.dp)
+                    .padding(horizontal = 16.dp)
             ) {
 
                 // Tarjeta de resumen del ticket
                 ElevatedCard(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
+                        .padding(top = 16.dp)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
@@ -115,7 +122,7 @@ fun ShoppingScreen() {
                         Spacer(modifier = Modifier.height(8.dp))
                         OutlinedTextField(
                             value = amountReceived,
-                            onValueChange = { amountReceived = it },
+                            onValueChange = { viewModel.amountReceived.value = it },
                             label = { Text("Cantidad de pago recibida:") },
                             modifier = Modifier.fillMaxWidth(),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -126,7 +133,7 @@ fun ShoppingScreen() {
                 }
 
                 HorizontalDivider(
-                    modifier = Modifier.padding(horizontal = 16.dp),
+                    modifier = Modifier.padding(vertical = 16.dp),
                     thickness = 1.dp,
                     color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
@@ -137,7 +144,7 @@ fun ShoppingScreen() {
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f)
-                        .padding(16.dp)
+                    //.padding(16.dp)
                 ) {
                     items(products) { product ->
                         ProductTicket(
@@ -150,20 +157,20 @@ fun ShoppingScreen() {
                 }
 
                 // Botón para confirmar el ticket
-                Button(
+                /*Button(
                     //onClick = { showEmailDialog = true },
                     onClick = {
                         if (amountReceived.toFloatOrNull()
                                 ?.let { it >= totalPurchase } == true
                         ) {
-                            isLoading = true // Activar animación de carga
+                            //isLoading = true // Activar animación de carga
 
                             // Llamar al AlertDialog para ingresar el correo electrónico
                             showEmailDialog = true
 
                             //amountReceived = "" // Limpiar el campo de cantidad de pago
 
-                            isLoading = false // Desactivar animación de carga
+                            //isLoading = false // Desactivar animación de carga
 
                             Toast.makeText(context, "Ticket guardado", Toast.LENGTH_SHORT)
                                 .show()
@@ -187,7 +194,7 @@ fun ShoppingScreen() {
                     } else {
                         Text("Confirmar Ticket")
                     }
-                }
+                }*/
 
             }
         }
@@ -196,7 +203,7 @@ fun ShoppingScreen() {
     // Diálogo para ingresar correo electrónico
     if (showEmailDialog) {
         AlertDialog(
-            onDismissRequest = { showEmailDialog = false },
+            onDismissRequest = { viewModel.showEmailDialog.value = false },
             title = { Text("Ingrese correo electrónico") },
             text = {
                 OutlinedTextField(
@@ -213,8 +220,8 @@ fun ShoppingScreen() {
                         if (email.isNotBlank() && android.util.Patterns.EMAIL_ADDRESS.matcher(email)
                                 .matches()
                         ) {
-                            showEmailDialog = false
-                            isLoading = true
+                            viewModel.showEmailDialog.value = false
+                            //isLoading = true
 
                             viewModel.confirmTicket(
                                 totalProducts,
@@ -224,8 +231,9 @@ fun ShoppingScreen() {
                                 email = email
                             )
 
-                            amountReceived = "" // Limpiar el campo de cantidad de pago
-                            isLoading = false
+                            viewModel.amountReceived.value =
+                                "" // Limpiar el campo de cantidad de pago
+                            //isLoading = false
 
                             Toast.makeText(context, "Ticket guardado", Toast.LENGTH_SHORT).show()
                         } else {
@@ -238,7 +246,7 @@ fun ShoppingScreen() {
                 }
             },
             dismissButton = {
-                Button(onClick = { showEmailDialog = false }) {
+                Button(onClick = { viewModel.showEmailDialog.value = false }) {
                     Text("Cancelar")
                 }
             }

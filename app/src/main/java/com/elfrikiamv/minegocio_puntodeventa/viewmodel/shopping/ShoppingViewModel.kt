@@ -5,6 +5,7 @@ package com.elfrikiamv.minegocio_puntodeventa.viewmodel.shopping
 import android.app.Application
 import android.content.Context
 import android.util.Log
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.elfrikiamv.minegocio_puntodeventa.database.AppDatabase
@@ -18,6 +19,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -36,13 +38,46 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
     private val _cartProducts = MutableStateFlow<List<ProductFirebase>>(emptyList())
     val cartProducts: StateFlow<List<ProductFirebase>> = _cartProducts
 
+    // StateFlow para el total de la compra
+    private val _totalPurchase = MutableStateFlow(0.0)
+    val totalPurchase = _totalPurchase.asStateFlow()
+
     private val userMyBusinesses = "defaultBusiness"
     private val userMyInventories = "defaultInventory"
 
     private val userMyTickets = "defaultTickets"
 
+    // Estado del diálogo de correo electrónico
+    val showEmailDialog = mutableStateOf(false)
+
+    // campo para el estado de carga
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading = _isLoading.asStateFlow()
+
+    val amountReceived = mutableStateOf("")
+
     init {
         loadCartProducts()
+    }
+
+    fun onConfirmPurchaseClicked(
+        onSuccess: (String) -> Unit,
+        onError: (String) -> Unit
+    ) {
+        if (_isLoading.value) {
+            onError("Ya se está procesando una compra.")
+            return
+        }
+
+        val amount = amountReceived.value.toDoubleOrNull()
+        if (amount == null || amount < _totalPurchase.value) {
+            onError("El pago recibido debe ser mayor o igual al total de la compra.")
+            return
+        }
+
+        // Validation passed
+        showEmailDialog.value = true
+        onSuccess("Ticket guardado")
     }
 
     fun addToCart(product: ProductFirebase) {
@@ -249,6 +284,7 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
                 )
             }
             _cartProducts.value = products
+            _totalPurchase.value = products.sumOf { it.quantity * it.salePrice }
         }
     }
 
