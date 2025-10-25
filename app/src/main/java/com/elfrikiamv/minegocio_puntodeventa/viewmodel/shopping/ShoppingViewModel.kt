@@ -18,8 +18,9 @@ import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -36,7 +37,7 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
     private val db = FirebaseFirestore.getInstance()
 
     private val _cartProducts = MutableStateFlow<List<ProductFirebase>>(emptyList())
-    val cartProducts: StateFlow<List<ProductFirebase>> = _cartProducts
+    val cartProducts = _cartProducts.asStateFlow()
 
     // StateFlow para el total de la compra
     private val _totalPurchase = MutableStateFlow(0.0)
@@ -57,20 +58,37 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
     val amountReceived = mutableStateOf("")
 
     init {
-        loadCartProducts()
+        viewModelScope.launch {
+            productDao.getAllProducts()
+                .map { entities ->
+                    entities.map {
+                        ProductFirebase(
+                            barcode = it.barcode,
+                            name = it.name,
+                            quantity = it.quantity,
+                            salePrice = it.salePrice,
+                            providerPrice = it.providerPrice
+                        )
+                    }
+                }
+                .collect { firebaseProducts ->
+                    _cartProducts.value = firebaseProducts
+                    _totalPurchase.value = firebaseProducts.sumOf { it.quantity * it.salePrice }
+                }
+        }
     }
 
     fun onConfirmPurchaseClicked(
         onSuccess: (String) -> Unit,
         onError: (String) -> Unit
     ) {
-        if (_isLoading.value) {
+        if (isLoading.value) {
             onError("Ya se está procesando una compra.")
             return
         }
 
         val amount = amountReceived.value.toDoubleOrNull()
-        if (amount == null || amount < _totalPurchase.value) {
+        if (amount == null || amount < totalPurchase.value) {
             onError("El pago recibido debe ser mayor o igual al total de la compra.")
             return
         }
@@ -103,7 +121,6 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
                 )
                 updateFirebaseQuantity(product.barcode, -product.quantity) // Ajustar en Firebase
             }
-            loadCartProducts()
         }
     }
 
@@ -113,7 +130,6 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
             if (product != null) {
                 productDao.deleteProduct(product)
                 updateFirebaseQuantity(barcode, product.quantity) // Revertir en Firebase
-                loadCartProducts()
             }
         }
     }
@@ -127,8 +143,6 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
             .collection("userMyInventories")
             .document(userMyInventories)
             .collection("userInventory")
-
-            //.collection("inventories")
             .whereEqualTo("barcode", barcode)
             .get()
             .addOnSuccessListener { documents ->
@@ -143,8 +157,6 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
                         .collection("userMyInventories")
                         .document(userMyInventories)
                         .collection("userInventory")
-
-                        //.collection("inventories")
                         .document(document.id)
                         .update("quantity", newQuantity)
                         .addOnSuccessListener {
@@ -164,13 +176,12 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun confirmTicket(
-        totalProducts: Int,
-        totalPurchase: Double,
         amountReceived: Double,
         context: Context,
         email: String
     ) {
         viewModelScope.launch {
+            _isLoading.value = true
             // Obtener información de fecha y hora
             val currentDateTimeMillis = System.currentTimeMillis()
             val currentDateTimeTicketId = System.currentTimeMillis()
@@ -181,15 +192,17 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
             val dateFormatted = dateFormat.format(currentDateTime.time)
             val timeFormatted = timeFormat.format(currentDateTime.time)
 
-            // Obtener productos del carrito
-            val products = productDao.getAllProducts()
+            // Obtener la lista actual de productos del DAO
+            val products = productDao.getAllProducts().first()
             if (products.isEmpty()) {
                 Log.e("ShoppingViewModel", "No hay productos en el carrito.")
+                _isLoading.value = false
                 return@launch
             }
 
+            val totalProducts = products.sumOf { it.quantity }
             val totalPrice = products.sumOf { it.salePrice * it.quantity }
-            val change = amountReceived - totalPurchase
+            val change = amountReceived - totalPrice
 
             // Crear el ticket
             val ticket = TicketEntity(
@@ -204,13 +217,12 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
                 timestamp = currentDateTimeMillis
             )
 
-            // Guardar en Room
+            // Guardar en Room (temporalmente)
             ticketDao.insertTicket(ticket)
             Log.d("ShoppingViewModel", "Ticket guardado en Room: $ticket")
 
-            // Limpiar carrito
+            // Limpiar carrito de Room
             productDao.deleteAllProducts()
-            loadCartProducts()
 
             // Subir a Firebase
             uploadTicketToFirebase(ticket, context, email)
@@ -222,7 +234,10 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
         context: Context,
         email: String
     ) {
-        val userEmail = auth.currentUser?.email ?: return
+        val userEmail = auth.currentUser?.email ?: run {
+            _isLoading.value = false
+            return
+        }
 
         // Convertir productos a Map<String, Any>
         val productsList = ticketEntity.products.map { product ->
@@ -259,34 +274,19 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
             .set(ticketFirebase)
             .addOnSuccessListener {
                 viewModelScope.launch {
-
                     // compartir ticket
-                    val ticketId = ticketEntity.ticketId
-                    sharePDF(ticketId, context, email)
+                    sharePDF(ticketEntity.ticketId, context, email)
                     // Eliminar ticket de Room
                     ticketDao.deleteTicketById(ticketEntity.ticketId)
+                    _isLoading.value = false
                 }
             }
             .addOnFailureListener { e ->
                 Log.e("ShoppingViewModel", "Error al subir el ticket a Firebase: $e")
+                _isLoading.value = false
             }
     }
 
-    private fun loadCartProducts() {
-        viewModelScope.launch {
-            val products = productDao.getAllProducts().map {
-                ProductFirebase(
-                    barcode = it.barcode,
-                    name = it.name,
-                    quantity = it.quantity,
-                    salePrice = it.salePrice,
-                    providerPrice = it.providerPrice
-                )
-            }
-            _cartProducts.value = products
-            _totalPurchase.value = products.sumOf { it.quantity * it.salePrice }
-        }
-    }
 
     private fun sharePDF(ticketId: String, context: Context, email: String) {
 
@@ -326,8 +326,6 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
             .collection("userMyInventories")
             .document(userMyInventories)
             .collection("userInventory")
-
-            //.collection("inventories")
             .whereEqualTo("barcode", barcode)
             .get()
             .addOnSuccessListener { documents ->
@@ -353,7 +351,6 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
                     val newQuantity = existingProduct.quantity + 1
                     productDao.updateProduct(existingProduct.copy(quantity = newQuantity))
                     updateFirebaseQuantity(barcode, -1) // Reducir 1 en Firebase
-                    loadCartProducts()
                 } else {
                     Log.e(
                         "ShoppingViewModel",
@@ -371,7 +368,6 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
                 val newQuantity = existingProduct.quantity - 1
                 productDao.updateProduct(existingProduct.copy(quantity = newQuantity))
                 updateFirebaseQuantity(barcode, 1) // Incrementar 1 en Firebase
-                loadCartProducts()
             } else {
                 Log.e("ShoppingViewModel", "No se puede disminuir más la cantidad.")
             }

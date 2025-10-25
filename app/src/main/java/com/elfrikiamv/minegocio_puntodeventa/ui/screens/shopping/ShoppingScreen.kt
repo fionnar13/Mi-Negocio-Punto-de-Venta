@@ -37,15 +37,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.elfrikiamv.minegocio_puntodeventa.R
 import com.elfrikiamv.minegocio_puntodeventa.model.inventory.ProductFirebase
-import com.elfrikiamv.minegocio_puntodeventa.viewmodel.inventory.AddProductViewModel
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.shopping.ShoppingViewModel
 
 @Composable
-fun ShoppingScreen() {
-    val viewModel: ShoppingViewModel = viewModel() // Obtenemos el ViewModel
+fun ShoppingScreen(viewModel: ShoppingViewModel) {
+    //val viewModel: ShoppingViewModel = viewModel() // Obtenemos el ViewModel
     val products by viewModel.cartProducts.collectAsState() // Observamos el estado del carrito
 
     //var amountReceived by remember { mutableStateOf("") } // Cantidad de pago recibida
@@ -140,11 +138,9 @@ fun ShoppingScreen() {
 
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(16.dp),
-                    //contentPadding = PaddingValues(vertical = 8.dp),
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f)
-                    //.padding(16.dp)
                 ) {
                     items(products) { product ->
                         ProductTicket(
@@ -155,47 +151,6 @@ fun ShoppingScreen() {
                         )
                     }
                 }
-
-                // Botón para confirmar el ticket
-                /*Button(
-                    //onClick = { showEmailDialog = true },
-                    onClick = {
-                        if (amountReceived.toFloatOrNull()
-                                ?.let { it >= totalPurchase } == true
-                        ) {
-                            //isLoading = true // Activar animación de carga
-
-                            // Llamar al AlertDialog para ingresar el correo electrónico
-                            showEmailDialog = true
-
-                            //amountReceived = "" // Limpiar el campo de cantidad de pago
-
-                            //isLoading = false // Desactivar animación de carga
-
-                            Toast.makeText(context, "Ticket guardado", Toast.LENGTH_SHORT)
-                                .show()
-                        } else {
-                            Toast.makeText(
-                                context,
-                                "El pago recibido debe ser mayor o igual al total de la compra.",
-                                Toast.LENGTH_LONG
-                            ).show()
-                        }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 4.dp)
-                ) {
-                    if (isLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
-                            color = MaterialTheme.colorScheme.inversePrimary
-                        )
-                    } else {
-                        Text("Confirmar Ticket")
-                    }
-                }*/
-
             }
         }
     }
@@ -224,9 +179,7 @@ fun ShoppingScreen() {
                             //isLoading = true
 
                             viewModel.confirmTicket(
-                                totalProducts,
-                                totalPurchase,
-                                amountReceived.toDoubleOrNull() ?: 0.0,
+                                amountReceived = amountReceived.toDoubleOrNull() ?: 0.0,
                                 context = context,
                                 email = email
                             )

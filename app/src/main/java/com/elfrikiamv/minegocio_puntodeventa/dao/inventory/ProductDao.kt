@@ -9,6 +9,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.elfrikiamv.minegocio_puntodeventa.model.shopping.ProductEntity
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ProductDao {
@@ -16,7 +17,7 @@ interface ProductDao {
     suspend fun insertProduct(product: ProductEntity)
 
     @Query("SELECT * FROM products")
-    suspend fun getAllProducts(): List<ProductEntity>
+    fun getAllProducts(): Flow<List<ProductEntity>>
 
     @Query("DELETE FROM products WHERE barcode = :barcode")
     suspend fun deleteProductByBarcode(barcode: String)
