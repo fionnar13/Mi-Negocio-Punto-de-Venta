@@ -35,28 +35,29 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.elfrikiamv.minegocio_puntodeventa.R
 import com.elfrikiamv.minegocio_puntodeventa.model.inventory.ProductFirebase
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.shopping.ShoppingViewModel
+import java.util.Locale
 
 @Composable
 fun ShoppingScreen(viewModel: ShoppingViewModel) {
-    //val viewModel: ShoppingViewModel = viewModel() // Obtenemos el ViewModel
-    val products by viewModel.cartProducts.collectAsState() // Observamos el estado del carrito
 
-    //var amountReceived by remember { mutableStateOf("") } // Cantidad de pago recibida
-    val amountReceived by viewModel.amountReceived
-    //var isLoading by remember { mutableStateOf(false) } // Estado de carga para el botón
+    // Observamos el estado del carrito
+    val products by viewModel.cartProducts.collectAsState()
+
     val context = LocalContext.current
 
-    //var showEmailDialog by remember { mutableStateOf(false) }
     var email by remember { mutableStateOf("") }
 
     // Calcular el total de productos y el total de la compra
     val totalProducts = products.sumOf { it.quantity }
-    //val totalPurchase = products.sumOf { it.quantity * it.salePrice }
+
     val totalPurchase by viewModel.totalPurchase.collectAsState()
 
     val showEmailDialog by viewModel.showEmailDialog
@@ -64,10 +65,19 @@ fun ShoppingScreen(viewModel: ShoppingViewModel) {
     // Observar el estado de isLoading
     val isLoading by viewModel.isLoading.collectAsState()
 
-    // Calcular el cambio (si el amountReceived es válido y mayor o igual al total de la compra)
-    val change = amountReceived.toFloatOrNull()?.let { received ->
-        if (received >= totalPurchase) received - totalPurchase else 0f
-    } ?: 0f
+    val change by viewModel.change.collectAsState()
+
+    val shoppingAmountGivenInCents by viewModel.shoppingAmountGivenInCents.collectAsState()
+
+    // Función para formatear el precio en centavos a un string con formato 0.00
+    fun formatPrice(cents: Long): String {
+        return String.format(Locale.US, "%.2f", cents / 100.00)
+    }
+
+    val shoppingAmountGivenTextFieldValue = TextFieldValue(
+        text = formatPrice(shoppingAmountGivenInCents),
+        selection = TextRange(formatPrice(shoppingAmountGivenInCents).length)
+    )
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -124,14 +134,28 @@ fun ShoppingScreen(viewModel: ShoppingViewModel) {
                                 text = "Cambio de la compra: $${"%.2f".format(change)}"
                             )
                             Spacer(modifier = Modifier.height(8.dp))
+
                             OutlinedTextField(
-                                value = amountReceived,
-                                onValueChange = { viewModel.amountReceived.value = it },
-                                label = { Text("Cantidad de pago recibida:") },
+                                value = shoppingAmountGivenTextFieldValue,
+                                onValueChange = { newValue ->
+                                    viewModel.onAmountGivenChange(newValue.text)
+                                },
+                                label = { Text("¿Cantidad de pago recibida?") },
                                 modifier = Modifier.fillMaxWidth(),
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                isError = amountReceived.isBlank() || amountReceived.toFloatOrNull()
-                                    ?.let { it < totalPurchase } == true
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Number,
+                                    imeAction = ImeAction.Done
+                                ),
+                                singleLine = true,
+                                isError = shoppingAmountGivenInCents == 0L,
+                                supportingText = {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.End
+                                    ) {
+                                        Text("Máximo: $99,999.99")
+                                    }
+                                }
                             )
                         }
                     }
@@ -181,20 +205,21 @@ fun ShoppingScreen(viewModel: ShoppingViewModel) {
                         if (email.isNotBlank() && android.util.Patterns.EMAIL_ADDRESS.matcher(email)
                                 .matches()
                         ) {
-                            viewModel.showEmailDialog.value = false
-                            //isLoading = true
-
+                            val amountReceivedValue = shoppingAmountGivenInCents / 100.0
                             viewModel.confirmTicket(
-                                amountReceived = amountReceived.toDoubleOrNull() ?: 0.0,
+                                amountReceived = amountReceivedValue,
                                 context = context,
-                                email = email
+                                email = email,
+                                onSuccess = { successMessage ->
+                                    viewModel.showEmailDialog.value = false
+                                    viewModel.onAmountGivenChange("0")
+                                    Toast.makeText(context, successMessage, Toast.LENGTH_SHORT)
+                                        .show()
+                                },
+                                onError = { errorMessage ->
+                                    Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
+                                }
                             )
-
-                            viewModel.amountReceived.value =
-                                "" // Limpiar el campo de cantidad de pago
-                            //isLoading = false
-
-                            Toast.makeText(context, "Ticket guardado", Toast.LENGTH_SHORT).show()
                         } else {
                             Toast.makeText(context, "Ingrese un correo válido", Toast.LENGTH_SHORT)
                                 .show()
