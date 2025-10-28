@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -471,7 +472,7 @@ fun MainScreen() {
 
                 Screen.Shopping.route -> {
                     val isLoading by shoppingViewModel.isLoading.collectAsState()
-                    //val cartProducts by shoppingViewModel.cartProducts.collectAsState()
+                    val cartProducts by shoppingViewModel.cartProducts.collectAsState()
                     ExtendedFloatingActionButton(
                         onClick = {
                             shoppingViewModel.onConfirmPurchaseClicked(
@@ -480,19 +481,41 @@ fun MainScreen() {
                                 },
                                 onError = { errorMessage ->
                                     Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
-                                }
+                                },
+                                onEmptyCart = { emptyCart ->
+                                    Toast.makeText(context, emptyCart, Toast.LENGTH_LONG).show()
+                                    navController.navigate(Screen.ScanProduct.route) {
+                                        popUpTo(Screen.ScanProduct.route) { inclusive = true }
+                                    }
+                                },
                             )
                         },
                         icon = {
                             Icon(
-                                painter = painterResource(id = R.drawable.outline_check_24),
+                                painter = if (isLoading)
+                                    painterResource(id = R.drawable.baseline_access_time_24)
+                                else if (cartProducts.isEmpty())
+                                    painterResource(id = R.drawable.outline_barcode_scanner_24)
+                                else
+                                    painterResource(id = R.drawable.outline_check_24),
+
                                 contentDescription = "Confirmar compra"
+
                             )
                         },
-                        text = { Text(if (isLoading) "Procesando..." else "Confirmar compra") },
+                        text = {
+                            Text(
+                                text = if (isLoading)
+                                    "Procesando..."
+                                else if (cartProducts.isEmpty())
+                                    "Escanear código de barras"
+                                else
+                                    "Confirmar compra"
+                            )
+                        },
                         // Cambia el color para deshabilitar visualmente el botón mientras carga
-                        //containerColor = if (isLoading) androidx.tv.material3.MaterialTheme.colorScheme.surfaceVariant else androidx.tv.material3.MaterialTheme.colorScheme.primary,
-                        //contentColor = if (isLoading) androidx.tv.material3.MaterialTheme.colorScheme.onSurfaceVariant else androidx.tv.material3.MaterialTheme.colorScheme.onPrimary
+                        containerColor = if (isLoading) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = if (isLoading) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 }
 

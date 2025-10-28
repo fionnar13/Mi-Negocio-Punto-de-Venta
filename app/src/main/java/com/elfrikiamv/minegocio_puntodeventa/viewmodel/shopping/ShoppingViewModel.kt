@@ -80,22 +80,26 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
 
     fun onConfirmPurchaseClicked(
         onSuccess: (String) -> Unit,
-        onError: (String) -> Unit
+        onError: (String) -> Unit,
+        onEmptyCart: (String) -> Unit
     ) {
+        val amount = amountReceived.value.toDoubleOrNull()
+
         if (isLoading.value) {
             onError("Ya se está procesando una compra.")
             return
-        }
-
-        val amount = amountReceived.value.toDoubleOrNull()
-        if (amount == null || amount < totalPurchase.value) {
+        } else if (cartProducts.value.isEmpty()) {
+            onEmptyCart("El carrito está vacío.")
+            return
+        } else if (amount == null || amount < totalPurchase.value) {
             onError("El pago recibido debe ser mayor o igual al total de la compra.")
             return
+        } else {
+            // Validation passed
+            showEmailDialog.value = true
+            onSuccess("Ticket guardado")
         }
 
-        // Validation passed
-        showEmailDialog.value = true
-        onSuccess("Ticket guardado")
     }
 
     fun addToCart(product: ProductFirebase) {

@@ -78,78 +78,84 @@ fun ShoppingScreen(viewModel: ShoppingViewModel) {
             LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
         } else if (products.isEmpty()) {
 
-            Column(
+            LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(16.dp),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    "No hay productos en el carrito, por favor escanee un producto.",
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
-                )
+                item {
+                    Text(
+                        "No hay productos en el carrito, por favor escanee un producto.",
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                    )
+                }
+                item {
+                    Spacer(modifier = Modifier.height(72.dp))
+                }
             }
         } else {
 
-            Column(
+            LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-
-                // Tarjeta de resumen del ticket
-                ElevatedCard(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp)
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(
-                            text = "Resumen del ticket"
-                        )
-                        Text(
-                            text = "Productos totales: $totalProducts"
-                        )
-                        Text(
-                            text = "Total de la compra: $${"%.2f".format(totalPurchase)}"
-                        )
-                        Text(
-                            text = "Cambio de la compra: $${"%.2f".format(change)}"
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        OutlinedTextField(
-                            value = amountReceived,
-                            onValueChange = { viewModel.amountReceived.value = it },
-                            label = { Text("Cantidad de pago recibida:") },
-                            modifier = Modifier.fillMaxWidth(),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            isError = amountReceived.isBlank() || amountReceived.toFloatOrNull()
-                                ?.let { it < totalPurchase } == true
-                        )
+                item {
+                    // Tarjeta de resumen del ticket
+                    ElevatedCard(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 16.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text(
+                                text = "Resumen del ticket"
+                            )
+                            Text(
+                                text = "Productos totales: $totalProducts"
+                            )
+                            Text(
+                                text = "Total de la compra: $${"%.2f".format(totalPurchase)}"
+                            )
+                            Text(
+                                text = "Cambio de la compra: $${"%.2f".format(change)}"
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            OutlinedTextField(
+                                value = amountReceived,
+                                onValueChange = { viewModel.amountReceived.value = it },
+                                label = { Text("Cantidad de pago recibida:") },
+                                modifier = Modifier.fillMaxWidth(),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                isError = amountReceived.isBlank() || amountReceived.toFloatOrNull()
+                                    ?.let { it < totalPurchase } == true
+                            )
+                        }
                     }
                 }
 
-                HorizontalDivider(
-                    modifier = Modifier.padding(vertical = 16.dp),
-                    thickness = 1.dp,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+                item {
+                    HorizontalDivider(
+                        //modifier = Modifier.padding(vertical = 16.dp),
+                        thickness = 1.dp,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
 
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                ) {
-                    items(products) { product ->
-                        ProductTicket(
-                            product = product,
-                            onIncreaseQuantity = { viewModel.increaseCartProductQuantity(product.barcode) },
-                            onDecreaseQuantity = { viewModel.decreaseCartProductQuantity(product.barcode) },
-                            onDelete = { viewModel.deleteCartProduct(product.barcode) }
-                        )
-                    }
+                items(products) { product ->
+                    ProductTicket(
+                        product = product,
+                        onIncreaseQuantity = { viewModel.increaseCartProductQuantity(product.barcode) },
+                        onDecreaseQuantity = { viewModel.decreaseCartProductQuantity(product.barcode) },
+                        onDelete = { viewModel.deleteCartProduct(product.barcode) }
+                    )
+                }
+
+                item {
+                    Spacer(modifier = Modifier.height(72.dp))
                 }
             }
         }
