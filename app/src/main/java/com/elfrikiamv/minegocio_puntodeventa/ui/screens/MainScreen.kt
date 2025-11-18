@@ -736,7 +736,12 @@ fun MainScreen() {
             ) {
                 composable(Screen.Main.route) { HomeScreen(navController = navController) }
                 composable(Screen.Activity.route) { ActivityScreen(navController = navController) }
-                composable(Screen.ScanProduct.route) { ScanScreen(checkProductExistsViewModel) }
+                composable(Screen.ScanProduct.route) {
+                    ScanScreen(
+                        navController = navController,
+                        checkProductExistsViewModel = checkProductExistsViewModel
+                    )
+                }
                 composable(Screen.Shopping.route) { ShoppingScreen(shoppingViewModel) }
                 composable(Screen.Inventory.route) {
                     InventoryScreen(

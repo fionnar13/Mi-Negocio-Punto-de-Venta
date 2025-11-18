@@ -20,9 +20,12 @@ import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -39,11 +42,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
+import com.elfrikiamv.minegocio_puntodeventa.R
 import com.elfrikiamv.minegocio_puntodeventa.model.inventory.ProductFirebase
+import com.elfrikiamv.minegocio_puntodeventa.navigation.Screen
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.inventory.CheckProductExistsViewModel
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.scan.ScanViewModel
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.shopping.ShoppingViewModel
@@ -55,13 +63,17 @@ import kotlinx.coroutines.delay
 import java.util.concurrent.Executors
 
 @Composable
-fun ScanScreen(checkProductExistsViewModel: CheckProductExistsViewModel) {
+fun ScanScreen(
+    navController: NavHostController,
+    checkProductExistsViewModel: CheckProductExistsViewModel
+) {
     //val viewModelInventory: InventoryViewModel = viewModel()
     val viewModelShopping: ShoppingViewModel = viewModel()
     val scanViewModel: ScanViewModel = viewModel()
     //val screenColor by scanViewModel.screenColor.collectAsState()
     val cameraError by scanViewModel.cameraError.collectAsState()
     val quantityDialogVisible by scanViewModel.quantityDialogVisible.collectAsState()
+    val nextStepDialogVisible by scanViewModel.nextStepDialogVisible.collectAsState()
     val scannedProduct by scanViewModel.scannedProduct.collectAsState()
     var showFocusIndicator by remember { mutableStateOf(false) }
     var focusPoint by remember { mutableStateOf(Offset.Zero) }
@@ -135,6 +147,56 @@ fun ScanScreen(checkProductExistsViewModel: CheckProductExistsViewModel) {
             }
         )
     }
+
+    if (nextStepDialogVisible) {
+        NextStepDialog(
+            onConfirm = {
+                scanViewModel.resetScreen()
+            },
+            onDismiss = {
+                scanViewModel.resetScreen()
+                navController.navigate(Screen.Shopping.route) {
+                    popUpTo(Screen.Shopping.route) { inclusive = true }
+                }
+            }
+        )
+    }
+}
+
+@Composable
+fun NextStepDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.baseline_info_outline_24),
+                    contentDescription = "info icon",
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+        },
+        text = {
+            Column {
+                Text("¿Desea escanear otro código de barras?")
+            }
+        },
+        confirmButton = {
+            Button(onClick = onConfirm) {
+                Text("Si")
+            }
+        },
+        dismissButton = {
+            Button(onClick = onDismiss) {
+                Text("No")
+            }
+        }
+    )
 }
 
 @Composable

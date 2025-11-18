@@ -31,6 +31,9 @@ class ScanViewModel(application: Application) : AndroidViewModel(application) {
     private val _quantityDialogVisible = MutableStateFlow(false)
     val quantityDialogVisible: StateFlow<Boolean> = _quantityDialogVisible
 
+    private val _nextStepDialogVisible = MutableStateFlow(false)
+    val nextStepDialogVisible: StateFlow<Boolean> = _nextStepDialogVisible
+
     private val _scannedProduct = MutableStateFlow<ProductFirebase?>(null)
     val scannedProduct: StateFlow<ProductFirebase?> = _scannedProduct
 
@@ -95,11 +98,13 @@ class ScanViewModel(application: Application) : AndroidViewModel(application) {
                 ).show()
             }
             resetScreen()
+            _nextStepDialogVisible.value = true
         }
     }
 
     // Restablecer estados de la pantalla
     fun resetScreen() {
         _quantityDialogVisible.value = false
+        _nextStepDialogVisible.value = false
     }
 }

@@ -51,15 +51,9 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
 
     val change: StateFlow<Double> = combine(
         _shoppingAmountGivenInCents,
-        _totalPurchase
-    ) { amountCents, total ->
-        val amount = amountCents / 100.0
-        if (amount >= total) {
-            amount - total
-        } else {
-            0.0
-        }
-    }.stateIn(
+        _totalPurchase,
+        ::calculateChange
+    ).stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = 0.0
@@ -92,6 +86,15 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
                     _cartProducts.value = firebaseProducts
                     _totalPurchase.value = firebaseProducts.sumOf { it.quantity * it.salePrice }
                 }
+        }
+    }
+
+    private fun calculateChange(amountCents: Long, total: Double): Double {
+        val amount = amountCents / 100.0
+        return if (amount >= total) {
+            amount - total
+        } else {
+            0.0
         }
     }
 
