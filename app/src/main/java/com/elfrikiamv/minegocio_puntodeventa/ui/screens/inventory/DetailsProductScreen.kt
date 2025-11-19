@@ -52,24 +52,64 @@ fun DetailsProductScreen(
 
         if (!barcode.isNullOrEmpty()) {
             try {
+                viewModel.errorMessage.value = ""
                 checkProductExistsViewModel.checkProductExists(barcode) { product ->
                     viewModel.productDetails.value = product
                 }
                 Log.d(TAG, "Código de barras recibido: $barcode")
             } catch (e: Exception) {
-                errorMessage = "Hubo un error al cargar los datos del producto."
+                viewModel.errorMessage.value = "Hubo un error al cargar los datos del producto."
+                //errorMessage = "Hubo un error al cargar los datos del producto."
                 Log.e(TAG, "Error al cargar los datos del producto: $e")
             }
 
         } else {
-            errorMessage = "El código de barras no es válido."
+            viewModel.errorMessage.value = "El código de barras no es válido."
+            //errorMessage = "El código de barras no es válido."
         }
     }
 
     Column(
-        modifier = Modifier
-            //.padding(paddingValues)
-            .fillMaxWidth()
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        if (isLoading) {
+            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+        } else if (errorMessage.isNotBlank()) {
+            Text(
+                text = errorMessage,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(16.dp)
+            )
+        } else if (productDetails == null) {
+            // Mensaje de error si no hay datos
+            Text(
+                "No se encontraron detalles del producto.",
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(16.dp)
+            )
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .weight(1f)
+                    .padding(16.dp)
+            ) {
+                item {
+                    DetailsProductCard(productDetails!!)
+                }
+                item {
+                    Spacer(modifier = Modifier.height(72.dp))
+                }
+            }
+        }
+    }
+
+    /*Column(
+        modifier = Modifier.fillMaxWidth()
     ) {
         if (productDetails == null) {
             LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
@@ -88,11 +128,11 @@ fun DetailsProductScreen(
                 }
             }
         }
-    }
+    }*/
 }
 
 @Composable
-fun DetailsProductCard(productDetails: ProductFirebase, errorMessage: String) {
+fun DetailsProductCard(productDetails: ProductFirebase) {
 
     ElevatedCard(
         modifier = Modifier.fillMaxWidth()
@@ -130,7 +170,8 @@ fun DetailsProductCard(productDetails: ProductFirebase, errorMessage: String) {
             }
             HorizontalDivider(
                 modifier = Modifier.padding(bottom = 8.dp, top = 8.dp),
-                thickness = 1.dp
+                thickness = 1.dp,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
             )
             Row {
                 Text(
@@ -173,7 +214,8 @@ fun DetailsProductCard(productDetails: ProductFirebase, errorMessage: String) {
             }
             HorizontalDivider(
                 modifier = Modifier.padding(bottom = 8.dp, top = 8.dp),
-                thickness = 1.dp
+                thickness = 1.dp,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
             )
             Row {
                 Text(
@@ -188,14 +230,14 @@ fun DetailsProductCard(productDetails: ProductFirebase, errorMessage: String) {
                     modifier = Modifier.alignByBaseline()
                 )
             }
-            if (errorMessage.isNotBlank()) {
+            /*if (errorMessage.isNotBlank()) {
                 Text(
                     text = errorMessage,
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
-            }
+            }*/
         }
     }
 }
