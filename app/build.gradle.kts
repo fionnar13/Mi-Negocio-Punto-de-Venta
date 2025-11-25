@@ -129,4 +129,7 @@ dependencies {
     // dependencia de PDFBox
     implementation (libs.pdfbox.android)
 
+    // admob
+    implementation("com.google.android.gms:play-services-ads:24.8.0")
+
 }

@@ -14,6 +14,7 @@ captures/
 .cxx/
 *.apk
 output.json
+AndroidManifest.xml
 
 # IntelliJ
 *.iml

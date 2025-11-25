@@ -2,8 +2,11 @@ package com.elfrikiamv.minegocio_puntodeventa.ui.screens.home
 
 // HomeScreen.kt
 
+import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -27,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.elfrikiamv.minegocio_puntodeventa.R
@@ -34,6 +38,11 @@ import com.elfrikiamv.minegocio_puntodeventa.navigation.Screen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.dialogues.helpDialogues.HelpIconWithDialog
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.dialogues.helpDialogues.HelpTexts
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.home.HomeViewModel
+import com.google.android.gms.ads.AdListener
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdView
+import com.google.android.gms.ads.LoadAdError
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -51,11 +60,10 @@ fun HomeScreen(navController: NavController) {
     val totalExpenses by viewModel.totalExpenses.collectAsState()
     val totalProfitEarned by viewModel.totalProfitEarned.collectAsState()
     val currentMonth by viewModel.currentMonth.collectAsState()
+    val bannerID = "ca-app-pub-3940256099942544/9214589741"
 
     // Estado de carga: verificar si algún dato aún no está disponible
     val isLoading by viewModel.isLoading.collectAsState()
-
-    // Contenido de la pantalla de inicio
 
     Column(
         modifier = Modifier
@@ -91,51 +99,59 @@ fun HomeScreen(navController: NavController) {
                     Spacer(modifier = Modifier.height(16.dp))
                 }
             }
-        }
-    }
-
-    /*Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Inicio") }
-            )
-        },
-        content = { paddingValues ->
             Column(
-                modifier = Modifier
-                    .padding(paddingValues)
-                    .fillMaxSize()
+                //modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.background(color = androidx.compose.ui.graphics.Color.Magenta),
+                verticalArrangement = Arrangement.Bottom,
             ) {
-                // Mostrar indicador de carga mientras se cargan todos los datos
-                if (isLoading) {
-                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                } else {
-                    // Mostrar contenido principal cuando los datos estén listos
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .weight(1f)
-                            .padding(16.dp)
-                    ) {
-                        item {
-                            MyReport(
-                                navController,
-                                totalQuantity,
-                                totalSalePrice,
-                                lowStockList,
-                                outStockList,
-                                totalTicketsSold,
-                                totalTransactions,
-                                totalExpenses,
-                                totalProfitEarned,
-                                currentMonth
-                            )
+                Box(
+                    //modifier = Modifier.fillMaxWidth()
+                    //Modifier.background(color = androidx.compose.ui.graphics.Color.Magenta),
+                    contentAlignment = Alignment.BottomCenter,
+                ) {
+                    //Text("test")
+
+                    AndroidView(modifier = Modifier.fillMaxWidth(), factory = { context ->
+                        AdView(context).apply {
+                            setAdSize(AdSize.BANNER)
+                            adUnitId = bannerID
+                            loadAd(AdRequest.Builder().build())
+                            this.adListener = object : AdListener() {
+                                override fun onAdClicked() {
+                                    // Code to be executed when the user clicks on an ad.
+                                }
+
+                                override fun onAdClosed() {
+                                    // Code to be executed when the user is about to return
+                                    // to the app after tapping on an ad.
+                                }
+
+                                override fun onAdFailedToLoad(adError: LoadAdError) {
+                                    Log.d("AdView", "onAdFailedToLoad $adError")
+                                    // Code to be executed when an ad request fails.
+                                }
+
+                                override fun onAdImpression() {
+                                    // Code to be executed when an impression is recorded
+                                    // for an ad.
+                                }
+
+                                override fun onAdLoaded() {
+                                    // Code to be executed when an ad finishes loading.
+                                }
+
+                                override fun onAdOpened() {
+                                    // Code to be executed when an ad opens an overlay that
+                                    // covers the screen.
+                                }
+                            }
+
                         }
-                    }
+                    })
                 }
             }
         }
-    )*/
+    }
 }
 
 @Composable
@@ -567,86 +583,3 @@ fun onBestSellers(navController: NavController) {
     // Acción para ver productos mas vendidos
     navController.navigate(Screen.BestSellersProducts.route)
 }
-
-/*
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun HelpIconWithDialog(helpText: String) {
-    val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true
-    )
-    var showSheet by remember { mutableStateOf(false) }
-
-    Icon(
-        painter = painterResource(id = R.drawable.baseline_help_outline_24),
-        contentDescription = "help icon",
-        modifier = Modifier
-            .size(24.dp)
-            .alpha(0.8f)
-            .clickable { showSheet = true }
-    )
-
-    if (showSheet) {
-        ModalBottomSheet(
-            onDismissRequest = { showSheet = false },
-            sheetState = sheetState
-            //containerColor = MaterialTheme.colorScheme.surface,
-            //tonalElevation = 8.dp
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    //.padding(24.dp),
-                    .padding(end = 16.dp, bottom = 16.dp, start = 16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.baseline_info_outline_24),
-                        contentDescription = "info",
-                        //tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(24.dp)
-                    )
-
-                    Text(
-                        text = "¿Qué significa esto?",
-                        //style = MaterialTheme.typography.titleLarge,
-                        //color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                HorizontalDivider(
-                    thickness = 1.dp,
-                    //color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = helpText,
-                    //style = MaterialTheme.typography.bodyMedium,
-                    //color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Button(
-                    onClick = { showSheet = false },
-                    */
-/*colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
-                    )*//*
-
-                ) {
-                    Text("Entendido")
-                }
-            }
-        }
-    }
-}
-*/
