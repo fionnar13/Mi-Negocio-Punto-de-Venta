@@ -2,38 +2,62 @@
   <img height="92" alt="elfrikiamv-logo" src="https://elfrikiamv.com/media/img/logo-elfrikiamv-dev-light-en-horizontal.webp">
 </p>
 
-<img align="right" width="342" height="913" alt="purple waves" src="https://elfrikiamv.com/media/img/bg-purple-wave.webp"/>
-
 <p align="start">
   <img height="128" alt="logo-super-pointSale" src="https://elfrikiamv.com/media/img/logo-super-pointSale.webp"/>
   
 </p>
-<a href="http://elfrikiamv.com/super-pointsale/">View Demo</a>
+<a href="http://elfrikiamv.com/super-pointsale/">Ver demostración.</a>
     ·
-<a href="https://github.com/elfrikiamv/super_pointSale/issues/">Report Bug</a>
+<a href="https://github.com/elfrikiamv/super_pointSale/issues/">Informar de un error.</a>
 <div>
 
-## Super_pointSale.
+## Mi Negocio Punto de Venta.
 
-Super_pointSale is a mobile application that transforms your smartphone into a convenient point of sale (POS) system. With pointSale, users can leverage their smartphones to facilitate tikets, manage inventory, and streamline the sales process with ease.
+Mi Negocio Punto de Venta es una aplicación móvil para Android diseñada para transformar tu smartphone en un completo y conveniente sistema de punto de venta (POS). Los usuarios pueden gestionar su inventario, agilizar el proceso de ventas y generar tickets o recibos de forma digital.
 
-## Built With.
+La aplicación ofrece un resumen mensual del negocio, mostrando métricas clave como el total de ventas, los gastos registrados, las ganancias netas y el número de transacciones. Además, utiliza la cámara del dispositivo para escanear códigos de barras, facilitando la adición de productos y la finalización de transacciones de manera eficiente.
 
-- Firebase.
-- Lifecycle.
-- Coroutines.
-- Androidx.
+## Construido con.
+
+Este proyecto fue desarrollado utilizando tecnologías y librerías modernas del ecosistema de Android para garantizar un rendimiento robusto, una interfaz de usuario fluida y una arquitectura escalable.
+
+Lenguaje Principal:
 - Kotlin.
-- MVVM and MVC.
-- XML.
 
-## License.
+Arquitectura:
+- MVVM (Model-View-ViewModel).
 
-Distributed under the GNU General Public License v3.0
-See `LICENSE.txt` for more information.
+Interfaz de Usuario (UI):
+- Jetpack Compose.
+- Material 3.
+- Navigation Compose.
 
-## Contact.
+Componentes de Jetpack y AndroidX:
+- Lifecycle.
+- Room.
+- CameraX.
+- SplashScreen API.
+
+Servicios de Firebase:
+- Firebase Authentication.
+- Cloud Firestore.
+- Firebase Analytics.
+- Firebase Crashlytics.
+- AdMob.
+
+Librerías Adicionales:
+- ML Kit Barcode Scanning.
+- PDFBox Android.
+- Coroutines.
+- Gson.
+
+## Licencia.
+
+Distribuido bajo la Licencia Pública General GNU v3.0
+Consulta `LICENSE.txt` para más información.
+
+## Contacto.
 
 - Linkedin - **_[@elfrikiamv](https://www.linkedin.com/in/elfrikiamv/)_**.
-- Email - **_contact@elfrikiamv.com_**.
-- My website - **_[elfrikiamv.com](https://elfrikiamv.com)_**.
+- Email - **_hola@elfrikiamv.com_**.
+- Mi sitio web - **_[elfrikiamv.com](https://elfrikiamv.com)_**.
