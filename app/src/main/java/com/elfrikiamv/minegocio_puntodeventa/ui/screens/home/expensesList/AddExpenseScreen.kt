@@ -163,16 +163,6 @@ fun AddExpenseScreen(viewModel: ExpensesViewModel) {
                                 conceptoFocusRequester = conceptFocusRequester,
                                 onNext = { priceFocusRequester.requestFocus() }
                             )
-
-                            /*OutlinedTextField(
-                                value = concept,
-                                onValueChange = { concept = it },
-                                label = { Text("Concepto del gasto") },
-                                modifier = Modifier.fillMaxWidth(),
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                                isError = concept.isBlank()
-                            )*/
-
                             // Campo para el método de pago
 
                             val paymentOptions =
@@ -209,14 +199,6 @@ fun AddExpenseScreen(viewModel: ExpensesViewModel) {
                                     }
                                 }
                             }
-                            /*OutlinedTextField(
-                                value = paymentMethod,
-                                onValueChange = { paymentMethod = it },
-                                label = { Text("Método de pago") },
-                                modifier = Modifier.fillMaxWidth(),
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                                isError = paymentMethod.isBlank()
-                            )*/
 
                             // Campo para el monto del gasto
 

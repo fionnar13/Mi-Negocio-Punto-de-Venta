@@ -132,4 +132,5 @@ dependencies {
     // admob
     implementation("com.google.android.gms:play-services-ads:24.8.0")
 
+    testImplementation("org.mockito:mockito-core:5.21.0")
 }

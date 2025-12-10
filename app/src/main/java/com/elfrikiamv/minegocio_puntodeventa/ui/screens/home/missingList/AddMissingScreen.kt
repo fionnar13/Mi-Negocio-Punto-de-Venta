@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.LinearProgressIndicator
@@ -26,7 +27,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.requestFocus
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -49,6 +55,13 @@ fun AddMissingScreen(viewModel: MissingProductsViewModel) {
     //val totalPrice by viewModel.totalPrice
     val description by viewModel.description
     val errorMessage by viewModel.errorMessage
+
+    // Manejo de enfoque
+    val focusManager = LocalFocusManager.current
+    val nameMissingFocusRequester = remember { FocusRequester() }
+    val quantityMissingFocusRequester = remember { FocusRequester() }
+    val productPriceMissingFocusRequester = remember { FocusRequester() }
+    val descriptionMissingFocusRequester = remember { FocusRequester() }
 
     // Funciones de validación
     fun isValidName(input: String): Boolean {
@@ -104,6 +117,10 @@ fun AddMissingScreen(viewModel: MissingProductsViewModel) {
         viewModel.totalPrice.value = totalCalculated
     }
 
+    LaunchedEffect(Unit) {
+        nameMissingFocusRequester.requestFocus()
+    }
+
     // Observar el estado de isLoading
     val isLoading by viewModel.isLoading.collectAsState()
 
@@ -148,7 +165,18 @@ fun AddMissingScreen(viewModel: MissingProductsViewModel) {
                                     }
                                 },
                                 label = { Text("Nombre del producto") },
-                                modifier = Modifier.fillMaxWidth(),
+
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .focusRequester(nameMissingFocusRequester),
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Text,
+                                    imeAction = ImeAction.Next
+                                ),
+                                keyboardActions = KeyboardActions(
+                                    onNext = { quantityMissingFocusRequester.requestFocus() }
+                                ),
+                                singleLine = true,
                                 isError = name.isBlank(),
                                 supportingText = {
                                     Row(
@@ -170,8 +198,18 @@ fun AddMissingScreen(viewModel: MissingProductsViewModel) {
                                 },
                                 //onValueChange = { quantity = it },
                                 label = { Text("Cantidad de piezas") },
-                                modifier = Modifier.fillMaxWidth(),
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .focusRequester(quantityMissingFocusRequester),
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Number,
+                                    imeAction = ImeAction.Next
+                                ),
+                                keyboardActions = KeyboardActions(
+                                    onNext = { productPriceMissingFocusRequester.requestFocus() }
+                                ),
+                                singleLine = true,
+
                                 isError = quantity.isBlank(),
                                 supportingText = {
                                     Row(
@@ -200,8 +238,18 @@ fun AddMissingScreen(viewModel: MissingProductsViewModel) {
                                     )
                                 },
                                 label = { Text("Precio por pieza") },
-                                modifier = Modifier.fillMaxWidth(),
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .focusRequester(productPriceMissingFocusRequester),
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Number,
+                                    imeAction = ImeAction.Next
+                                ),
+                                keyboardActions = KeyboardActions(
+                                    onNext = { descriptionMissingFocusRequester.requestFocus() }
+                                ),
+                                singleLine = true,
+
                                 isError = productPriceInCents == 0L,
                                 supportingText = {
                                     Row(
@@ -233,7 +281,16 @@ fun AddMissingScreen(viewModel: MissingProductsViewModel) {
                                     }
                                 },
                                 label = { Text("Descripción") },
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .focusRequester(descriptionMissingFocusRequester),
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Text,
+                                    imeAction = ImeAction.Done
+                                ),
+                                keyboardActions = KeyboardActions(
+                                    onDone = { focusManager.clearFocus() }
+                                ),
                                 isError = description.isBlank(),
                                 supportingText = {
                                     Row(
