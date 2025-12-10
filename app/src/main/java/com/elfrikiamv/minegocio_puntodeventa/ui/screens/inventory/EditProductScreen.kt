@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.LinearProgressIndicator
@@ -29,8 +30,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -56,6 +61,15 @@ fun EditProductScreen(
     val barcode by viewModel.barcode
     val description by viewModel.description
     val errorMessage by viewModel.errorMessage
+
+    // Manejo de enfoque
+    val focusManager = LocalFocusManager.current
+    //val barcodeProductFocusRequester = remember { FocusRequester() }
+    val nameAddProductFocusRequester = remember { FocusRequester() }
+    val quantityAddProductFocusRequester = remember { FocusRequester() }
+    val providerAddPriceFocusRequester = remember { FocusRequester() }
+    val salePriceAddFocusRequester = remember { FocusRequester() }
+    val descriptionAddProductFocusRequester = remember { FocusRequester() }
 
     // Funciones de validación
     fun isValidName(input: String): Boolean {
@@ -135,6 +149,10 @@ fun EditProductScreen(
         }
     }
 
+    LaunchedEffect(Unit) {
+        nameAddProductFocusRequester.requestFocus()
+    }
+
     Column(
         modifier = Modifier
             //.padding(paddingValues)
@@ -207,7 +225,17 @@ fun EditProductScreen(
                                     }
                                 },
                                 label = { Text("Nombre del producto") },
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .focusRequester(nameAddProductFocusRequester),
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Text,
+                                    imeAction = ImeAction.Next
+                                ),
+                                keyboardActions = KeyboardActions(
+                                    onNext = { quantityAddProductFocusRequester.requestFocus() }
+                                ),
+                                singleLine = true,
                                 isError = name.isBlank(),
                                 supportingText = {
                                     Row(
@@ -229,8 +257,17 @@ fun EditProductScreen(
                                 },
                                 //onValueChange = { quantity = it },
                                 label = { Text("Cantidad") },
-                                modifier = Modifier.fillMaxWidth(),
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .focusRequester(quantityAddProductFocusRequester),
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Number,
+                                    imeAction = ImeAction.Next
+                                ),
+                                keyboardActions = KeyboardActions(
+                                    onNext = { providerAddPriceFocusRequester.requestFocus() }
+                                ),
+                                singleLine = true,
                                 isError = quantity.isBlank(),
                                 supportingText = {
                                     Row(
@@ -259,8 +296,17 @@ fun EditProductScreen(
                                     )
                                 },
                                 label = { Text("Precio proveedor") },
-                                modifier = Modifier.fillMaxWidth(),
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .focusRequester(providerAddPriceFocusRequester),
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Number,
+                                    imeAction = ImeAction.Next
+                                ),
+                                keyboardActions = KeyboardActions(
+                                    onNext = { salePriceAddFocusRequester.requestFocus() }
+                                ),
+                                singleLine = true,
                                 isError = providerPriceInCents == 0L,
                                 supportingText = {
                                     Row(
@@ -288,8 +334,17 @@ fun EditProductScreen(
                                     )
                                 },
                                 label = { Text("Precio de venta") },
-                                modifier = Modifier.fillMaxWidth(),
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .focusRequester(salePriceAddFocusRequester),
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Number,
+                                    imeAction = ImeAction.Next
+                                ),
+                                keyboardActions = KeyboardActions(
+                                    onNext = { descriptionAddProductFocusRequester.requestFocus() }
+                                ),
+                                singleLine = true,
                                 isError = salePriceInCents == 0L,
                                 supportingText = {
                                     Row(
@@ -310,7 +365,16 @@ fun EditProductScreen(
                                     }
                                 },
                                 label = { Text("Descripción del producto") },
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .focusRequester(descriptionAddProductFocusRequester),
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Text,
+                                    imeAction = ImeAction.Done
+                                ),
+                                keyboardActions = KeyboardActions(
+                                    onDone = { focusManager.clearFocus() }
+                                ),
                                 isError = description.isBlank(),
                                 supportingText = {
                                     Row(
