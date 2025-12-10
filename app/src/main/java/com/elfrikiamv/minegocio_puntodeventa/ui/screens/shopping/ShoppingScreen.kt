@@ -33,9 +33,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
@@ -121,10 +123,53 @@ fun ShoppingScreen(viewModel: ShoppingViewModel) {
                             .padding(top = 16.dp)
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
+
                             Text(
-                                text = "Resumen del ticket"
+                                text = "Resumen del ticket",
+                                fontStyle = FontStyle.Italic,
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.align(Alignment.CenterHorizontally)
                             )
-                            Text(
+                            Row {
+                                Text(
+                                    text = "Productos totales: ",
+                                    fontStyle = FontStyle.Italic,
+                                    modifier = Modifier
+                                        .alignByBaseline()
+                                        .alpha(0.8f) // Aplica opacidad del 80%
+                                )
+                                Text(
+                                    text = "$totalProducts",
+                                    modifier = Modifier.alignByBaseline()
+                                )
+                            }
+                            Row {
+                                Text(
+                                    text = "Total de la compra: ",
+                                    fontStyle = FontStyle.Italic,
+                                    modifier = Modifier
+                                        .alignByBaseline()
+                                        .alpha(0.8f) // Aplica opacidad del 80%
+                                )
+                                Text(
+                                    text = "$${"%.2f".format(totalPurchase)}",
+                                    modifier = Modifier.alignByBaseline()
+                                )
+                            }
+                            Row {
+                                Text(
+                                    text = "Cambio de la compra: ",
+                                    fontStyle = FontStyle.Italic,
+                                    modifier = Modifier
+                                        .alignByBaseline()
+                                        .alpha(0.8f) // Aplica opacidad del 80%
+                                )
+                                Text(
+                                    text = "$${"%.2f".format(change)}",
+                                    modifier = Modifier.alignByBaseline()
+                                )
+                            }
+                            /*Text(
                                 text = "Productos totales: $totalProducts"
                             )
                             Text(
@@ -132,7 +177,7 @@ fun ShoppingScreen(viewModel: ShoppingViewModel) {
                             )
                             Text(
                                 text = "Cambio de la compra: $${"%.2f".format(change)}"
-                            )
+                            )*/
                             Spacer(modifier = Modifier.height(8.dp))
 
                             OutlinedTextField(
@@ -269,10 +314,65 @@ fun ProductTicket(
                         .fillMaxWidth()
                         .align(Alignment.CenterVertically)
                 ) {
-                    Text("Producto: ${product.name}")
-                    Text("Cantidad: ${product.quantity}")
+
+                    Row {
+                        Text(
+                            text = "Producto: ",
+                            fontStyle = FontStyle.Italic,
+                            modifier = Modifier
+                                .alignByBaseline()
+                                .alpha(0.8f) // Aplica opacidad del 80%
+                        )
+                        Text(
+                            text = product.name,
+                            modifier = Modifier.alignByBaseline()
+                        )
+                    }
+                    Row {
+                        Text(
+                            text = "Cantidad: ",
+                            fontStyle = FontStyle.Italic,
+                            modifier = Modifier
+                                .alignByBaseline()
+                                .alpha(0.8f) // Aplica opacidad del 80%
+                        )
+                        Text(
+                            text = "${product.quantity}",
+                            modifier = Modifier.alignByBaseline()
+                        )
+                    }
+                    Row {
+                        Text(
+                            text = "Precio Unitario: ",
+                            fontStyle = FontStyle.Italic,
+                            modifier = Modifier
+                                .alignByBaseline()
+                                .alpha(0.8f) // Aplica opacidad del 80%
+                        )
+                        Text(
+                            //text = "$${product.salePrice}",
+                            text = "$${"%.2f".format(product.salePrice)}",
+                            modifier = Modifier.alignByBaseline()
+                        )
+                    }
+                    Row {
+                        Text(
+                            text = "SubTotal: ",
+                            fontStyle = FontStyle.Italic,
+                            modifier = Modifier
+                                .alignByBaseline()
+                                .alpha(0.8f) // Aplica opacidad del 80%
+                        )
+                        Text(
+                            //text = "$${subTotal}",
+                            text = "$${"%.2f".format(subTotal)}",
+                            modifier = Modifier.alignByBaseline()
+                        )
+                    }
+                    //Text("Producto: ${product.name}")
+                    /*Text("Cantidad: ${product.quantity}")
                     Text("Precio Unitario: $${product.salePrice}")
-                    Text("SubTotal: $${subTotal}")
+                    Text("SubTotal: $${subTotal}")*/
                 }
                 Column(
                     modifier = Modifier.align(Alignment.CenterVertically)
