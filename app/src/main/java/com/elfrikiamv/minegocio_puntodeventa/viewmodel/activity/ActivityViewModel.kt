@@ -73,6 +73,10 @@ class ActivityViewModel(application: Application) : AndroidViewModel(application
     private val monthStart: Timestamp
     private val monthEnd: Timestamp
 
+    // ID del banner Admo
+    private val _bannerID = MutableStateFlow("ca-app-pub-3940256099942544/9214589741")
+    val bannerID = _bannerID.asStateFlow()
+
     // Cargar los tickets del mes actual al iniciar el ViewModel
     init {
         _isLoading.value = true

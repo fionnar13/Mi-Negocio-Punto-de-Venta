@@ -2,11 +2,8 @@ package com.elfrikiamv.minegocio_puntodeventa.ui.screens.home
 
 // HomeScreen.kt
 
-import android.util.Log
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -30,7 +27,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.elfrikiamv.minegocio_puntodeventa.R
@@ -38,11 +34,6 @@ import com.elfrikiamv.minegocio_puntodeventa.navigation.Screen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.dialogues.helpDialogues.HelpIconWithDialog
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.dialogues.helpDialogues.HelpTexts
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.home.HomeViewModel
-import com.google.android.gms.ads.AdListener
-import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.AdSize
-import com.google.android.gms.ads.AdView
-import com.google.android.gms.ads.LoadAdError
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -60,7 +51,6 @@ fun HomeScreen(navController: NavController) {
     val totalExpenses by viewModel.totalExpenses.collectAsState()
     val totalProfitEarned by viewModel.totalProfitEarned.collectAsState()
     val currentMonth by viewModel.currentMonth.collectAsState()
-    val bannerID = "ca-app-pub-3940256099942544/9214589741"
 
     // Estado de carga: verificar si algún dato aún no está disponible
     val isLoading by viewModel.isLoading.collectAsState()
@@ -97,57 +87,6 @@ fun HomeScreen(navController: NavController) {
                 }
                 item {
                     Spacer(modifier = Modifier.height(16.dp))
-                }
-            }
-            Column(
-                //modifier = Modifier.fillMaxSize(),
-                modifier = Modifier.background(color = androidx.compose.ui.graphics.Color.Magenta),
-                verticalArrangement = Arrangement.Bottom,
-            ) {
-                Box(
-                    //modifier = Modifier.fillMaxWidth()
-                    //Modifier.background(color = androidx.compose.ui.graphics.Color.Magenta),
-                    contentAlignment = Alignment.BottomCenter,
-                ) {
-                    //Text("test")
-
-                    AndroidView(modifier = Modifier.fillMaxWidth(), factory = { context ->
-                        AdView(context).apply {
-                            setAdSize(AdSize.BANNER)
-                            adUnitId = bannerID
-                            loadAd(AdRequest.Builder().build())
-                            this.adListener = object : AdListener() {
-                                override fun onAdClicked() {
-                                    // Code to be executed when the user clicks on an ad.
-                                }
-
-                                override fun onAdClosed() {
-                                    // Code to be executed when the user is about to return
-                                    // to the app after tapping on an ad.
-                                }
-
-                                override fun onAdFailedToLoad(adError: LoadAdError) {
-                                    Log.d("AdView", "onAdFailedToLoad $adError")
-                                    // Code to be executed when an ad request fails.
-                                }
-
-                                override fun onAdImpression() {
-                                    // Code to be executed when an impression is recorded
-                                    // for an ad.
-                                }
-
-                                override fun onAdLoaded() {
-                                    // Code to be executed when an ad finishes loading.
-                                }
-
-                                override fun onAdOpened() {
-                                    // Code to be executed when an ad opens an overlay that
-                                    // covers the screen.
-                                }
-                            }
-
-                        }
-                    })
                 }
             }
         }

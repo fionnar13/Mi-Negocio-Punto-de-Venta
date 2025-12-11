@@ -421,7 +421,7 @@ fun InventoryScreen(navController: NavHostController, viewModel: InventoryViewMo
                     }
                 }
                 item {
-                    Spacer(modifier = Modifier.height(56.dp))
+                    Spacer(modifier = Modifier.height(72.dp))
                 }
             }
         }

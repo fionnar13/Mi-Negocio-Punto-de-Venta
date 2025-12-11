@@ -2,8 +2,12 @@ package com.elfrikiamv.minegocio_puntodeventa.ui.screens
 
 //MainScreen.kt
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -22,6 +26,7 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -52,6 +57,7 @@ import com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory.InventoryScree
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory.ScanProductScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.scan.ScanScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.shopping.ShoppingScreen
+import com.elfrikiamv.minegocio_puntodeventa.viewmodel.MainViewModel
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.home.expenses.ExpensesViewModel
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.home.missing.MissingProductsViewModel
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.inventory.AddProductViewModel
@@ -59,6 +65,11 @@ import com.elfrikiamv.minegocio_puntodeventa.viewmodel.inventory.CheckProductExi
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.inventory.EditProductViewModel
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.inventory.InventoryViewModel
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.shopping.ShoppingViewModel
+import com.google.android.gms.ads.AdListener
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdView
+import com.google.android.gms.ads.LoadAdError
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -71,7 +82,9 @@ fun MainScreen() {
     val checkProductExistsViewModel: CheckProductExistsViewModel = viewModel()
     val missingProductsViewModel: MissingProductsViewModel = viewModel()
     val shoppingViewModel: ShoppingViewModel = viewModel()
+    val mainViewModel: MainViewModel = viewModel()
     val context = LocalContext.current
+    val bannerID by mainViewModel.bannerID.collectAsState()
 
     val items = listOf(
         NavigationItem("Inicio", Screen.Main.route, painterResource(R.drawable.baseline_store_24)),
@@ -341,21 +354,24 @@ fun MainScreen() {
             }
         },
         bottomBar = {
-            NavigationBar {
-                items.forEach { item ->
-                    NavigationBarItem(
-                        icon = { Icon(item.icon, contentDescription = item.label) },
-                        label = { Text(item.label) },
-                        selected = currentRoute == item.route,
-                        onClick = {
-                            if (currentRoute != item.route) {
-                                navController.navigate(item.route) {
-                                    launchSingleTop = true
-                                    restoreState = true
+            Column() {
+                BannerAds(bannerID = bannerID)
+                NavigationBar {
+                    items.forEach { item ->
+                        NavigationBarItem(
+                            icon = { Icon(item.icon, contentDescription = item.label) },
+                            label = { Text(item.label) },
+                            selected = currentRoute == item.route,
+                            onClick = {
+                                if (currentRoute != item.route) {
+                                    navController.navigate(item.route) {
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
                                 }
                             }
-                        }
-                    )
+                        )
+                    }
                 }
             }
         },
@@ -814,6 +830,56 @@ fun MainScreen() {
             }
         }
     )
+}
+
+@Composable
+fun BannerAds(bannerID: String) {
+    Box(
+        modifier = Modifier.fillMaxWidth()
+        //.background(color = androidx.compose.ui.graphics.Color.DarkGray),
+        //Modifier.background(color = androidx.compose.ui.graphics.Color.Magenta),
+        //contentAlignment = Alignment.BottomCenter,
+    ) {
+        //Text("test")
+
+        AndroidView(modifier = Modifier.fillMaxWidth(), factory = { context ->
+            AdView(context).apply {
+                setAdSize(AdSize.BANNER)
+                adUnitId = bannerID
+                loadAd(AdRequest.Builder().build())
+                this.adListener = object : AdListener() {
+                    override fun onAdClicked() {
+                        // Code to be executed when the user clicks on an ad.
+                    }
+
+                    override fun onAdClosed() {
+                        // Code to be executed when the user is about to return
+                        // to the app after tapping on an ad.
+                    }
+
+                    override fun onAdFailedToLoad(adError: LoadAdError) {
+                        Log.d("AdView", "onAdFailedToLoad $adError")
+                        // Code to be executed when an ad request fails.
+                    }
+
+                    override fun onAdImpression() {
+                        // Code to be executed when an impression is recorded
+                        // for an ad.
+                    }
+
+                    override fun onAdLoaded() {
+                        // Code to be executed when an ad finishes loading.
+                    }
+
+                    override fun onAdOpened() {
+                        // Code to be executed when an ad opens an overlay that
+                        // covers the screen.
+                    }
+                }
+
+            }
+        })
+    }
 }
 
 // Clase de datos para los elementos de navegación
