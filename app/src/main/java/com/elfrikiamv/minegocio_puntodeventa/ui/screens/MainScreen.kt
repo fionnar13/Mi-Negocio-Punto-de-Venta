@@ -56,6 +56,7 @@ import com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory.DetailsProduct
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory.EditProductScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory.InventoryScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory.ScanProductScreen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.login.LoginScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.scan.ScanScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.shopping.ShoppingScreen
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.MainViewModel
@@ -556,39 +557,49 @@ fun MainScreen() {
                     )
                 }
 
-                /*Screen.Shopping.route -> {
-
-                    val isLoading by shoppingViewModel.isLoading.collectAsState()
+                Screen.AccountScreen.route -> {
+                    val isLoading by authViewModel.isLoading.collectAsState()
                     ExtendedFloatingActionButton(
                         onClick = {
-                            if (isLoading) {
-                                Toast.makeText(context, "Ya se está cargando", Toast.LENGTH_SHORT)
-                                    .show()
-                                return@ExtendedFloatingActionButton
-                            } else if (shoppingViewModel.amountReceived.value.toFloatOrNull()
-                                    ?.let { it >= shoppingViewModel.totalPurchase.value } == true
-                            ) {
-
-                                shoppingViewModel.showEmailDialog.value = true
-                                Toast.makeText(context, "Ticket guardado", Toast.LENGTH_SHORT)
-                                    .show()
-                            } else {
-                                Toast.makeText(
-                                    context,
-                                    "El pago recibido debe ser mayor o igual al total de la compra.",
-                                    Toast.LENGTH_LONG
-                                ).show()
-                            }
+                            authViewModel.signOut(
+                                onLoading = { loadingMessage ->
+                                    Toast.makeText(context, loadingMessage, Toast.LENGTH_LONG)
+                                        .show()
+                                },
+                                onSuccess = { signOutMessage ->
+                                    Toast.makeText(context, signOutMessage, Toast.LENGTH_LONG)
+                                        .show()
+                                    navController.navigate(Screen.Login.route) {
+                                        popUpTo(0) // Elimina todas las pantallas de la pila
+                                        //popUpTo(Screen.Login.route) { inclusive = true }
+                                    }
+                                },
+                            )
                         },
                         icon = {
                             Icon(
-                                painter = painterResource(id = R.drawable.outline_check_24),
-                                contentDescription = "confirmar compra"
+                                painter = if (isLoading)
+                                    painterResource(id = R.drawable.baseline_access_time_24)
+                                else
+                                    painterResource(id = R.drawable.baseline_close_24),
+
+                                contentDescription = "Cerrar sesión"
+
                             )
                         },
-                        text = { Text("confirmar compra") }
+                        text = {
+                            Text(
+                                text = if (isLoading)
+                                    "Procesando..."
+                                else
+                                    "Cerrar sesión"
+                            )
+                        },
+                        // Cambia el color para deshabilitar visualmente el botón mientras carga
+                        containerColor = if (isLoading) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = if (isLoading) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onPrimaryContainer
                     )
-                }*/
+                }
 
                 Screen.AddMissing.route -> {
 
@@ -849,6 +860,7 @@ fun MainScreen() {
                 composable(Screen.AddExpense.route) { AddExpenseScreen(expensesViewModel) }
                 composable(Screen.AddMissing.route) { AddMissingScreen(missingProductsViewModel) }
                 composable(Screen.AccountScreen.route) { AccountScreen(authViewModel) }
+                composable(Screen.Login.route) { LoginScreen(navController, authViewModel) }
             }
         }
     )
