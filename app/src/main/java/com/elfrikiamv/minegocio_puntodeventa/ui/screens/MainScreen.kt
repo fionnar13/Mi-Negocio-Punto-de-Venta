@@ -127,7 +127,7 @@ fun MainScreen() {
                 Screen.Inventory.route -> TopAppBar(title = { Text("Inventario") })
 
                 Screen.AccountScreen.route -> TopAppBar(
-                    title = { Text("Mis perfil") },
+                    title = { Text("Mi perfil") },
                     navigationIcon = {
                         Icon(
                             painter = painterResource(id = R.drawable.baseline_arrow_back_ios_new_24),

@@ -508,10 +508,10 @@ fun MyReport(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                //verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Row(
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.outline_account_circle_24),
