@@ -57,6 +57,7 @@ import com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory.EditProductScr
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory.InventoryScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory.ScanProductScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.login.LoginScreen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.login.RegisterScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.scan.ScanScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.shopping.ShoppingScreen
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.MainViewModel
@@ -861,6 +862,7 @@ fun MainScreen() {
                 composable(Screen.AddMissing.route) { AddMissingScreen(missingProductsViewModel) }
                 composable(Screen.AccountScreen.route) { AccountScreen(authViewModel) }
                 composable(Screen.Login.route) { LoginScreen(navController, authViewModel) }
+                composable(Screen.Register.route) { RegisterScreen(navController, authViewModel) }
             }
         }
     )
