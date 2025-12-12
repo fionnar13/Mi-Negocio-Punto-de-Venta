@@ -36,6 +36,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.elfrikiamv.minegocio_puntodeventa.R
 import com.elfrikiamv.minegocio_puntodeventa.navigation.Screen
+import com.elfrikiamv.minegocio_puntodeventa.ui.screens.account.AccountScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.activity.ActivityScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.activity.DetailsTicketScreen
 import com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.HomeScreen
@@ -64,6 +65,7 @@ import com.elfrikiamv.minegocio_puntodeventa.viewmodel.inventory.AddProductViewM
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.inventory.CheckProductExistsViewModel
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.inventory.EditProductViewModel
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.inventory.InventoryViewModel
+import com.elfrikiamv.minegocio_puntodeventa.viewmodel.login.AuthViewModel
 import com.elfrikiamv.minegocio_puntodeventa.viewmodel.shopping.ShoppingViewModel
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
@@ -83,6 +85,7 @@ fun MainScreen() {
     val missingProductsViewModel: MissingProductsViewModel = viewModel()
     val shoppingViewModel: ShoppingViewModel = viewModel()
     val mainViewModel: MainViewModel = viewModel()
+    val authViewModel: AuthViewModel = viewModel()
     val context = LocalContext.current
     val bannerID by mainViewModel.bannerID.collectAsState()
 
@@ -121,6 +124,24 @@ fun MainScreen() {
                 Screen.ScanProduct.route -> TopAppBar(title = { Text("Escanear Código de Barras") })
                 Screen.Shopping.route -> TopAppBar(title = { Text("Carrito de Compras") })
                 Screen.Inventory.route -> TopAppBar(title = { Text("Inventario") })
+
+                Screen.AccountScreen.route -> TopAppBar(
+                    title = { Text("Mis perfil") },
+                    navigationIcon = {
+                        Icon(
+                            painter = painterResource(id = R.drawable.baseline_arrow_back_ios_new_24),
+                            contentDescription = "Regresar",
+                            modifier = Modifier
+                                .padding(horizontal = 16.dp)
+                                .clickable {
+                                    navController.navigate(Screen.Main.route) {
+                                        popUpTo(Screen.Main.route) { inclusive = true }
+                                    }
+                                }
+                        )
+                    }
+                )
+
                 Screen.ExpensesListScreen.route -> TopAppBar(
                     title = { Text("Mis gastos") },
                     navigationIcon = {
@@ -827,6 +848,7 @@ fun MainScreen() {
                 }
                 composable(Screen.AddExpense.route) { AddExpenseScreen(expensesViewModel) }
                 composable(Screen.AddMissing.route) { AddMissingScreen(missingProductsViewModel) }
+                composable(Screen.AccountScreen.route) { AccountScreen(authViewModel) }
             }
         }
     )

@@ -41,4 +41,35 @@ class AuthViewModel : ViewModel() {
         return auth.currentUser != null
     }
 
+    // funcion para obtener informacion del usuario
+
+    /*fun getUserInfo(onResult: (Boolean, String?) -> Unit) {
+        viewModelScope.launch {
+            try {
+                //auth.createUserWithEmailAndPassword(email, password).await()
+
+
+                onResult(true, null)
+            } catch (e: Exception) {
+                onResult(false, e.message)
+            }
+        }
+
+    }*/
+
+    /*fun getUserInfo(onResult: (Boolean, String?) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val user = auth.currentUser
+                if (user != null) {
+                    onResult(true, user.email)
+                } else {
+                    onResult(false, "Usuario no autenticado")
+                }
+            } catch (e: Exception) {
+                onResult(false, e.message)
+            }
+        }
+    }*/
+
 }

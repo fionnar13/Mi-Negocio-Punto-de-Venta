@@ -495,6 +495,37 @@ fun MyReport(
                 }
             }
         }
+        HorizontalDivider(
+            modifier = Modifier.padding(top = 3.dp),
+            thickness = 1.dp
+        )
+        ElevatedCard(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onMyAccount(navController = navController) }
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.outline_account_circle_24),
+                        contentDescription = "account icon",
+                        modifier = Modifier.size(24.dp),
+                    )
+                    Spacer(modifier = Modifier.width(3.dp))
+                    Text(
+                        text = "Mi perfil",
+                        modifier = Modifier.alignByBaseline()
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -521,4 +552,9 @@ fun onOutOfStock(navController: NavController) {
 fun onBestSellers(navController: NavController) {
     // Acción para ver productos mas vendidos
     navController.navigate(Screen.BestSellersProducts.route)
+}
+
+fun onMyAccount(navController: NavController) {
+    // Acción para ver la cuenta de ususario
+    navController.navigate(Screen.AccountScreen.route)
 }

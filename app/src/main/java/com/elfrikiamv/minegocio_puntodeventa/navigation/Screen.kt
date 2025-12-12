@@ -24,6 +24,7 @@ sealed class Screen(val route: String) {
     object DetailsExpense : Screen("detailsExpense")
     object AddExpense : Screen("addExpense")
     object AddMissing : Screen("addMissing")
+    object AccountScreen : Screen("accountScreen")
 
 
     // Si alguna pantalla necesita parámetros, puedes agregar métodos helper.
