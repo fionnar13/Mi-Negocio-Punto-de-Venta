@@ -5,6 +5,8 @@ package com.elfrikiamv.minegocio_puntodeventa.ui.screens.account
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -18,7 +20,6 @@ import com.elfrikiamv.minegocio_puntodeventa.viewmodel.login.AuthViewModel
 fun AccountScreen(viewModel: AuthViewModel) {
 
     val isLoading by viewModel.isLoading.collectAsState()
-
     val email by viewModel.email.collectAsState()
 
     LaunchedEffect(Unit) {
@@ -27,9 +28,19 @@ fun AccountScreen(viewModel: AuthViewModel) {
 
     Column(
         modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        /*horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center*/
     ) {
-        Text(text = "Correo: $email")
+        if (isLoading) {
+            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+        } else {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Correo: $email")
+            }
+        }
     }
 }

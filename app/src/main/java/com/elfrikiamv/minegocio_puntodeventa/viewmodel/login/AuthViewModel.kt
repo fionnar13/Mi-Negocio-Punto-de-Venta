@@ -49,7 +49,7 @@ class AuthViewModel : ViewModel() {
         return auth.currentUser != null
     }
 
-    // cerrar sesion
+    // cerrar sesion de usuario
     fun signOut(
         onSuccess: (String) -> Unit,
         onLoading: (String) -> Unit
@@ -68,11 +68,14 @@ class AuthViewModel : ViewModel() {
 
     // obtener datos del usuario
     fun getUserInfo() {
+        _isLoading.value = true
         val user = auth.currentUser
         if (user != null) {
             _email.value = user.email.toString()
+            _isLoading.value = false
         } else {
             _email.value = "Usuario no autenticado"
+            _isLoading.value = false
         }
     }
 }
