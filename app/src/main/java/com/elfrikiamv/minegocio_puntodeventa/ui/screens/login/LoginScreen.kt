@@ -65,7 +65,7 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel = vie
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Login") }
+                title = { Text("Iniciar Sesión") }
             )
         },
         content = { padding ->
