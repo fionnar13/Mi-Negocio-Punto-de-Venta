@@ -19,6 +19,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -199,7 +200,8 @@ fun MyReport(
                         contentDescription = "forward icon",
                         modifier = Modifier
                             .size(24.dp)
-                            .align(Alignment.CenterVertically)
+                            .align(Alignment.CenterVertically),
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 }
             }
@@ -280,7 +282,8 @@ fun MyReport(
 
         HorizontalDivider(
             modifier = Modifier.padding(top = 3.dp),
-            thickness = 1.dp
+            thickness = 1.dp,
+            color = MaterialTheme.colorScheme.onPrimaryContainer
         )
 
         Text(text = "Resumen de mi inventario:")
@@ -392,7 +395,8 @@ fun MyReport(
                         contentDescription = "forward icon",
                         modifier = Modifier
                             .size(24.dp)
-                            .align(Alignment.CenterVertically)
+                            .align(Alignment.CenterVertically),
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 }
             }
@@ -421,7 +425,8 @@ fun MyReport(
                         contentDescription = "forward icon",
                         modifier = Modifier
                             .size(24.dp)
-                            .align(Alignment.CenterVertically)
+                            .align(Alignment.CenterVertically),
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 }
             }
@@ -455,7 +460,8 @@ fun MyReport(
                         contentDescription = "forward icon",
                         modifier = Modifier
                             .size(24.dp)
-                            .align(Alignment.CenterVertically)
+                            .align(Alignment.CenterVertically),
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 }
             }
@@ -490,14 +496,16 @@ fun MyReport(
                         contentDescription = "forward icon",
                         modifier = Modifier
                             .size(24.dp)
-                            .align(Alignment.CenterVertically)
+                            .align(Alignment.CenterVertically),
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 }
             }
         }
         HorizontalDivider(
             modifier = Modifier.padding(top = 3.dp),
-            thickness = 1.dp
+            thickness = 1.dp,
+            color = MaterialTheme.colorScheme.onPrimaryContainer
         )
         ElevatedCard(
             modifier = Modifier
@@ -517,6 +525,7 @@ fun MyReport(
                         painter = painterResource(id = R.drawable.outline_account_circle_24),
                         contentDescription = "account icon",
                         modifier = Modifier.size(24.dp),
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                     Spacer(modifier = Modifier.width(3.dp))
                     Text(
