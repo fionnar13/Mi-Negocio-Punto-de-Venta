@@ -4,10 +4,13 @@ package com.elfrikiamv.minegocio_puntodeventa.viewmodel.home
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import com.elfrikiamv.minegocio_puntodeventa.model.home.messagingToken.MessagingTokenFirebase
+import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
+import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import java.text.SimpleDateFormat
@@ -22,6 +25,7 @@ class HomeViewModel : ViewModel() {
         private const val DEFAULT_INVENTORY = "defaultInventory"
         private const val DEFAULT_TICKETS = "defaultTickets"
         private const val DEFAULT_EXPENSES = "defaultExpenses"
+        private const val DEFAULT_TOKEN = "MessagingTokenFirebase"
         private const val LOW_STOCK_THRESHOLD = 7 // Umbral de stock bajo
         private const val OUT_STOCK_THRESHOLD = 0 // Umbral de sin stock
     }
@@ -107,7 +111,7 @@ class HomeViewModel : ViewModel() {
         loadTotalExpenses(userEmail)
         loadTotalProfitEarned(userEmail)
         loadCurrentMonth()
-        //addOrUpdateToken(userEmail)
+        firebaseMessagingToken(userEmail)
     }
 
     private fun loadCurrentMonth() {
@@ -355,6 +359,45 @@ class HomeViewModel : ViewModel() {
                 _isLoading.value = false // Ocultar indicador de carga
             }
         listenerRegistrations.add(listener)
+    }
+
+    private fun firebaseMessagingToken(userEmail: String) {
+        FirebaseMessaging.getInstance().token.addOnCompleteListener(OnCompleteListener { task ->
+            if (!task.isSuccessful) {
+                Log.w(
+                    "firebaseMessagingToken",
+                    "Fetching FCM registration token failed",
+                    task.exception
+                )
+                return@OnCompleteListener
+            }
+
+            // Get new FCM registration token
+            val token = task.result.toString()
+            addOrUpdateToken(token, userEmail)
+        })
+    }
+
+    fun addOrUpdateToken(token: String, userEmail: String) {
+
+        _isLoading.value = true
+        val userToken = MessagingTokenFirebase(
+            userTokenId = token
+        )
+
+        db.collection("users")
+            .document(userEmail)
+            .collection("userToken")
+            .document(DEFAULT_TOKEN)
+            .set(userToken)
+            .addOnSuccessListener {
+                Log.d(TAG, "Token: ${userToken.userTokenId}")
+                _isLoading.value = false
+            }
+            .addOnFailureListener {
+                Log.e(TAG, "Error al agregar o actualizar token", it)
+                _isLoading.value = false
+            }
     }
 
     // Cancelamos todos los listeners cuando se destruye el ViewModel
