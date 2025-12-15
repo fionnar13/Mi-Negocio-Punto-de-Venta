@@ -129,6 +129,9 @@ dependencies {
     // dependencia de PDFBox
     implementation (libs.pdfbox.android)
 
+    // firebase messaging
+    implementation(libs.firebase.messaging.ktx)
+
     // admob
     implementation("com.google.android.gms:play-services-ads:24.8.0")
 

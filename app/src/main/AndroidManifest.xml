@@ -4,6 +4,7 @@
 
     <!-- Permiso para acceder a Internet -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
@@ -41,7 +42,16 @@
         </provider>
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-5315728410718973~9801887291"/>
+            android:value="ca-app-pub-5315728410718973~9801887291" />
+        <!-- [START firebase_service] -->
+        <service
+            android:name="com.elfrikiamv.minegocio_puntodeventa.notifications.MyFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+        <!-- [END firebase_service] -->
     </application>
 
 </manifest>

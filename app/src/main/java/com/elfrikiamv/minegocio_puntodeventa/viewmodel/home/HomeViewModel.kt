@@ -10,7 +10,6 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -108,6 +107,7 @@ class HomeViewModel : ViewModel() {
         loadTotalExpenses(userEmail)
         loadTotalProfitEarned(userEmail)
         loadCurrentMonth()
+        //addOrUpdateToken(userEmail)
     }
 
     private fun loadCurrentMonth() {

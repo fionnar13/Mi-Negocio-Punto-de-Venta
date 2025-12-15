@@ -4,10 +4,11 @@ barcodeScanning = "17.3.0"
 cameraCamera2 = "1.4.1"
 coreSplashscreen = "1.0.1"
 firebaseBom = "33.8.0"
+firebaseMessagingKtx = "24.1.2"
 foundation = "1.7.6"
 gson = "2.11.0"
 kotlin = "2.0.0"
-coreKtx = "1.14.0-alpha01"
+coreKtx = "1.15.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
@@ -33,6 +34,7 @@ firebase-auth = { module = "com.google.firebase:firebase-auth" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
 firebase-firestore = { module = "com.google.firebase:firebase-firestore" }
+firebase-messaging-ktx = { module = "com.google.firebase:firebase-messaging-ktx", version.ref = "firebaseMessagingKtx" }
 google-firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
