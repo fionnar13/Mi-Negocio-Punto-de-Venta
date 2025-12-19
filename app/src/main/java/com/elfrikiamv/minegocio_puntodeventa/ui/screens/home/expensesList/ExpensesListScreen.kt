@@ -2,7 +2,6 @@ package com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.expensesList
 
 // ExpensesListScreen.kt
 
-import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -305,10 +304,10 @@ fun ExpensesListScreen(navController: NavHostController) {
                         }
                     }
                     items(gr.expenses) { expense ->
-                        Log.d(
+                        /*Log.d(
                             "ExpensesDetailsScreen",
                             "Renderizando gasto: ${expense.expenseId}"
-                        )
+                        )*/
 
                         ExpensesDetailsCard(expense = expense) {
                             navController.navigate(Screen.DetailsExpense.route + "?expenseId=${expense.expenseId}")

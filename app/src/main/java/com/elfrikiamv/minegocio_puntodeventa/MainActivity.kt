@@ -17,7 +17,7 @@ class MainActivity : ComponentActivity() {
         //  Splash Screen
         installSplashScreen()
         MobileAds.initialize(this) {
-            Log.d("mainActivityLog", "onCreate: $it")
+            /*Log.d("mainActivityLog", "onCreate: $it")*/
         }
         setContent {
             MiNegocioPuntodeVentaTheme {

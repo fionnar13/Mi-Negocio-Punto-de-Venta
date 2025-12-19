@@ -3,7 +3,6 @@ package com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory
 // EditProductScreen.kt
 
 import android.content.Context
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -140,12 +139,12 @@ fun EditProductScreen(
 
             viewModel.barcode.value = barcodeDetails
             checkProductExists(checkProductExistsViewModel, barcodeDetails, viewModel, TAG, context)
-            Log.d(TAG, "Código de barras recibido de detalles: $barcodeDetails")
-            Log.d(TAG, "Código de barras recibido: $barcode")
+            /*Log.d(TAG, "Código de barras recibido de detalles: $barcodeDetails")
+            Log.d(TAG, "Código de barras recibido: $barcode")*/
         } else {
 
             viewModel.clearEditProductSaveFields()
-            Log.e(TAG, "Código de barras nulo o vacío")
+            /*Log.e(TAG, "Código de barras nulo o vacío")*/
         }
     }
 
@@ -434,6 +433,6 @@ fun checkProductExists(
         }
     } catch (e: Exception) {
         viewModel.errorMessage.value = "Hubo un error al verificar el producto."
-        Log.e(TAG, "Error al verificar producto: $e")
+        /*Log.e(TAG, "Error al verificar producto: $e")*/
     }
 }

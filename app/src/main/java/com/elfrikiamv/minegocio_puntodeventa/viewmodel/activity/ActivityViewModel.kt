@@ -95,10 +95,10 @@ class ActivityViewModel(application: Application) : AndroidViewModel(application
 
         val userEmail = auth.currentUser?.email
         if (userEmail == null) {
-            Log.e(TAG, "Usuario no autenticado. No se pueden cargar los datos.")
+            /*Log.e(TAG, "Usuario no autenticado. No se pueden cargar los datos.")*/
             _isLoading.value = false
         } else {
-            Log.d(TAG, "Usuario autenticado: $userEmail")
+            /*Log.d(TAG, "Usuario autenticado: $userEmail")*/
             _isLoading.value = false
             listenForTickets(userEmail)
         }
@@ -142,7 +142,7 @@ class ActivityViewModel(application: Application) : AndroidViewModel(application
 
         ticketsListener = query.addSnapshotListener { snapshot, error ->
             if (error != null || snapshot == null) {
-                Log.e(TAG, "Error escuchando tickets: $error")
+                /*Log.e(TAG, "Error escuchando tickets: $error")*/
                 _isLoading.value = false
                 return@addSnapshotListener
             }
@@ -198,7 +198,7 @@ class ActivityViewModel(application: Application) : AndroidViewModel(application
             .addSnapshotListener { snapshot, error ->
                 _isLoading.value = false
                 if (error != null) {
-                    Log.e(TAG, "Error buscando por ticketId: $error")
+                    /*Log.e(TAG, "Error buscando por ticketId: $error")*/
                     return@addSnapshotListener
                 }
 
@@ -220,7 +220,7 @@ class ActivityViewModel(application: Application) : AndroidViewModel(application
             .addSnapshotListener { snapshot, error ->
                 _isLoading.value = false
                 if (error != null) {
-                    Log.e(TAG, "Error buscando por date: $error")
+                    /*Log.e(TAG, "Error buscando por date: $error")*/
                     return@addSnapshotListener
                 }
 
@@ -380,7 +380,7 @@ class ActivityViewModel(application: Application) : AndroidViewModel(application
     fun sendEmail(context: Context, email: String, file: File) {
 
         _isLoading.value = true // Mostrar indicador de carga
-        Log.d("ActivityViewModel", "Preparando para enviar el ticket por correo.")
+        /*Log.d("ActivityViewModel", "Preparando para enviar el ticket por correo.")*/
         Log.d(
             "ActivityViewModel",
             "Archivo a adjuntar: ${file.absolutePath}, Email destinatario: $email"
@@ -392,7 +392,7 @@ class ActivityViewModel(application: Application) : AndroidViewModel(application
                 "com.elfrikiamv.minegocio_puntodeventa.fileprovider",
                 file
             )
-            Log.d("ActivityViewModel", "URI del archivo generado: $fileUri")
+            /*Log.d("ActivityViewModel", "URI del archivo generado: $fileUri")*/
 
             val emailIntent = Intent(Intent.ACTION_SEND).apply {
                 type = "application/pdf"
@@ -404,13 +404,13 @@ class ActivityViewModel(application: Application) : AndroidViewModel(application
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
 
-            Log.d("ActivityViewModel", "Intent de correo creado correctamente.")
+            /*Log.d("ActivityViewModel", "Intent de correo creado correctamente.")*/
             context.startActivity(Intent.createChooser(emailIntent, "Compartir archivo"))
-            Log.d("ActivityViewModel", "Correo enviado exitosamente.")
+            /*Log.d("ActivityViewModel", "Correo enviado exitosamente.")*/
             _isLoading.value = false // Ocultar indicador de carga
 
         } catch (e: Exception) {
-            Log.e("ActivityViewModel", "Error al enviar el correo: ${e.message}")
+            /*Log.e("ActivityViewModel", "Error al enviar el correo: ${e.message}")*/
             _isLoading.value = false // Ocultar indicador de carga
         }
     }

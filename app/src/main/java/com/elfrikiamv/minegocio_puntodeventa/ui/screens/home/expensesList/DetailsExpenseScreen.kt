@@ -2,7 +2,6 @@ package com.elfrikiamv.minegocio_puntodeventa.ui.screens.home.expensesList
 
 // DetailsExpenseScreen.kt
 
-import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -49,10 +48,10 @@ fun DetailsExpenseScreen(expenseId: String?, viewModel: ExpensesViewModel) {
                 viewModel.checkExpenseExists(expenseId) { fetchedExpense ->
                     viewModel.expenseDetails.value = fetchedExpense
                 }
-                Log.d(TAG, "Id del gasto recibido: $expenseId")
+                /*Log.d(TAG, "Id del gasto recibido: $expenseId")*/
             } catch (e: Exception) {
                 viewModel.errorMessage.value = "Hubo un error al cargar los datos del gasto."
-                Log.e(TAG, "Error al cargar los datos del gasto: $e")
+                /*Log.e(TAG, "Error al cargar los datos del gasto: $e")*/
             }
 
         } else {

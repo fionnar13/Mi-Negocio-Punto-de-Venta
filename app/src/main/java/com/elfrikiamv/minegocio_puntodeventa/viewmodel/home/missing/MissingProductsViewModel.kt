@@ -3,7 +3,6 @@ package com.elfrikiamv.minegocio_puntodeventa.viewmodel.home.missing
 // MissingProductsViewModel.kt
 
 import android.app.Application
-import android.util.Log
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
@@ -95,10 +94,10 @@ class MissingProductsViewModel(application: Application) : AndroidViewModel(appl
 
         val userEmail = auth.currentUser?.email
         if (userEmail == null) {
-            Log.e(TAG, "Usuario no autenticado. No se pueden cargar los datos.")
+            /*Log.e(TAG, "Usuario no autenticado. No se pueden cargar los datos.")*/
             _isLoading.value = false
         } else {
-            Log.d(TAG, "Usuario autenticado: $userEmail")
+            /*Log.d(TAG, "Usuario autenticado: $userEmail")*/
             _isLoading.value = false
             listenForMissing(userEmail)
         }
@@ -139,7 +138,7 @@ class MissingProductsViewModel(application: Application) : AndroidViewModel(appl
 
         missingListener = query.addSnapshotListener { snapshot, error ->
             if (error != null || snapshot == null) {
-                Log.e(TAG, "Error escuchando mis faltantes: $error")
+                /*Log.e(TAG, "Error escuchando mis faltantes: $error")*/
                 _isLoading.value = false
                 return@addSnapshotListener
             }
@@ -204,7 +203,7 @@ class MissingProductsViewModel(application: Application) : AndroidViewModel(appl
             .addSnapshotListener { snapshot, error ->
                 _isLoading.value = false
                 if (error != null) {
-                    Log.e(TAG, "Error buscando por missingId: $error")
+                    /*Log.e(TAG, "Error buscando por missingId: $error")*/
                     return@addSnapshotListener
                 }
 
@@ -226,7 +225,7 @@ class MissingProductsViewModel(application: Application) : AndroidViewModel(appl
             .addSnapshotListener { snapshot, error ->
                 _isLoading.value = false
                 if (error != null) {
-                    Log.e(TAG, "Error buscando por date: $error")
+                    /*Log.e(TAG, "Error buscando por date: $error")*/
                     return@addSnapshotListener
                 }
 
@@ -320,7 +319,7 @@ class MissingProductsViewModel(application: Application) : AndroidViewModel(appl
 
             // Guardar en Room
             missingDao.insertMissing(missing)
-            Log.d("ShoppingViewModel", "Ticket guardado en Room: $missing")
+            /*Log.d("ShoppingViewModel", "Ticket guardado en Room: $missing")*/
 
             // Limpiar carrito
             /*productDao.deleteAllProducts()
@@ -359,7 +358,7 @@ class MissingProductsViewModel(application: Application) : AndroidViewModel(appl
                 }
             }
             .addOnFailureListener { e ->
-                Log.e(TAG, "Error al subir el gasto a Firebase: $e")
+                /*Log.e(TAG, "Error al subir el gasto a Firebase: $e")*/
                 _isLoading.value = false
             }
     }

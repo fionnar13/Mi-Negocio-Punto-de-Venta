@@ -2,13 +2,11 @@ package com.elfrikiamv.minegocio_puntodeventa.viewmodel.inventory
 
 // InventoryViewModel.kt
 
-import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.elfrikiamv.minegocio_puntodeventa.model.inventory.ProductFirebase
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -72,10 +70,10 @@ class InventoryViewModel : ViewModel() {
         _isLoading.value = true
         val userEmail = auth.currentUser?.email
         if (userEmail == null) {
-            Log.e(TAG, "Usuario no autenticado. No se pueden cargar los datos.")
+            /*Log.e(TAG, "Usuario no autenticado. No se pueden cargar los datos.")*/
             _isLoading.value = false
         } else {
-            Log.d(TAG, "Usuario autenticado: $userEmail")
+            /*Log.d(TAG, "Usuario autenticado: $userEmail")*/
             _isLoading.value = false
             startListeningToProducts(userEmail)
         }
@@ -94,7 +92,7 @@ class InventoryViewModel : ViewModel() {
             .collection("userInventory")
             .addSnapshotListener { snapshot, e ->
                 if (e != null || snapshot == null) {
-                    Log.e(TAG, "Error al escuchar inventario: ${e?.message}")
+                    /*Log.e(TAG, "Error al escuchar inventario: ${e?.message}")*/
                     _isLoading.value = false
                     return@addSnapshotListener
                 }
@@ -112,7 +110,7 @@ class InventoryViewModel : ViewModel() {
     override fun onCleared() {
         super.onCleared()
         inventoryListener?.remove()
-        Log.d(TAG, "Listener de inventario eliminado en onCleared()")
+        /*Log.d(TAG, "Listener de inventario eliminado en onCleared()")*/
     }
 
     val groupedProducts: StateFlow<Map<Char, List<ProductFirebase>>> = products

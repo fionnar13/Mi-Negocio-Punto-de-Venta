@@ -101,10 +101,10 @@ class ExpensesViewModel(application: Application) : AndroidViewModel(application
 
         val userEmail = auth.currentUser?.email
         if (userEmail == null) {
-            Log.e(TAG, "Usuario no autenticado. No se pueden cargar los datos.")
+            //Log.e(TAG, "Usuario no autenticado. No se pueden cargar los datos.")
             _isLoading.value = false
         } else {
-            Log.d(TAG, "Usuario autenticado: $userEmail")
+            //Log.d(TAG, "Usuario autenticado: $userEmail")
             //loadExpensesFromFirebase(userEmail)
             _isLoading.value = false
             listenForExpenses(userEmail)
@@ -146,7 +146,7 @@ class ExpensesViewModel(application: Application) : AndroidViewModel(application
 
         expensesListener = query.addSnapshotListener { snapshot, error ->
             if (error != null || snapshot == null) {
-                Log.e(TAG, "Error escuchando mis gastos: $error")
+                /*Log.e(TAG, "Error escuchando mis gastos: $error")*/
                 _isLoading.value = false
                 return@addSnapshotListener
             }
@@ -237,7 +237,7 @@ class ExpensesViewModel(application: Application) : AndroidViewModel(application
             .addSnapshotListener { snapshot, error ->
                 _isLoading.value = false
                 if (error != null) {
-                    Log.e(TAG, "Error buscando por expenseId: $error")
+                    /*Log.e(TAG, "Error buscando por expenseId: $error")*/
                     return@addSnapshotListener
                 }
 
@@ -259,7 +259,7 @@ class ExpensesViewModel(application: Application) : AndroidViewModel(application
             .addSnapshotListener { snapshot, error ->
                 _isLoading.value = false
                 if (error != null) {
-                    Log.e(TAG, "Error buscando por date: $error")
+                    /*Log.e(TAG, "Error buscando por date: $error")*/
                     return@addSnapshotListener
                 }
 
@@ -358,7 +358,7 @@ class ExpensesViewModel(application: Application) : AndroidViewModel(application
 
             // Guardar en Room
             expenseDao.insertExpense(expense)
-            Log.d(TAG, "Ticket guardado en Room: $expense")
+            /*Log.d(TAG, "Ticket guardado en Room: $expense")*/
 
             // Limpiar carrito
             /*productDao.deleteAllProducts()

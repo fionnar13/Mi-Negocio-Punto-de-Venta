@@ -236,7 +236,7 @@ fun MainScreen() {
                 )
 
                 Screen.LowInventoryProducts.route -> TopAppBar(
-                    title = { Text("LowInventoryScreen") },
+                    title = { Text("Inventario bajo") },
                     navigationIcon = {
                         Icon(
                             painter = painterResource(id = R.drawable.baseline_arrow_back_ios_new_24),
@@ -253,7 +253,7 @@ fun MainScreen() {
                 )
 
                 Screen.OutOfStockProducts.route -> TopAppBar(
-                    title = { Text("OutOfStockScreen") },
+                    title = { Text("Productos agotados") },
                     navigationIcon = {
                         Icon(
                             painter = painterResource(id = R.drawable.baseline_arrow_back_ios_new_24),

@@ -2,7 +2,6 @@ package com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory
 
 // InventoryScreen.kt
 
-import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -216,10 +215,10 @@ fun InventoryScreen(navController: NavHostController, viewModel: InventoryViewMo
                                 .padding(end = 16.dp, start = 16.dp, top = 16.dp)
                         ) {
                             items(filteredProducts) { product ->
-                                Log.d(
+                                /*Log.d(
                                     "InventoryScreenSearch",
                                     "Renderizando producto: ${product.name}"
-                                )
+                                )*/
                                 ProductCard(product = product) {
                                     isSearchActive = false
                                     navController.navigate(Screen.DetailsProduct.route + "?barcode=${product.barcode}")
@@ -414,7 +413,7 @@ fun InventoryScreen(navController: NavHostController, viewModel: InventoryViewMo
                         )*/
                     }
                     items(productsForLetter) { product ->
-                        Log.d("InventoryScreen", "Renderizando producto: ${product.name}")
+                        /*Log.d("InventoryScreen", "Renderizando producto: ${product.name}")*/
                         ProductCard(product = product) {
                             navController.navigate(Screen.DetailsProduct.route + "?barcode=${product.barcode}")
                         }

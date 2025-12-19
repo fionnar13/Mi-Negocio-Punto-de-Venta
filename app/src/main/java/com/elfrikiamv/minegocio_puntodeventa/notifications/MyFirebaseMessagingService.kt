@@ -25,14 +25,14 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     override fun onMessageReceived(message: RemoteMessage) {
         super.onMessageReceived(message)
         //println()
-        Log.d(
+        /*Log.d(
             "MyFirebaseMessagingService",
             "Titulo recibido: ${message.notification?.title.toString()}"
         )
         Log.d(
             "MyFirebaseMessagingService",
             "Cuerpo recibido: ${message.notification?.body.toString()}"
-        )
+        )*/
 
         message.notification.let {
             val title = message.notification?.title ?: getString(R.string.app_name)

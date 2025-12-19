@@ -94,9 +94,9 @@ class HomeViewModel : ViewModel() {
 
         val userEmail = auth.currentUser?.email
         if (userEmail == null) {
-            Log.e(TAG, "Usuario no autenticado. No se pueden cargar los datos.")
+            /*Log.e(TAG, "Usuario no autenticado. No se pueden cargar los datos.")*/
         } else {
-            Log.d(TAG, "Usuario autenticado: $userEmail")
+            /*Log.d(TAG, "Usuario autenticado: $userEmail")*/
             startListeners(userEmail)
         }
     }
@@ -133,13 +133,13 @@ class HomeViewModel : ViewModel() {
             .addSnapshotListener { snapshot, e ->
                 //if (e != null) return@addSnapshotListener
                 if (e != null) {
-                    Log.e(TAG, "Error al escuchar cambios en la colección de tickets: ${e.message}")
+                    /*Log.e(TAG, "Error al escuchar cambios en la colección de tickets: ${e.message}")*/
                     _isLoading.value = false // Ocultar indicador de carga en caso de error
                     return@addSnapshotListener
                 }
 
                 if (snapshot == null) {
-                    Log.e(TAG, "Snapshot vacío o nulo al cargar el número total de transacciones.")
+                    /*Log.e(TAG, "Snapshot vacío o nulo al cargar el número total de transacciones.")*/
                     _isLoading.value = false // Ocultar indicador de carga en caso de error
                     return@addSnapshotListener
                 }
@@ -161,13 +161,13 @@ class HomeViewModel : ViewModel() {
             .addSnapshotListener { snapshot, e ->
                 //if (e != null) return@addSnapshotListener
                 if (e != null) {
-                    Log.e(TAG, "Error al escuchar cambios en la colección de tickets: ${e.message}")
+                    /*Log.e(TAG, "Error al escuchar cambios en la colección de tickets: ${e.message}")*/
                     _isLoading.value = false // Ocultar indicador de carga en caso de error
                     return@addSnapshotListener
                 }
 
                 if (snapshot == null) {
-                    Log.e(TAG, "Snapshot vacío o nulo al cargar las ventas de tickets.")
+                    /*Log.e(TAG, "Snapshot vacío o nulo al cargar las ventas de tickets.")*/
                     _isLoading.value = false // Ocultar indicador de carga en caso de error
                     return@addSnapshotListener
                 }
@@ -190,13 +190,13 @@ class HomeViewModel : ViewModel() {
             .addSnapshotListener { snapshot, e ->
                 //if (e != null) return@addSnapshotListener
                 if (e != null) {
-                    Log.e(TAG, "Error al escuchar cambios en la colección de gastos: ${e.message}")
+                    /*Log.e(TAG, "Error al escuchar cambios en la colección de gastos: ${e.message}")*/
                     _isLoading.value = false
                     return@addSnapshotListener
                 }
 
                 if (snapshot == null) {
-                    Log.e(TAG, "Snapshot vacío o nulo al cargar los gastos.")
+                    /*Log.e(TAG, "Snapshot vacío o nulo al cargar los gastos.")*/
                     _isLoading.value = false
                     return@addSnapshotListener
                 }
@@ -220,13 +220,13 @@ class HomeViewModel : ViewModel() {
             .addSnapshotListener { snapshot, e ->
                 //if (e != null) return@addSnapshotListener
                 if (e != null) {
-                    Log.e(TAG, "Error al escuchar cambios en la colección de tickets: ${e.message}")
+                    /*Log.e(TAG, "Error al escuchar cambios en la colección de tickets: ${e.message}")*/
                     _isLoading.value = false
                     return@addSnapshotListener
                 }
 
                 if (snapshot == null) {
-                    Log.e(TAG, "Snapshot vacío o nulo al cargar las ganancias.")
+                    /*Log.e(TAG, "Snapshot vacío o nulo al cargar las ganancias.")*/
                     _isLoading.value = false
                     return@addSnapshotListener
                 }
@@ -256,13 +256,13 @@ class HomeViewModel : ViewModel() {
             .addSnapshotListener { snapshot, e ->
                 //if (e != null) return@addSnapshotListener
                 if (e != null) {
-                    Log.e(TAG, "Error al escuchar cambios en Firestore: ${e.message}")
+                    /*Log.e(TAG, "Error al escuchar cambios en Firestore: ${e.message}")*/
                     _isLoading.value = false // Ocultar indicador de carga en caso de error
                     return@addSnapshotListener
                 }
 
                 if (snapshot == null) {
-                    Log.e(TAG, "Snapshot vacío o nulo al cargar productos con stock bajo.")
+                    /*Log.e(TAG, "Snapshot vacío o nulo al cargar productos con stock bajo.")*/
                     _isLoading.value = false // Ocultar indicador de carga en caso de error
                     return@addSnapshotListener
                 }
@@ -286,13 +286,13 @@ class HomeViewModel : ViewModel() {
             .addSnapshotListener { snapshot, e ->
                 //if (e != null) return@addSnapshotListener
                 if (e != null) {
-                    Log.e(TAG, "Error al escuchar cambios en Firestore: ${e.message}")
+                    /*Log.e(TAG, "Error al escuchar cambios en Firestore: ${e.message}")*/
                     _isLoading.value = false // Ocultar indicador de carga en caso de error
                     return@addSnapshotListener
                 }
 
                 if (snapshot == null) {
-                    Log.e(TAG, "Snapshot vacío o nulo al cargar productos sin stock.")
+                    /*Log.e(TAG, "Snapshot vacío o nulo al cargar productos sin stock.")*/
                     _isLoading.value = false // Ocultar indicador de carga en caso de error
                     return@addSnapshotListener
                 }

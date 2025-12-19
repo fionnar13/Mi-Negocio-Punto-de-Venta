@@ -3,7 +3,6 @@ package com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory
 // AddProductScreen.kt
 
 import android.content.Context
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -159,7 +158,7 @@ fun AddProductScreen(
     LaunchedEffect(barcodeRoute) {
         if (!barcodeRoute.isNullOrBlank() && viewModel.barcode.value != barcodeRoute) {
             viewModel.barcode.value = barcodeRoute
-            Log.d(TAG, "Código de barras establecido desde el escaner: $barcodeRoute")
+            /*Log.d(TAG, "Código de barras establecido desde el escaner: $barcodeRoute")*/
         }
     }
 
@@ -167,7 +166,7 @@ fun AddProductScreen(
     LaunchedEffect(currentBarcode) {
         if (currentBarcode.isNotBlank()) {
             checkProductExists(checkProductExistsViewModel, viewModel, TAG, context)
-            Log.d(TAG, "Verificando existencia del producto con código: $currentBarcode")
+            /*Log.d(TAG, "Verificando existencia del producto con código: $currentBarcode")*/
         }
     }
 
@@ -500,6 +499,6 @@ fun checkProductExists(
         }
     } catch (e: Exception) {
         viewModel.errorMessage.value = "Hubo un error al verificar el producto."
-        Log.e(TAG, "Error al verificar producto: $e")
+        /*Log.e(TAG, "Error al verificar producto: $e")*/
     }
 }

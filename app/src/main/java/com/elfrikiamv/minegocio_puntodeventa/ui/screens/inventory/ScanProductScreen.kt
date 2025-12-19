@@ -3,7 +3,6 @@ package com.elfrikiamv.minegocio_puntodeventa.ui.screens.inventory
 // ScanProductScreen.kt
 
 import android.Manifest
-import android.util.Log
 import android.util.Size
 import android.view.MotionEvent
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -89,7 +88,7 @@ fun ScanProductScreen(navController: NavHostController) {
                             detectedBarcode
                         )
                         val barcode = detectedBarcode
-                        Log.d("ScanProductScreen", "Barcode detected: $barcode")
+                        /*Log.d("ScanProductScreen", "Barcode detected: $barcode")*/
                         navController.navigate(Screen.AddProduct.route + "?barcode=${barcode}")
                     }
                 },
@@ -164,7 +163,7 @@ private fun CameraPreview(
                         )
                         cameraControl = camera?.cameraControl
                     } catch (exc: Exception) {
-                        Log.e("CameraPreview", "Error al iniciar la cámara: ${exc.message}")
+                        /*Log.e("CameraPreview", "Error al iniciar la cámara: ${exc.message}")*/
                     }
                 }, ContextCompat.getMainExecutor(context))
 

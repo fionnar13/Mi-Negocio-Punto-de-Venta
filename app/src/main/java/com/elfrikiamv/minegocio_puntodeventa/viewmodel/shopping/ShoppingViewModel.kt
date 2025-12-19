@@ -4,7 +4,6 @@ package com.elfrikiamv.minegocio_puntodeventa.viewmodel.shopping
 
 import android.app.Application
 import android.content.Context
-import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -189,18 +188,18 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
                         .document(document.id)
                         .update("quantity", newQuantity)
                         .addOnSuccessListener {
-                            Log.d(
+                            /*Log.d(
                                 "ShoppingViewModel",
                                 "Cantidad actualizada en Firebase: $newQuantity"
-                            )
+                            )*/
                         }
                         .addOnFailureListener { e ->
-                            Log.e("ShoppingViewModel", "Error al actualizar Firebase: $e")
+                            /*Log.e("ShoppingViewModel", "Error al actualizar Firebase: $e")*/
                         }
                 }
             }
             .addOnFailureListener { e ->
-                Log.e("ShoppingViewModel", "Error al consultar Firebase: $e")
+                /*Log.e("ShoppingViewModel", "Error al consultar Firebase: $e")*/
             }
     }
 
@@ -227,7 +226,7 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
             val products = productDao.getAllProducts().first()
             if (products.isEmpty()) {
                 val errorMessage = "No hay productos en el carrito."
-                Log.e("ShoppingViewModel", errorMessage)
+                /*Log.e("ShoppingViewModel", errorMessage)*/
                 _isLoading.value = false
                 onError(errorMessage)
                 return@launch
@@ -252,7 +251,7 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
 
             // Guardar en Room (temporalmente)
             ticketDao.insertTicket(ticket)
-            Log.d("ShoppingViewModel", "Ticket guardado en Room: $ticket")
+            /*Log.d("ShoppingViewModel", "Ticket guardado en Room: $ticket")*/
 
             // Limpiar carrito de Room
             productDao.deleteAllProducts()
@@ -319,7 +318,7 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
             }
             .addOnFailureListener { e ->
                 val errorMessage = "Error al subir el ticket a Firebase: ${e.message}"
-                Log.e("ShoppingViewModel", errorMessage)
+                /*Log.e("ShoppingViewModel", errorMessage)*/
                 _isLoading.value = false
                 onError(errorMessage)
             }
@@ -334,17 +333,17 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
                 // El ticket existe, generar el PDF
                 try {
                     val pdfFile = activityViewModel.generatePDF(context, firebaseTicket)
-                    Log.d("ShoppingViewModel", "PDF generado: ${pdfFile.absolutePath}")
+                    /*Log.d("ShoppingViewModel", "PDF generado: ${pdfFile.absolutePath}")*/
 
                     // Enviar correo
                     activityViewModel.sendEmail(context, email, pdfFile)
-                    Log.d("ShoppingViewModel", "Correo enviado con éxito.")
+                    /*Log.d("ShoppingViewModel", "Correo enviado con éxito.")*/
                 } catch (e: Exception) {
-                    Log.e("ShoppingViewModel", "Error al generar/enviar PDF: ${e.message}")
+                    /*Log.e("ShoppingViewModel", "Error al generar/enviar PDF: ${e.message}")*/
                 }
             } else {
                 // El ticket no existe, registrar un error o manejar el caso
-                Log.e("ShoppingViewModel", "El ticket con ID $ticketId no existe en Firebase.")
+                /*Log.e("ShoppingViewModel", "El ticket con ID $ticketId no existe en Firebase.")*/
             }
         }
     }
@@ -374,7 +373,7 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
                 }
             }
             .addOnFailureListener { e ->
-                Log.e("ShoppingViewModel", "Error al consultar stock en Firebase: $e")
+                /*Log.e("ShoppingViewModel", "Error al consultar stock en Firebase: $e")*/
                 continuation.resumeWith(Result.success(0))
             }
     }
@@ -389,10 +388,10 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
                     productDao.updateProduct(existingProduct.copy(quantity = newQuantity))
                     updateFirebaseQuantity(barcode, -1)
                 } else {
-                    Log.e(
+                    /*Log.e(
                         "ShoppingViewModel",
                         "No hay suficiente stock en Firebase para incrementar."
-                    )
+                    )*/
                 }
             }
         }
@@ -406,7 +405,7 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
                 productDao.updateProduct(existingProduct.copy(quantity = newQuantity))
                 updateFirebaseQuantity(barcode, 1)
             } else {
-                Log.e("ShoppingViewModel", "No se puede disminuir más la cantidad.")
+                /*Log.e("ShoppingViewModel", "No se puede disminuir más la cantidad.")*/
             }
         }
     }

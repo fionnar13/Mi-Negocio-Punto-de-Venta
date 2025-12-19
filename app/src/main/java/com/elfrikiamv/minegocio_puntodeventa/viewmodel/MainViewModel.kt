@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.asStateFlow
 class MainViewModel : ViewModel() {
 
     // ID del banner admob
-    private val _bannerID = MutableStateFlow("ca-app-pub-3940256099942544/9214589741")
+    private val _bannerID = MutableStateFlow("ca-app-pub-5315728410718973/5674832229")
     val bannerID = _bannerID.asStateFlow()
 
 }
