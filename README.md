@@ -17,6 +17,8 @@ Mi Negocio Punto de Venta es una aplicación móvil para Android diseñada para 
 
 La aplicación ofrece un resumen mensual del negocio, mostrando métricas clave como el total de ventas, los gastos registrados, las ganancias netas y el número de transacciones. Además, utiliza la cámara del dispositivo para escanear códigos de barras, facilitando la adición de productos y la finalización de transacciones de manera eficiente.
 
+- Video demostrativo de la app. - **_[https://youtu.be/hMiubwJvU14](https://youtu.be/hMiubwJvU14)_**.
+
 ## Construido con.
 
 Este proyecto fue desarrollado utilizando tecnologías y librerías modernas del ecosistema de Android para garantizar un rendimiento robusto, una interfaz de usuario fluida y una arquitectura escalable.
