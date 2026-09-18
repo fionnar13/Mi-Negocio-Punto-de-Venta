@@ -16,6 +16,8 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        // JitPack: PersianDate (calendario Jalali)
+        maven { url = uri("https://jitpack.io") }
     }
 }
 

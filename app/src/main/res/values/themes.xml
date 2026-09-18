@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.MiNegocioPuntodeVenta" parent="android:Theme.Material.Light.NoActionBar" />
+    <!-- Tema base de «سازمان فروشگاه»: RTL + Vazirmatn + fondo oscuro de marca -->
+    <style name="Theme.MiNegocioPuntodeVenta" parent="android:Theme.Material.NoActionBar">
+        <item name="android:layoutDirection">rtl</item>
+        <item name="android:fontFamily">@font/vazirmatn</item>
+        <item name="android:windowBackground">@color/app_background</item>
+    </style>
 </resources>

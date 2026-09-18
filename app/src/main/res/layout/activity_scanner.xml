@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black">
+
+    <com.journeyapps.barcodescanner.DecoratedBarcodeView
+        android:id="@+id/zxing_barcode_scanner"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <ImageButton
+        android:id="@+id/btn_close_scanner"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="top|end"
+        android:layout_margin="16dp"
+        android:background="@drawable/bg_scanner_control"
+        android:contentDescription="@string/scanner_close"
+        android:scaleType="centerInside"
+        android:src="@drawable/baseline_close_24"
+        android:tint="@android:color/white" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="32dp"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/btn_switch_camera"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:background="@drawable/bg_scanner_control"
+            android:contentDescription="@string/scanner_switch_camera"
+            android:scaleType="centerInside"
+            android:src="@drawable/baseline_flip_camera_24"
+            android:tint="@android:color/white" />
+
+        <Space
+            android:layout_width="24dp"
+            android:layout_height="1dp" />
+
+        <ImageButton
+            android:id="@+id/btn_toggle_torch"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:background="@drawable/bg_scanner_control"
+            android:contentDescription="@string/scanner_torch_on"
+            android:scaleType="centerInside"
+            android:src="@drawable/baseline_flashlight_off_24"
+            android:tint="@android:color/white" />
+    </LinearLayout>
+
+</FrameLayout>
