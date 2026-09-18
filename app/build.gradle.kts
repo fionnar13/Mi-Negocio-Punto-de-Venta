@@ -3,14 +3,8 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.compose.compiler)
 
-    // Add the Google services Gradle plugin
-    id("com.google.gms.google-services")
-
     // ksp
     id("com.google.devtools.ksp")
-
-    // Add the Crashlytics Gradle plugin
-    id("com.google.firebase.crashlytics")
 }
 
 android {
@@ -50,14 +44,19 @@ android {
     buildFeatures {
         compose = true
     }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
-    }
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "META-INF/DEPENDENCIES"
+            excludes += "META-INF/INDEX.LIST"
+            excludes += "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
         }
     }
+}
+
+// خروجی اسکیمای JSON Room برای مهاجرت‌های آینده (app/schemas)
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
 }
 
 dependencies {
@@ -81,39 +80,31 @@ dependencies {
     //splashscreen API
     implementation(libs.androidx.core.splashscreen)
 
-    // Import the Firebase BoM
-    implementation(platform(libs.firebase.bom))
-
-    // Add the dependency for the Firebase Authentication library
-    // When using the BoM, you don't specify versions in Firebase library dependencies
-    implementation(libs.firebase.auth)
-
-    // TODO: Add the dependencies for Firebase products you want to use
-    // When using the BoM, don't specify versions in Firebase dependencies
-    implementation(libs.firebase.analytics)
-
-    // Add the dependencies for the Crashlytics and Analytics libraries
-    // When using the BoM, you don't specify versions in Firebase library dependencies
-    implementation(libs.firebase.crashlytics)
-    implementation(libs.google.firebase.analytics)
-
-    //Para utilizar await()
-    implementation(libs.kotlinx.coroutines.play.services)
-
     // Jetpack Compose
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.foundation)
 
-    // Declare the dependency for the Cloud Firestore library
-    // When using the BoM, you don't specify versions in Firebase library dependencies
-    implementation(libs.firebase.firestore)
+    // اسکنر بارکد (ZXing-Android-Embedded — اسکن پیوسته با CaptureManager)
+    implementation(libs.zxing.android.embedded)
 
-    // ML Kit para escaneo de código de barras
-    implementation (libs.barcode.scanning)
+    // Calendario Jalali (persa) para fechas شمسی
+    implementation(libs.persiandate)
 
-    // lib camera
-    implementation(libs.androidx.camera.view)
-    implementation(libs.androidx.camera.lifecycle)
-    implementation(libs.androidx.camera.camera2)
+    // نمودارها (MPAndroidChart — line/bar/pie)
+    implementation(libs.mpandroidchart)
+
+    // خروجی اکسل گزارش‌ها (Apache POI + Aalto برای اندروید)
+    implementation(libs.poi.ooxml)
+    implementation(libs.aalto.xml)
+
+    // نقشهٔ فروشگاه (osmdroid — جایگزین Leaflet در اندروید)
+    implementation(libs.osmdroid)
+
+    // کلاینت WebSocket (تب سرور در تنظیمات)
+    implementation(libs.okhttp)
+
+    // تولید QR برای ورود کاربران (هم‌نسخهٔ zxing-android-embedded)
+    implementation(libs.zxing.core)
 
     // Room Database
     implementation(libs.androidx.room.runtime)
@@ -122,19 +113,6 @@ dependencies {
 
     //gson
     implementation(libs.gson)
-
-    // navigation compose
-    implementation (libs.androidx.navigation.compose)
-    implementation (libs.androidx.foundation)
-
-    // dependencia de PDFBox
-    implementation (libs.pdfbox.android)
-
-    // firebase messaging
-    implementation(libs.firebase.messaging.ktx)
-
-    // admob
-    implementation("com.google.android.gms:play-services-ads:24.8.0")
 
     testImplementation("org.mockito:mockito-core:5.21.0")
 }

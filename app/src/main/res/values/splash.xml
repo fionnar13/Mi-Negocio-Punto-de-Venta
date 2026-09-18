@@ -4,5 +4,7 @@
     <style name="Theme.MiNegocioPuntodeVenta.SplashScreen" parent="Theme.SplashScreen">
         <item name="windowSplashScreenAnimatedIcon">@drawable/logo_super_pointsale_splashscreen</item>
         <item name="postSplashScreenTheme">@style/Theme.MiNegocioPuntodeVenta</item>
+        <item name="android:layoutDirection">rtl</item>
+        <item name="android:fontFamily">@font/vazirmatn</item>
     </style>
 </resources>
