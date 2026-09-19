@@ -156,14 +156,16 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             } else user
             if (withToken.id == 0L) userRepo.insert(withToken)
             else userRepo.update(withToken)
-            update { it.copy(users = userRepo.getAll().first(), message = getApplication<Application>().getString(R.string.str_290)) }
+            val users = userRepo.getAll().first()
+            update { it.copy(users = users, message = getApplication<Application>().getString(R.string.str_290)) }
         }
     }
 
     fun deleteUser(user: UserEntity) {
         viewModelScope.launch {
             userRepo.delete(user)
-            update { it.copy(users = userRepo.getAll().first(), message = getApplication<Application>().getString(R.string.str_292)) }
+            val users = userRepo.getAll().first()
+            update { it.copy(users = users, message = getApplication<Application>().getString(R.string.str_292)) }
         }
     }
 
@@ -210,52 +212,60 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     fun backup() {
         viewModelScope.launch {
-            update { it.copy(message = dataManager.backupJson()) }
+            val msg = dataManager.backupJson()
+            update { it.copy(message = msg) }
         }
     }
 
     fun restore(uri: android.net.Uri) {
         viewModelScope.launch {
-            update { it.copy(message = dataManager.restoreJson(uri)) }
+            val msg = dataManager.restoreJson(uri)
+            update { it.copy(message = msg) }
             load()
         }
     }
 
     fun resetData() {
         viewModelScope.launch {
-            update { it.copy(message = dataManager.reset()) }
+            val msg = dataManager.reset()
+            update { it.copy(message = msg) }
             load()
         }
     }
 
     fun sampleData() {
         viewModelScope.launch {
-            update { it.copy(message = dataManager.sampleData()) }
+            val msg = dataManager.sampleData()
+            update { it.copy(message = msg) }
             load()
         }
     }
 
     fun exportProductsExcel() {
         viewModelScope.launch {
-            update { it.copy(message = dataManager.exportProductsExcel()) }
+            val msg = dataManager.exportProductsExcel()
+            update { it.copy(message = msg) }
         }
     }
 
     fun exportCustomersExcel() {
         viewModelScope.launch {
-            update { it.copy(message = dataManager.exportCustomersExcel()) }
+            val msg = dataManager.exportCustomersExcel()
+            update { it.copy(message = msg) }
         }
     }
 
     fun importProducts(uri: android.net.Uri) {
         viewModelScope.launch {
-            update { it.copy(message = dataManager.importProductsExcel(uri)) }
+            val msg = dataManager.importProductsExcel(uri)
+            update { it.copy(message = msg) }
         }
     }
 
     fun importCustomers(uri: android.net.Uri) {
         viewModelScope.launch {
-            update { it.copy(message = dataManager.importCustomersExcel(uri)) }
+            val msg = dataManager.importCustomersExcel(uri)
+            update { it.copy(message = msg) }
         }
     }
 

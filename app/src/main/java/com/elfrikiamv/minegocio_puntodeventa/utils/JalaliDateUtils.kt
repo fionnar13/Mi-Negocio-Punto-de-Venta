@@ -35,12 +35,7 @@ object JalaliDateUtils {
 
     /** Crea una fecha a partir de componentes Jalali (año, mes, día). */
     fun fromJalali(jalaliYear: Int, jalaliMonth: Int, jalaliDay: Int): PersianDate =
-        PersianDate().apply {
-            setShYear(jalaliYear)
-            setShMonth(jalaliMonth)
-            setShDay(jalaliDay)
-            initJalaliDate()
-        }
+        PersianDate().initJalaliDate(jalaliYear, jalaliMonth, jalaliDay)
 
     /** Crea una fecha a partir de componentes gregorianos (año, mes, día). */
     fun fromGregorian(gregorianYear: Int, gregorianMonth: Int, gregorianDay: Int): PersianDate {
@@ -50,11 +45,11 @@ object JalaliDateUtils {
 
     /** Convierte una fecha gregoriana a componentes Jalali: `[año, mes, día]`. */
     fun toJalali(gregorianYear: Int, gregorianMonth: Int, gregorianDay: Int): IntArray =
-        PersianDate().toJalali(gregorianYear, gregorianMonth, gregorianDay)
+        PersianDate().gregorian_to_jalali(gregorianYear, gregorianMonth, gregorianDay)
 
     /** Convierte componentes Jalali a fecha gregoriana: `[año, mes, día]`. */
     fun toGregorian(jalaliYear: Int, jalaliMonth: Int, jalaliDay: Int): IntArray =
-        PersianDate().toGregorian(jalaliYear, jalaliMonth, jalaliDay)
+        PersianDate().jalali_to_gregorian(jalaliYear, jalaliMonth, jalaliDay)
 
     /** Indica si un año Jalali es bisiesto (esfand de 30 días). */
     fun isLeapJalaliYear(jalaliYear: Int): Boolean = fromJalali(jalaliYear, 1, 1).isLeap()
