@@ -196,12 +196,13 @@ private class TablePrintAdapter(
     override fun onLayout(
         attributes: PrintAttributes,
         oldAttributes: PrintAttributes?,
-        callback: PrintDocumentCallback,
+        cancellationSignal: CancellationSignal,
+        callback: PrintDocumentAdapter.LayoutResultCallback,
         extras: Bundle?
     ) {
         attrs = attributes
         val pdf = PrintedPdfDocument(context, attrs)
-        val pageHeight = pdf.pageInfo.pageHeight.toFloat()
+        val pageHeight = pdf.getPageHeight().toFloat()
         val usable = pageHeight - 2 * margin - headerHeight - 60f // 60 = فضای عنوان صفحهٔ اول
         rowsPerPage = (usable / rowHeight).toInt().coerceAtLeast(1)
         pageCount = if (rows.isEmpty()) 1 else (rows.size + rowsPerPage - 1) / rowsPerPage
@@ -214,17 +215,17 @@ private class TablePrintAdapter(
     }
 
     override fun onWrite(
-        pages: Array<out PageRange>?,
+        pages: Array<PageRange>,
         destination: ParcelFileDescriptor,
-        callback: PrintDocumentCallback,
-        extras: Bundle?
+        cancellationSignal: CancellationSignal,
+        callback: PrintDocumentAdapter.WriteResultCallback
     ) {
         val pdf = PrintedPdfDocument(context, attrs)
         try {
             for (page in 0 until pageCount) {
                 val pageInfo = pdf.startPage(page)
                 val canvas = pageInfo.canvas
-                val pageWidth = pageInfo.pageWidth.toFloat()
+                val pageWidth = pdf.getPageWidth().toFloat()
                 val usableWidth = pageWidth - 2 * margin
                 val colWidth = usableWidth / headers.size
 
@@ -277,7 +278,7 @@ private class TablePrintAdapter(
         }
     }
 
-    override fun onCancel() {
+    override fun onFinish() {
         // هیچ منبع پایداری برای آزادسازی نداریم
     }
 

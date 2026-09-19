@@ -240,7 +240,8 @@ object InvoicePrinter {
         override fun onLayout(
             attributes: PrintAttributes,
             oldAttributes: PrintAttributes?,
-            callback: PrintDocumentCallback,
+            cancellationSignal: android.os.CancellationSignal,
+            callback: PrintDocumentAdapter.LayoutResultCallback,
             extras: Bundle?
         ) {
             val info = PrintDocumentInfo.Builder("$name.pdf")
@@ -251,10 +252,10 @@ object InvoicePrinter {
         }
 
         override fun onWrite(
-            pages: Array<out PageRange>?,
+            pages: Array<PageRange>,
             destination: ParcelFileDescriptor,
-            callback: PrintDocumentCallback,
-            extras: Bundle?
+            cancellationSignal: android.os.CancellationSignal,
+            callback: PrintDocumentAdapter.WriteResultCallback
         ) {
             val pdf = PdfDocument()
             try {

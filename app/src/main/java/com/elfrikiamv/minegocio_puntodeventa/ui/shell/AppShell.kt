@@ -72,6 +72,7 @@ private const val EXPANDED_BREAKPOINT = 600
 /** عرض کشوی کنار در حالت دسکتاپ/تبلت. */
 private const val DRAWER_WIDTH = 280
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppShell() {
     val navController = rememberNavController()

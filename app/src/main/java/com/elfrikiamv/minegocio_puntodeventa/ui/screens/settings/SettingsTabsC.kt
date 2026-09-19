@@ -440,6 +440,7 @@ private fun StatCard(title: String, count: Int, level: String, modifier: Modifie
 }
 
 /** دراپ‌داون سطح لاگ. */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun LevelDropdown(selected: String, onSelect: (String) -> Unit) {
     var expanded by remember { mutableStateOf(false) }

@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
@@ -297,7 +298,7 @@ private fun KpiCard(title: String, value: Double, modifier: Modifier = Modifier)
 }
 
 @Composable
-private fun TableHeader(label: String, weight: Float) {
+private fun RowScope.TableHeader(label: String, weight: Float) {
     Text(
         text = label,
         style = MaterialTheme.typography.labelSmall,

@@ -3,6 +3,7 @@ package com.elfrikiamv.minegocio_puntodeventa.ui.components
 // CartTable.kt — جدول اقلام فاکتور (مشترک فروش و خرید)
 
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -147,7 +148,7 @@ fun CartTable(
 }
 
 @Composable
-private fun HeaderCell(label: String, weight: Float) {
+private fun RowScope.HeaderCell(label: String, weight: Float) {
     Text(
         text = label,
         style = MaterialTheme.typography.labelSmall,
