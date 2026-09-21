@@ -33,3 +33,7 @@ render.experimental.xml
 
 # Android Profiling
 *.hprof
+
+# PWA dev server self-signed certificates (serve_pwa.py --https)
+pwa/.cert/
+__pycache__/

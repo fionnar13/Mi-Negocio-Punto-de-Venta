@@ -1,0 +1,64 @@
+{
+  "name": "سازمان فروشگاه",
+  "short_name": "POS",
+  "description": "نسخهٔ وب (PWA) سامانهٔ فروشگاهی «سازمان فروشگاه» — فروش، خرید، کالاها، گزارش‌ها و اسکن بارکد؛ کاملاً آفلاین.",
+  "id": "./index.html",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#1976D2",
+  "lang": "fa",
+  "dir": "rtl",
+  "categories": ["business", "productivity", "shopping"],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "فروش جدید",
+      "short_name": "فروش",
+      "description": "ثبت فاکتور فروش جدید",
+      "url": "./index.html#/sale",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "اسکن بارکد",
+      "short_name": "اسکن",
+      "description": "افزودن کالا به سبد با اسکن",
+      "url": "./index.html#/sale?scan=1",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "کالای جدید",
+      "short_name": "کالا",
+      "description": "ثبت کالای جدید در انبار",
+      "url": "./index.html#/products",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ]
+}
